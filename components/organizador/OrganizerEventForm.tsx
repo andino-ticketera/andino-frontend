@@ -208,6 +208,44 @@ export default function OrganizerEventForm({
     title.trim() &&
     longDescription.trim() &&
     date.trim() &&
+    flyer.trim() &&
+    (paymentMethod === "mercadopago"
+      ? isMercadoPagoReady && !isMpStatusLoading
+      : cbuCvu.trim());
+  const firstMissingField = useMemo(() => {
+    if (!flyer.trim()) return "Flyer / Poster del evento";
+    if (!title.trim()) return "Titulo";
+    if (!category.trim()) return "Categoria";
+    if (!longDescription.trim()) return "Descripcion del evento";
+    if (!date.trim()) return "Fecha";
+    if (!isCompleteEventTime(time)) return "Hora";
+    if (!venue.trim()) return "Locacion";
+    if (!provincia.trim()) return "Provincia";
+    if (!localidad.trim()) return "Localidad";
+    if (paymentMethod === "mercadopago") {
+      if (isMpStatusLoading || !isMercadoPagoReady) {
+        return "Mercado Pago activo";
+      }
+    }
+    if (paymentMethod === "transferencia" && !cbuCvu.trim()) {
+      return "CBU / CVU";
+    }
+    return "";
+  }, [
+    category,
+    cbuCvu,
+    date,
+    flyer,
+    isMercadoPagoReady,
+    isMpStatusLoading,
+    localidad,
+    longDescription,
+    paymentMethod,
+    provincia,
+    time,
+    title,
+    venue,
+  ]);
     isCompleteEventTime(time) &&
     venue.trim() &&
     provincia.trim() &&
@@ -632,9 +670,23 @@ export default function OrganizerEventForm({
         style={{
           marginTop: "18px",
           display: "flex",
+          flexDirection: "column",
+          alignItems: "flex-end",
+          gap: "0.375rem",
           justifyContent: "flex-end",
         }}
       >
+        {!canSubmit && firstMissingField ? (
+          <span
+            style={{
+              fontSize: "var(--font-xs)",
+              color: "#f3c7d1",
+              textAlign: "right",
+            }}
+          >
+            {firstMissingField} es obligatorio.
+          </span>
+        ) : null}
         <button
           type="submit"
           disabled={!canSubmit}

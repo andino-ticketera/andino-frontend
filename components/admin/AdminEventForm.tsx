@@ -308,6 +308,34 @@ export default function AdminEventForm({
     (mode === "edit" || image.trim());
 
   const canSubmit = baseCanSubmit && hasChanges;
+  const firstMissingField = useMemo(() => {
+    if (!title.trim()) return "Titulo";
+    if (categories.length === 0 || !selectedCategory.trim()) {
+      return "Categoria";
+    }
+    if (!longDescription.trim()) return "Descripcion larga";
+    if (!date.trim()) return "Fecha";
+    if (!isCompleteEventTime(time)) return "Hora";
+    if (!venue.trim()) return "Locacion";
+    if (!provincia.trim()) return "Provincia";
+    if (!localidad.trim()) return "Localidad";
+    if (mode === "create" && !image.trim()) return "Imagen del evento";
+    if (mode === "edit" && !hasChanges) return "Guardá algun cambio";
+    return "";
+  }, [
+    categories.length,
+    date,
+    hasChanges,
+    image,
+    localidad,
+    longDescription,
+    mode,
+    provincia,
+    selectedCategory,
+    time,
+    title,
+    venue,
+  ]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -793,9 +821,23 @@ export default function AdminEventForm({
         style={{
           marginTop: "1.125rem",
           display: "flex",
+          flexDirection: "column",
+          alignItems: "flex-end",
+          gap: "0.375rem",
           justifyContent: "flex-end",
         }}
       >
+        {!canSubmit && firstMissingField ? (
+          <span
+            style={{
+              fontSize: "var(--font-xs)",
+              color: "#f3c7d1",
+              textAlign: "right",
+            }}
+          >
+            {firstMissingField} es obligatorio.
+          </span>
+        ) : null}
         <button
           type="submit"
           disabled={!canSubmit}
