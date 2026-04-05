@@ -62,15 +62,6 @@ const optionalHintStyle: React.CSSProperties = {
   fontWeight: 600,
 };
 
-const helperCardStyle: React.CSSProperties = {
-  border: "1px solid var(--border-color)",
-  borderRadius: "var(--radius-md)",
-  background: "#f5f6fa",
-  padding: "0.875rem",
-  display: "grid",
-  gap: "0.375rem",
-};
-
 const tabButtonStyle: React.CSSProperties = {
   border: "1px solid var(--border-color)",
   borderRadius: "var(--radius-md)",
@@ -317,35 +308,6 @@ export default function AdminEventForm({
     (mode === "edit" || image.trim());
 
   const canSubmit = baseCanSubmit && hasChanges;
-  const missingRequiredFields = useMemo(() => {
-    const missing: string[] = [];
-
-    if (!title.trim()) missing.push("Titulo");
-    if (categories.length === 0 || !selectedCategory.trim()) {
-      missing.push("Categoria");
-    }
-    if (!longDescription.trim()) missing.push("Descripcion larga");
-    if (!date.trim()) missing.push("Fecha");
-    if (!isCompleteEventTime(time)) missing.push("Hora");
-    if (!venue.trim()) missing.push("Locacion");
-    if (!provincia.trim()) missing.push("Provincia");
-    if (!localidad.trim()) missing.push("Localidad");
-    if (mode === "create" && !image.trim()) missing.push("Imagen del evento");
-
-    return missing;
-  }, [
-    categories.length,
-    date,
-    image,
-    localidad,
-    longDescription,
-    mode,
-    provincia,
-    selectedCategory,
-    time,
-    title,
-    venue,
-  ]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -397,32 +359,6 @@ export default function AdminEventForm({
 
   return (
     <form onSubmit={handleSubmit}>
-      <div style={{ ...helperCardStyle, marginBottom: "0.875rem" }}>
-        <span style={{ fontSize: "var(--font-sm)", color: "#1f1f1f" }}>
-          Completa los campos marcados con
-          <span style={requiredAsteriskStyle}>*</span>
-          para habilitar la creacion del evento.
-        </span>
-        <span style={{ fontSize: "var(--font-xs)", color: "#5b5b66" }}>
-          Obligatorios: Titulo, Categoria, Descripcion larga, Fecha, Hora,
-          Locacion, Provincia, Localidad y, al crear, Imagen del evento.
-        </span>
-        <span style={{ fontSize: "var(--font-xs)", color: "#5b5b66" }}>
-          Opcionales: Organizador, Direccion, Precio, Cantidad de entradas,
-          Flyer y datos del medio de pago.
-        </span>
-        {!canSubmit && missingRequiredFields.length > 0 ? (
-          <span style={{ fontSize: "var(--font-xs)", color: "#b42318" }}>
-            Todavia faltan: {missingRequiredFields.join(", ")}.
-          </span>
-        ) : null}
-        {!canSubmit && mode === "edit" && hasChanges === false ? (
-          <span style={{ fontSize: "var(--font-xs)", color: "#5b5b66" }}>
-            No hay cambios para guardar todavia.
-          </span>
-        ) : null}
-      </div>
-
       <div
         style={{
           display: "flex",

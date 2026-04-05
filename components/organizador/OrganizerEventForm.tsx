@@ -76,15 +76,6 @@ const optionalHintStyle: React.CSSProperties = {
   fontWeight: 600,
 };
 
-const helperCardStyle: React.CSSProperties = {
-  border: "1px solid var(--border-color)",
-  borderRadius: "var(--radius-md)",
-  background: "#f5f6fa",
-  padding: "0.875rem",
-  display: "grid",
-  gap: "0.375rem",
-};
-
 function renderFieldLabel(
   label: string,
   options?: { required?: boolean; optional?: boolean },
@@ -226,43 +217,6 @@ export default function OrganizerEventForm({
       ? isMercadoPagoReady && !isMpStatusLoading
       : cbuCvu.trim());
 
-  const missingRequiredFields = useMemo(() => {
-    const missing: string[] = [];
-
-    if (!title.trim()) missing.push("Titulo");
-    if (!category.trim()) missing.push("Categoria");
-    if (!longDescription.trim()) missing.push("Descripcion del evento");
-    if (!date.trim()) missing.push("Fecha");
-    if (!isCompleteEventTime(time)) missing.push("Hora");
-    if (!venue.trim()) missing.push("Locacion");
-    if (!provincia.trim()) missing.push("Provincia");
-    if (!localidad.trim()) missing.push("Localidad");
-    if (!flyer.trim()) missing.push("Flyer / Poster del evento");
-    if (paymentMethod === "mercadopago") {
-      if (isMpStatusLoading || !isMercadoPagoReady) {
-        missing.push("Mercado Pago activo");
-      }
-    } else if (!cbuCvu.trim()) {
-      missing.push("CBU / CVU");
-    }
-
-    return missing;
-  }, [
-    category,
-    cbuCvu,
-    date,
-    flyer,
-    isMercadoPagoReady,
-    isMpStatusLoading,
-    localidad,
-    longDescription,
-    paymentMethod,
-    provincia,
-    time,
-    title,
-    venue,
-  ]);
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!canSubmit) return;
@@ -314,27 +268,6 @@ export default function OrganizerEventForm({
 
   return (
     <form onSubmit={handleSubmit}>
-      <div style={{ ...helperCardStyle, marginBottom: "18px" }}>
-        <span style={{ fontSize: "var(--font-sm)", color: "#1f1f1f" }}>
-          Completa los campos marcados con
-          <span style={requiredAsteriskStyle}>*</span>
-          para habilitar la publicacion del evento.
-        </span>
-        <span style={{ fontSize: "var(--font-xs)", color: "#5b5b66" }}>
-          Obligatorios: Flyer o poster, Titulo, Categoria, Descripcion del
-          evento, Fecha, Hora, Locacion, Provincia, Localidad y el medio de
-          cobro configurado.
-        </span>
-        <span style={{ fontSize: "var(--font-xs)", color: "#5b5b66" }}>
-          Opcionales: Direccion, Precio y Cantidad de entradas.
-        </span>
-        {!canSubmit && missingRequiredFields.length > 0 ? (
-          <span style={{ fontSize: "var(--font-xs)", color: "#b42318" }}>
-            Todavia faltan: {missingRequiredFields.join(", ")}.
-          </span>
-        ) : null}
-      </div>
-
       <div style={{ ...fieldBox, marginBottom: "18px" }}>
         <label
           style={{
