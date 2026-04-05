@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="14" fill="#2a1342"/>
+  <text x="8" y="46" font-family="Arial Black, sans-serif" font-weight="900" font-style="italic" font-size="38" fill="#76ffa5">
+    <tspan dx="0" dy="0">A</tspan>
+  </text>
+  <text x="10" y="48" font-family="Arial Black, sans-serif" font-weight="900" font-style="italic" font-size="38" fill="#ff6af0" opacity="0.5">
+    <tspan dx="0" dy="0">A</tspan>
+  </text>
+</svg>
