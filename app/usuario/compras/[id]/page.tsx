@@ -197,7 +197,8 @@ export default function CompraDetallePage() {
               <div
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "repeat(auto-fit, minmax(13.75rem, 1fr))",
+                  gridTemplateColumns:
+                    "repeat(auto-fit, minmax(13.75rem, 1fr))",
                   gap: "0.85rem",
                 }}
               >
@@ -321,7 +322,7 @@ export default function CompraDetallePage() {
                         cursor: "pointer",
                       }}
                     >
-                      {"Ver QR y descargar \"ticket\""}
+                      {'Ver QR y descargar "ticket"'}
                     </button>
                   </article>
                 ))}

@@ -51,6 +51,26 @@ const labelStyle: React.CSSProperties = {
   fontWeight: 700,
 };
 
+const requiredAsteriskStyle: React.CSSProperties = {
+  color: "#d7263d",
+  marginLeft: "0.125rem",
+  fontWeight: 900,
+};
+
+const optionalHintStyle: React.CSSProperties = {
+  color: "var(--text-disabled)",
+  fontWeight: 600,
+};
+
+const helperCardStyle: React.CSSProperties = {
+  border: "1px solid var(--border-color)",
+  borderRadius: "var(--radius-md)",
+  background: "#f5f6fa",
+  padding: "0.875rem",
+  display: "grid",
+  gap: "0.375rem",
+};
+
 const tabButtonStyle: React.CSSProperties = {
   border: "1px solid var(--border-color)",
   borderRadius: "var(--radius-md)",
@@ -69,6 +89,21 @@ const activeTabStyle: React.CSSProperties = {
   border: "1px solid #b9a6ea",
   boxShadow: "0 0 0 1px rgba(185, 166, 234, 0.35)",
 };
+
+function renderFieldLabel(
+  label: string,
+  options?: { required?: boolean; optional?: boolean },
+) {
+  return (
+    <>
+      {label}
+      {options?.required ? <span style={requiredAsteriskStyle}>*</span> : null}
+      {options?.optional ? (
+        <span style={optionalHintStyle}> (opcional)</span>
+      ) : null}
+    </>
+  );
+}
 
 function defaultEventValues(category: string): Omit<Event, "id"> {
   return {
@@ -282,6 +317,35 @@ export default function AdminEventForm({
     (mode === "edit" || image.trim());
 
   const canSubmit = baseCanSubmit && hasChanges;
+  const missingRequiredFields = useMemo(() => {
+    const missing: string[] = [];
+
+    if (!title.trim()) missing.push("Titulo");
+    if (categories.length === 0 || !selectedCategory.trim()) {
+      missing.push("Categoria");
+    }
+    if (!longDescription.trim()) missing.push("Descripcion larga");
+    if (!date.trim()) missing.push("Fecha");
+    if (!isCompleteEventTime(time)) missing.push("Hora");
+    if (!venue.trim()) missing.push("Locacion");
+    if (!provincia.trim()) missing.push("Provincia");
+    if (!localidad.trim()) missing.push("Localidad");
+    if (mode === "create" && !image.trim()) missing.push("Imagen del evento");
+
+    return missing;
+  }, [
+    categories.length,
+    date,
+    image,
+    localidad,
+    longDescription,
+    mode,
+    provincia,
+    selectedCategory,
+    time,
+    title,
+    venue,
+  ]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -333,6 +397,32 @@ export default function AdminEventForm({
 
   return (
     <form onSubmit={handleSubmit}>
+      <div style={{ ...helperCardStyle, marginBottom: "0.875rem" }}>
+        <span style={{ fontSize: "var(--font-sm)", color: "#1f1f1f" }}>
+          Completa los campos marcados con
+          <span style={requiredAsteriskStyle}>*</span>
+          para habilitar la creacion del evento.
+        </span>
+        <span style={{ fontSize: "var(--font-xs)", color: "#5b5b66" }}>
+          Obligatorios: Titulo, Categoria, Descripcion larga, Fecha, Hora,
+          Locacion, Provincia, Localidad y, al crear, Imagen del evento.
+        </span>
+        <span style={{ fontSize: "var(--font-xs)", color: "#5b5b66" }}>
+          Opcionales: Organizador, Direccion, Precio, Cantidad de entradas,
+          Flyer y datos del medio de pago.
+        </span>
+        {!canSubmit && missingRequiredFields.length > 0 ? (
+          <span style={{ fontSize: "var(--font-xs)", color: "#b42318" }}>
+            Todavia faltan: {missingRequiredFields.join(", ")}.
+          </span>
+        ) : null}
+        {!canSubmit && mode === "edit" && hasChanges === false ? (
+          <span style={{ fontSize: "var(--font-xs)", color: "#5b5b66" }}>
+            No hay cambios para guardar todavia.
+          </span>
+        ) : null}
+      </div>
+
       <div
         style={{
           display: "flex",
@@ -380,16 +470,17 @@ export default function AdminEventForm({
           className="admin-form-grid"
         >
           <div style={fieldBox}>
-            <label style={labelStyle}>Titulo</label>
+            <label style={labelStyle}>{renderFieldLabel("Titulo", { required: true })}</label>
             <input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               style={inputStyle}
+              placeholder="Ej: Festival Andino de Otono"
             />
           </div>
 
           <div style={fieldBox}>
-            <label style={labelStyle}>Categoria</label>
+            <label style={labelStyle}>{renderFieldLabel("Categoria", { required: true })}</label>
             <select
               value={selectedCategory}
               onChange={(e) => setCategory(e.target.value)}
@@ -419,25 +510,27 @@ export default function AdminEventForm({
           </div>
 
           <div style={{ ...fieldBox, gridColumn: "1 / -1" }}>
-            <label style={labelStyle}>Descripcion larga</label>
+            <label style={labelStyle}>{renderFieldLabel("Descripcion larga", { required: true })}</label>
             <textarea
               value={longDescription}
               onChange={(e) => setLongDescription(e.target.value)}
               style={textAreaStyle}
+              placeholder="Contale al publico de que se trata el evento, quienes participan, desde que hora se puede ingresar y cualquier detalle importante para la compra."
             />
           </div>
 
           <div style={fieldBox}>
-            <label style={labelStyle}>Organizador</label>
+            <label style={labelStyle}>{renderFieldLabel("Organizador", { optional: true })}</label>
             <input
               value={organizador}
               onChange={(e) => setOrganizador(e.target.value)}
               style={inputStyle}
+              placeholder="Ej: Andino Producciones"
             />
           </div>
 
           <div style={fieldBox}>
-            <label style={labelStyle}>Fecha</label>
+            <label style={labelStyle}>{renderFieldLabel("Fecha", { required: true })}</label>
             <input
               type="date"
               value={date}
@@ -447,7 +540,7 @@ export default function AdminEventForm({
           </div>
 
           <div style={fieldBox}>
-            <label style={labelStyle}>Hora</label>
+            <label style={labelStyle}>{renderFieldLabel("Hora", { required: true })}</label>
             <div
               style={{
                 display: "grid",
@@ -463,7 +556,7 @@ export default function AdminEventForm({
                   setTime(normalizeEventTimeInput(e.target.value))
                 }
                 style={inputStyle}
-                placeholder="Ej: 1115"
+                placeholder="Ej: 21:30"
                 maxLength={5}
               />
               <span
@@ -486,25 +579,27 @@ export default function AdminEventForm({
           </div>
 
           <div style={fieldBox}>
-            <label style={labelStyle}>Locacion</label>
+            <label style={labelStyle}>{renderFieldLabel("Locacion", { required: true })}</label>
             <input
               value={venue}
               onChange={(e) => setVenue(e.target.value)}
               style={inputStyle}
+              placeholder="Ej: Teatro Gran Rex"
             />
           </div>
 
           <div style={fieldBox}>
-            <label style={labelStyle}>Direccion</label>
+            <label style={labelStyle}>{renderFieldLabel("Direccion", { optional: true })}</label>
             <input
               value={direccion}
               onChange={(e) => setDireccion(e.target.value)}
               style={inputStyle}
+              placeholder="Ej: Av. Corrientes 857, CABA"
             />
           </div>
 
           <div style={fieldBox}>
-            <label style={labelStyle}>Provincia</label>
+            <label style={labelStyle}>{renderFieldLabel("Provincia", { required: true })}</label>
             <select
               value={provincia}
               onChange={(e) => {
@@ -523,7 +618,7 @@ export default function AdminEventForm({
           </div>
 
           <div style={fieldBox}>
-            <label style={labelStyle}>Localidad</label>
+            <label style={labelStyle}>{renderFieldLabel("Localidad", { required: true })}</label>
             <select
               key={provincia || "sin-provincia"}
               value={localidad}
@@ -545,29 +640,31 @@ export default function AdminEventForm({
           </div>
 
           <div style={fieldBox}>
-            <label style={labelStyle}>Precio</label>
+            <label style={labelStyle}>{renderFieldLabel("Precio", { optional: true })}</label>
             <input
               type="number"
               min={0}
               value={price}
               onChange={(e) => setPrice(e.target.value)}
               style={inputStyle}
+              placeholder="Ej: 15000"
             />
           </div>
 
           <div style={fieldBox}>
-            <label style={labelStyle}>Cantidad de Entradas</label>
+            <label style={labelStyle}>{renderFieldLabel("Cantidad de Entradas", { optional: true })}</label>
             <input
               type="number"
               min={0}
               value={totalEntradas}
               onChange={(e) => setTotalEntradas(e.target.value)}
               style={inputStyle}
+              placeholder="Ej: 250"
             />
           </div>
 
           <div style={fieldBox}>
-            <label style={labelStyle}>Medio de pago</label>
+            <label style={labelStyle}>{renderFieldLabel("Medio de pago", { optional: true })}</label>
             <select
               value={paymentMethod}
               onChange={(e) =>
@@ -584,22 +681,24 @@ export default function AdminEventForm({
 
           {paymentMethod === "mercadopago" && (
             <div style={fieldBox}>
-              <label style={labelStyle}>Mercado Pago ID</label>
+              <label style={labelStyle}>{renderFieldLabel("Mercado Pago ID", { optional: true })}</label>
               <input
                 value={mercadoPagoId}
                 onChange={(e) => setMercadoPagoId(e.target.value)}
                 style={inputStyle}
+                placeholder="Ej: APP_USR-1234567890abcdef"
               />
             </div>
           )}
 
           {paymentMethod === "transferencia" && (
             <div style={fieldBox}>
-              <label style={labelStyle}>CBU / CVU</label>
+              <label style={labelStyle}>{renderFieldLabel("CBU / CVU", { optional: true })}</label>
               <input
                 value={cbuCvu}
                 onChange={(e) => setCbuCvu(e.target.value)}
                 style={inputStyle}
+                placeholder="Ej: 0000003100000001234567"
               />
             </div>
           )}
@@ -625,7 +724,10 @@ export default function AdminEventForm({
               }}
             >
               <EvaIcon name="image" size={14} />
-              Imagen del evento
+              {renderFieldLabel("Imagen del evento", {
+                required: mode === "create",
+                optional: mode === "edit",
+              })}
             </label>
 
             <input
@@ -676,7 +778,9 @@ export default function AdminEventForm({
               <span style={{ fontSize: "var(--font-xs)", color: "#5b5b66" }}>
                 {image.trim()
                   ? "Imagen cargada correctamente"
-                  : "Formato recomendado: JPG o PNG"}
+                  : mode === "create"
+                    ? "Obligatoria para crear el evento. Formato recomendado: JPG o PNG"
+                    : "Opcional al editar. Formato recomendado: JPG o PNG"}
               </span>
             </div>
           </div>
@@ -691,7 +795,7 @@ export default function AdminEventForm({
               }}
             >
               <EvaIcon name="image" size={14} />
-              Flyer del evento
+              {renderFieldLabel("Flyer del evento", { optional: true })}
             </label>
 
             <input

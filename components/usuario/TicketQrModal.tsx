@@ -211,7 +211,8 @@ export default function TicketQrModal({
               <div
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "repeat(auto-fit, minmax(16.25rem, 1fr))",
+                  gridTemplateColumns:
+                    "repeat(auto-fit, minmax(16.25rem, 1fr))",
                   gap: "1rem",
                 }}
               >
@@ -390,7 +391,7 @@ export default function TicketQrModal({
                     cursor: "pointer",
                   }}
                 >
-                  {"Descargar \"ticket\" PDF"}
+                  {'Descargar "ticket" PDF'}
                 </button>
               </div>
             </div>
