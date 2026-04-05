@@ -40,7 +40,11 @@ export default function AdminEditEventPage() {
         throw new Error("El evento ya no existe en el estado actual");
       }
 
-      const persistedEvent = await updateEventFromAdmin(event.id, updatedEvent);
+      const persistedEvent = await updateEventFromAdmin(
+        event.id,
+        updatedEvent,
+        event,
+      );
       updateEvent(event.id, persistedEvent);
       showToast("Cambios guardados correctamente", "success");
     } catch {

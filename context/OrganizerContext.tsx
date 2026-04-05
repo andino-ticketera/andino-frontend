@@ -167,7 +167,12 @@ export function OrganizerProvider({ children }: { children: ReactNode }) {
 
   const updateEvent = useCallback(
     async (id: string, event: Omit<Event, "id">) => {
-      const updatedEvent = await updateEventFromOrganizer(id, event);
+      const previousEvent = events.find((item) => item.id === id);
+      const updatedEvent = await updateEventFromOrganizer(
+        id,
+        event,
+        previousEvent,
+      );
 
       queryClient.setQueryData<Event[]>(
         ["organizer-events", session?.user.id],

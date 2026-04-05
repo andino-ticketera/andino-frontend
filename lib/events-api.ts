@@ -246,6 +246,60 @@ function buildLocacionFromVenue(venue: string): string {
   return (locacion || venue).trim() || "Locacion";
 }
 
+function buildEventUpdatePayload(
+  event: Omit<Event, "id">,
+  previousEvent?: Omit<Event, "id">,
+): Record<string, unknown> {
+  const payload: Record<string, unknown> = {};
+
+  const nextValues = {
+    titulo: event.title.trim(),
+    descripcion: (event.longDescription || event.description).trim(),
+    locacion: buildLocacionFromVenue(event.venue),
+    direccion: event.direccion.trim(),
+    provincia: event.provincia.trim(),
+    localidad: event.localidad.trim(),
+    precio: Number(event.price) || 0,
+    cantidad_entradas: Math.max(1, Number(event.totalEntradas) || 1),
+    categoria: event.category.trim(),
+    medios_pago: mapFrontendPaymentMethods(event.mediosDePago),
+    fecha_evento: parseDateAndTimeToIso(event.date, event.time),
+  };
+
+  if (!previousEvent) {
+    Object.assign(payload, nextValues);
+    if (!payload.fecha_evento) {
+      delete payload.fecha_evento;
+    }
+    return payload;
+  }
+
+  const previousValues = {
+    titulo: previousEvent.title.trim(),
+    descripcion: (previousEvent.longDescription || previousEvent.description).trim(),
+    locacion: buildLocacionFromVenue(previousEvent.venue),
+    direccion: previousEvent.direccion.trim(),
+    provincia: previousEvent.provincia.trim(),
+    localidad: previousEvent.localidad.trim(),
+    precio: Number(previousEvent.price) || 0,
+    cantidad_entradas: Math.max(1, Number(previousEvent.totalEntradas) || 1),
+    categoria: previousEvent.category.trim(),
+    medios_pago: mapFrontendPaymentMethods(previousEvent.mediosDePago),
+    fecha_evento: parseDateAndTimeToIso(previousEvent.date, previousEvent.time),
+  };
+
+  (Object.keys(nextValues) as Array<keyof typeof nextValues>).forEach((key) => {
+    if (JSON.stringify(nextValues[key]) !== JSON.stringify(previousValues[key])) {
+      if (key === "fecha_evento" && !nextValues[key]) {
+        return;
+      }
+      payload[key] = nextValues[key];
+    }
+  });
+
+  return payload;
+}
+
 function dataUrlToFile(dataUrl: string, filename: string): File | null {
   const match = dataUrl.match(/^data:([^;]+);base64,(.*)$/);
   if (!match) return null;
@@ -322,23 +376,15 @@ export async function fetchOrganizerEvents(): Promise<Event[]> {
 export async function updateEventFromAdmin(
   eventId: string,
   event: Omit<Event, "id">,
+  previousEvent?: Omit<Event, "id">,
 ): Promise<Event> {
-  const payload: Record<string, unknown> = {
-    titulo: event.title,
-    descripcion: event.longDescription || event.description,
-    locacion: buildLocacionFromVenue(event.venue),
-    direccion: event.direccion,
-    provincia: event.provincia,
-    localidad: event.localidad,
-    precio: Number(event.price) || 0,
-    cantidad_entradas: Math.max(1, Number(event.totalEntradas) || 1),
-    categoria: event.category,
-    medios_pago: mapFrontendPaymentMethods(event.mediosDePago),
-  };
+  const payload = buildEventUpdatePayload(event, previousEvent);
 
-  const isoDate = parseDateAndTimeToIso(event.date, event.time);
-  if (isoDate) {
-    payload.fecha_evento = isoDate;
+  if (Object.keys(payload).length === 0) {
+    return {
+      ...(previousEvent ?? event),
+      id: eventId,
+    } as Event;
   }
 
   const response = await fetch(`${getEventsBaseEndpoint()}/${eventId}`, {
@@ -444,6 +490,7 @@ export async function createEventFromOrganizer(
 export async function updateEventFromOrganizer(
   eventId: string,
   event: Omit<Event, "id">,
+  previousEvent?: Omit<Event, "id">,
 ): Promise<Event> {
-  return updateEventFromAdmin(eventId, event);
+  return updateEventFromAdmin(eventId, event, previousEvent);
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useMemo, useRef, useState } from "react";
 import type { Event } from "@/data/events";
 import { localidades, provincias } from "@/data/locations";
@@ -79,6 +80,31 @@ const activeTabStyle: React.CSSProperties = {
   color: "#ffffff",
   border: "1px solid #b9a6ea",
   boxShadow: "0 0 0 1px rgba(185, 166, 234, 0.35)",
+};
+
+const previewGridStyle: React.CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "1fr",
+  gap: "0.75rem",
+};
+
+const previewCardStyle: React.CSSProperties = {
+  display: "flex",
+  flexDirection: "column",
+  gap: "0.5rem",
+  padding: "0.875rem",
+  border: "1px solid var(--border-color)",
+  borderRadius: "var(--radius-md)",
+  background: "#ffffff",
+};
+
+const previewFrameStyle: React.CSSProperties = {
+  position: "relative",
+  width: "100%",
+  aspectRatio: "16 / 10",
+  overflow: "hidden",
+  borderRadius: "calc(var(--radius-md) - 2px)",
+  background: "#eef1f7",
 };
 
 function renderFieldLabel(
@@ -438,7 +464,9 @@ export default function AdminEventForm({
           className="admin-form-grid"
         >
           <div style={fieldBox}>
-            <label style={labelStyle}>{renderFieldLabel("Titulo", { required: true })}</label>
+            <label style={labelStyle}>
+              {renderFieldLabel("Titulo", { required: true })}
+            </label>
             <input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
@@ -448,7 +476,9 @@ export default function AdminEventForm({
           </div>
 
           <div style={fieldBox}>
-            <label style={labelStyle}>{renderFieldLabel("Categoria", { required: true })}</label>
+            <label style={labelStyle}>
+              {renderFieldLabel("Categoria", { required: true })}
+            </label>
             <select
               value={selectedCategory}
               onChange={(e) => setCategory(e.target.value)}
@@ -478,7 +508,9 @@ export default function AdminEventForm({
           </div>
 
           <div style={{ ...fieldBox, gridColumn: "1 / -1" }}>
-            <label style={labelStyle}>{renderFieldLabel("Descripcion larga", { required: true })}</label>
+            <label style={labelStyle}>
+              {renderFieldLabel("Descripcion larga", { required: true })}
+            </label>
             <textarea
               value={longDescription}
               onChange={(e) => setLongDescription(e.target.value)}
@@ -488,7 +520,9 @@ export default function AdminEventForm({
           </div>
 
           <div style={fieldBox}>
-            <label style={labelStyle}>{renderFieldLabel("Organizador", { optional: true })}</label>
+            <label style={labelStyle}>
+              {renderFieldLabel("Organizador", { optional: true })}
+            </label>
             <input
               value={organizador}
               onChange={(e) => setOrganizador(e.target.value)}
@@ -498,7 +532,9 @@ export default function AdminEventForm({
           </div>
 
           <div style={fieldBox}>
-            <label style={labelStyle}>{renderFieldLabel("Fecha", { required: true })}</label>
+            <label style={labelStyle}>
+              {renderFieldLabel("Fecha", { required: true })}
+            </label>
             <input
               type="date"
               value={date}
@@ -508,7 +544,9 @@ export default function AdminEventForm({
           </div>
 
           <div style={fieldBox}>
-            <label style={labelStyle}>{renderFieldLabel("Hora", { required: true })}</label>
+            <label style={labelStyle}>
+              {renderFieldLabel("Hora", { required: true })}
+            </label>
             <div
               style={{
                 display: "grid",
@@ -547,7 +585,9 @@ export default function AdminEventForm({
           </div>
 
           <div style={fieldBox}>
-            <label style={labelStyle}>{renderFieldLabel("Locacion", { required: true })}</label>
+            <label style={labelStyle}>
+              {renderFieldLabel("Locacion", { required: true })}
+            </label>
             <input
               value={venue}
               onChange={(e) => setVenue(e.target.value)}
@@ -557,7 +597,9 @@ export default function AdminEventForm({
           </div>
 
           <div style={fieldBox}>
-            <label style={labelStyle}>{renderFieldLabel("Direccion", { optional: true })}</label>
+            <label style={labelStyle}>
+              {renderFieldLabel("Direccion", { optional: true })}
+            </label>
             <input
               value={direccion}
               onChange={(e) => setDireccion(e.target.value)}
@@ -567,7 +609,9 @@ export default function AdminEventForm({
           </div>
 
           <div style={fieldBox}>
-            <label style={labelStyle}>{renderFieldLabel("Provincia", { required: true })}</label>
+            <label style={labelStyle}>
+              {renderFieldLabel("Provincia", { required: true })}
+            </label>
             <select
               value={provincia}
               onChange={(e) => {
@@ -586,7 +630,9 @@ export default function AdminEventForm({
           </div>
 
           <div style={fieldBox}>
-            <label style={labelStyle}>{renderFieldLabel("Localidad", { required: true })}</label>
+            <label style={labelStyle}>
+              {renderFieldLabel("Localidad", { required: true })}
+            </label>
             <select
               key={provincia || "sin-provincia"}
               value={localidad}
@@ -608,7 +654,9 @@ export default function AdminEventForm({
           </div>
 
           <div style={fieldBox}>
-            <label style={labelStyle}>{renderFieldLabel("Precio", { optional: true })}</label>
+            <label style={labelStyle}>
+              {renderFieldLabel("Precio", { optional: true })}
+            </label>
             <input
               type="number"
               min={0}
@@ -620,7 +668,9 @@ export default function AdminEventForm({
           </div>
 
           <div style={fieldBox}>
-            <label style={labelStyle}>{renderFieldLabel("Cantidad de Entradas", { optional: true })}</label>
+            <label style={labelStyle}>
+              {renderFieldLabel("Cantidad de Entradas", { optional: true })}
+            </label>
             <input
               type="number"
               min={0}
@@ -632,7 +682,9 @@ export default function AdminEventForm({
           </div>
 
           <div style={fieldBox}>
-            <label style={labelStyle}>{renderFieldLabel("Medio de pago", { optional: true })}</label>
+            <label style={labelStyle}>
+              {renderFieldLabel("Medio de pago", { optional: true })}
+            </label>
             <select
               value={paymentMethod}
               onChange={(e) =>
@@ -647,21 +699,11 @@ export default function AdminEventForm({
             </select>
           </div>
 
-          {paymentMethod === "mercadopago" && (
-            <div style={fieldBox}>
-              <label style={labelStyle}>{renderFieldLabel("Mercado Pago ID", { optional: true })}</label>
-              <input
-                value={mercadoPagoId}
-                onChange={(e) => setMercadoPagoId(e.target.value)}
-                style={inputStyle}
-                placeholder="Ej: APP_USR-1234567890abcdef"
-              />
-            </div>
-          )}
-
           {paymentMethod === "transferencia" && (
             <div style={fieldBox}>
-              <label style={labelStyle}>{renderFieldLabel("CBU / CVU", { optional: true })}</label>
+              <label style={labelStyle}>
+                {renderFieldLabel("CBU / CVU", { optional: true })}
+              </label>
               <input
                 value={cbuCvu}
                 onChange={(e) => setCbuCvu(e.target.value)}
@@ -682,6 +724,82 @@ export default function AdminEventForm({
           }}
           className="admin-form-grid"
         >
+          {(image.trim() || flyer.trim()) && (
+            <div style={{ ...fieldBox, gridColumn: "1 / -1" }}>
+              <span style={labelStyle}>
+                {mode === "edit"
+                  ? "Preview de archivos actuales"
+                  : "Preview de archivos seleccionados"}
+              </span>
+              <div style={previewGridStyle} className="admin-preview-grid">
+                {image.trim() && (
+                  <div style={previewCardStyle}>
+                    <strong
+                      style={{ fontSize: "var(--font-sm)", color: "#1f1f1f" }}
+                    >
+                      {mode === "edit"
+                        ? "Imagen principal actual"
+                        : "Imagen principal"}
+                    </strong>
+                    <div style={previewFrameStyle}>
+                      <Image
+                        src={image}
+                        alt="Preview de la imagen del evento"
+                        fill
+                        sizes="(min-width: 48rem) 50vw, 100vw"
+                        style={{ objectFit: "cover" }}
+                      />
+                    </div>
+                    <span
+                      style={{
+                        fontSize: "var(--font-xs)",
+                        color: "var(--text-disabled)",
+                      }}
+                    >
+                      {mode === "edit"
+                        ? "Si subis una nueva imagen, esta vista previa se actualiza antes de guardar."
+                        : "Asi se vera la imagen que acabas de cargar."}
+                    </span>
+                  </div>
+                )}
+
+                {flyer.trim() && (
+                  <div style={previewCardStyle}>
+                    <strong
+                      style={{ fontSize: "var(--font-sm)", color: "#1f1f1f" }}
+                    >
+                      {mode === "edit" ? "Flyer actual" : "Flyer"}
+                    </strong>
+                    <div
+                      style={{
+                        ...previewFrameStyle,
+                        aspectRatio: "4 / 5",
+                      }}
+                    >
+                      <Image
+                        src={flyer}
+                        alt="Preview del flyer del evento"
+                        fill
+                        sizes="(min-width: 48rem) 50vw, 100vw"
+                        style={{ objectFit: "cover" }}
+                      />
+                    </div>
+                    <span
+                      style={{
+                        fontSize: "var(--font-xs)",
+                        color: "var(--text-disabled)",
+                      }}
+                    >
+                      {mode === "edit"
+                        ? "Tambien podes reemplazar el flyer y revisar el cambio antes de guardar."
+                        : "Vista previa del flyer seleccionado."}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           <div style={fieldBox}>
             <label
               style={{

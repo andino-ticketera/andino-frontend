@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -74,6 +75,25 @@ const requiredAsteriskStyle: React.CSSProperties = {
 const optionalHintStyle: React.CSSProperties = {
   color: "var(--text-disabled)",
   fontWeight: 600,
+};
+
+const previewCardStyle: React.CSSProperties = {
+  display: "flex",
+  flexDirection: "column",
+  gap: "0.5rem",
+  padding: "0.875rem",
+  border: "1px solid var(--border-color)",
+  borderRadius: "var(--radius-md)",
+  background: "#ffffff",
+};
+
+const previewFrameStyle: React.CSSProperties = {
+  position: "relative",
+  width: "100%",
+  aspectRatio: "4 / 5",
+  overflow: "hidden",
+  borderRadius: "calc(var(--radius-md) - 2px)",
+  background: "#eef1f7",
 };
 
 function renderFieldLabel(
@@ -309,6 +329,35 @@ export default function OrganizerEventForm({
   return (
     <form onSubmit={handleSubmit}>
       <div style={{ ...fieldBox, marginBottom: "18px" }}>
+        {flyer.trim() && (
+          <div style={previewCardStyle}>
+            <span style={labelStyle}>
+              {mode === "edit"
+                ? "Preview del flyer actual"
+                : "Preview del flyer seleccionado"}
+            </span>
+            <div style={previewFrameStyle}>
+              <Image
+                src={flyer}
+                alt="Preview del flyer del evento"
+                fill
+                sizes="(min-width: 48rem) 33vw, 100vw"
+                style={{ objectFit: "cover" }}
+              />
+            </div>
+            <span
+              style={{
+                fontSize: "var(--font-xs)",
+                color: "var(--text-disabled)",
+              }}
+            >
+              {mode === "edit"
+                ? "Si cambias el flyer, la vista previa se actualiza antes de guardar."
+                : "Asi se vera el flyer que estas por publicar."}
+            </span>
+          </div>
+        )}
+
         <label
           style={{
             ...labelStyle,
