@@ -363,11 +363,18 @@ export async function updateEventFromAdmin(
 export async function deleteEventFromAdmin(eventId: string): Promise<void> {
   const response = await fetch(`${getEventsBaseEndpoint()}/${eventId}`, {
     method: "DELETE",
-    headers: buildAdminJsonHeaders(),
+    headers: {
+      Accept: "application/json",
+    },
   });
 
   if (!response.ok) {
-    throw new Error(`No se pudo eliminar el evento: ${response.status}`);
+    throw new Error(
+      await parseErrorMessage(
+        response,
+        `No se pudo eliminar el evento (${response.status})`,
+      ),
+    );
   }
 }
 
