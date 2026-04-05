@@ -176,6 +176,7 @@ export default function OrganizerEventForm({
   );
   const [cbuCvu, setCbuCvu] = useState(defaults.cbuCvu ?? "");
   const [isFlyerDragOver, setIsFlyerDragOver] = useState(false);
+  const [submitAttempted, setSubmitAttempted] = useState(false);
   const flyerInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileToDataUrl = (
@@ -208,6 +209,10 @@ export default function OrganizerEventForm({
     title.trim() &&
     longDescription.trim() &&
     date.trim() &&
+    isCompleteEventTime(time) &&
+    venue.trim() &&
+    provincia.trim() &&
+    localidad.trim() &&
     flyer.trim() &&
     (paymentMethod === "mercadopago"
       ? isMercadoPagoReady && !isMpStatusLoading
@@ -246,18 +251,15 @@ export default function OrganizerEventForm({
     title,
     venue,
   ]);
-    isCompleteEventTime(time) &&
-    venue.trim() &&
-    provincia.trim() &&
-    localidad.trim() &&
-    flyer.trim() &&
-    (paymentMethod === "mercadopago"
-      ? isMercadoPagoReady && !isMpStatusLoading
-      : cbuCvu.trim());
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!canSubmit) return;
+    if (!canSubmit) {
+      setSubmitAttempted(true);
+      return;
+    }
+
+    setSubmitAttempted(false);
 
     const mediosDePago: ("transferencia" | "mercadopago")[] = [paymentMethod];
     const autoDescription =
@@ -676,7 +678,7 @@ export default function OrganizerEventForm({
           justifyContent: "flex-end",
         }}
       >
-        {!canSubmit && firstMissingField ? (
+        {!canSubmit && submitAttempted && firstMissingField ? (
           <span
             style={{
               fontSize: "var(--font-xs)",

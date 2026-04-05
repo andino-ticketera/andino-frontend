@@ -169,6 +169,7 @@ export default function AdminEventForm({
   const [activeTab, setActiveTab] = useState<"info" | "media">("info");
   const [isImageDragOver, setIsImageDragOver] = useState(false);
   const [isFlyerDragOver, setIsFlyerDragOver] = useState(false);
+  const [submitAttempted, setSubmitAttempted] = useState(false);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const flyerInputRef = useRef<HTMLInputElement>(null);
 
@@ -320,12 +321,10 @@ export default function AdminEventForm({
     if (!provincia.trim()) return "Provincia";
     if (!localidad.trim()) return "Localidad";
     if (mode === "create" && !image.trim()) return "Imagen del evento";
-    if (mode === "edit" && !hasChanges) return "Guardá algun cambio";
     return "";
   }, [
     categories.length,
     date,
-    hasChanges,
     image,
     localidad,
     longDescription,
@@ -339,7 +338,12 @@ export default function AdminEventForm({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!canSubmit) return;
+    if (!canSubmit) {
+      setSubmitAttempted(true);
+      return;
+    }
+
+    setSubmitAttempted(false);
 
     const mediosDePago: ("transferencia" | "mercadopago")[] = [paymentMethod];
 
@@ -827,7 +831,7 @@ export default function AdminEventForm({
           justifyContent: "flex-end",
         }}
       >
-        {!canSubmit && firstMissingField ? (
+        {!canSubmit && submitAttempted && firstMissingField ? (
           <span
             style={{
               fontSize: "var(--font-xs)",
