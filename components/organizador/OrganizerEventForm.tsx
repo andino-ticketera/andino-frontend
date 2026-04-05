@@ -65,6 +65,41 @@ const labelStyle: React.CSSProperties = {
   fontWeight: 700,
 };
 
+const requiredAsteriskStyle: React.CSSProperties = {
+  color: "#d7263d",
+  marginLeft: "0.125rem",
+  fontWeight: 900,
+};
+
+const optionalHintStyle: React.CSSProperties = {
+  color: "var(--text-disabled)",
+  fontWeight: 600,
+};
+
+const helperCardStyle: React.CSSProperties = {
+  border: "1px solid var(--border-color)",
+  borderRadius: "var(--radius-md)",
+  background: "#f5f6fa",
+  padding: "0.875rem",
+  display: "grid",
+  gap: "0.375rem",
+};
+
+function renderFieldLabel(
+  label: string,
+  options?: { required?: boolean; optional?: boolean },
+) {
+  return (
+    <>
+      {label}
+      {options?.required ? <span style={requiredAsteriskStyle}>*</span> : null}
+      {options?.optional ? (
+        <span style={optionalHintStyle}> (opcional)</span>
+      ) : null}
+    </>
+  );
+}
+
 export default function OrganizerEventForm({
   mode,
   initialEvent,
@@ -191,6 +226,43 @@ export default function OrganizerEventForm({
       ? isMercadoPagoReady && !isMpStatusLoading
       : cbuCvu.trim());
 
+  const missingRequiredFields = useMemo(() => {
+    const missing: string[] = [];
+
+    if (!title.trim()) missing.push("Titulo");
+    if (!category.trim()) missing.push("Categoria");
+    if (!longDescription.trim()) missing.push("Descripcion del evento");
+    if (!date.trim()) missing.push("Fecha");
+    if (!isCompleteEventTime(time)) missing.push("Hora");
+    if (!venue.trim()) missing.push("Locacion");
+    if (!provincia.trim()) missing.push("Provincia");
+    if (!localidad.trim()) missing.push("Localidad");
+    if (!flyer.trim()) missing.push("Flyer / Poster del evento");
+    if (paymentMethod === "mercadopago") {
+      if (isMpStatusLoading || !isMercadoPagoReady) {
+        missing.push("Mercado Pago activo");
+      }
+    } else if (!cbuCvu.trim()) {
+      missing.push("CBU / CVU");
+    }
+
+    return missing;
+  }, [
+    category,
+    cbuCvu,
+    date,
+    flyer,
+    isMercadoPagoReady,
+    isMpStatusLoading,
+    localidad,
+    longDescription,
+    paymentMethod,
+    provincia,
+    time,
+    title,
+    venue,
+  ]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!canSubmit) return;
@@ -242,7 +314,27 @@ export default function OrganizerEventForm({
 
   return (
     <form onSubmit={handleSubmit}>
-      {/* Flyer upload at top */}
+      <div style={{ ...helperCardStyle, marginBottom: "18px" }}>
+        <span style={{ fontSize: "var(--font-sm)", color: "#1f1f1f" }}>
+          Completa los campos marcados con
+          <span style={requiredAsteriskStyle}>*</span>
+          para habilitar la publicacion del evento.
+        </span>
+        <span style={{ fontSize: "var(--font-xs)", color: "#5b5b66" }}>
+          Obligatorios: Flyer o poster, Titulo, Categoria, Descripcion del
+          evento, Fecha, Hora, Locacion, Provincia, Localidad y el medio de
+          cobro configurado.
+        </span>
+        <span style={{ fontSize: "var(--font-xs)", color: "#5b5b66" }}>
+          Opcionales: Direccion, Precio y Cantidad de entradas.
+        </span>
+        {!canSubmit && missingRequiredFields.length > 0 ? (
+          <span style={{ fontSize: "var(--font-xs)", color: "#b42318" }}>
+            Todavia faltan: {missingRequiredFields.join(", ")}.
+          </span>
+        ) : null}
+      </div>
+
       <div style={{ ...fieldBox, marginBottom: "18px" }}>
         <label
           style={{
@@ -253,7 +345,7 @@ export default function OrganizerEventForm({
           }}
         >
           <EvaIcon name="image" size={14} />
-          Flyer / Poster del evento
+          {renderFieldLabel("Flyer / Poster del evento", { required: true })}
         </label>
 
         <input
@@ -305,31 +397,35 @@ export default function OrganizerEventForm({
           <span style={{ fontSize: "var(--font-xs)", color: "#5b5b66" }}>
             {flyer.trim()
               ? "Flyer cargado correctamente"
-              : "Solo una imagen. Formato recomendado: JPG o PNG"}
+              : "Obligatorio para publicar. Formato recomendado: JPG o PNG"}
           </span>
         </div>
       </div>
 
-      {/* Form fields */}
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+          gridTemplateColumns: "1fr",
           gap: "14px",
         }}
         className="org-form-grid"
       >
         <div style={fieldBox}>
-          <label style={labelStyle}>Titulo</label>
+          <label style={labelStyle}>
+            {renderFieldLabel("Titulo", { required: true })}
+          </label>
           <input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             style={inputStyle}
+            placeholder="Ej: Noche Andina en Vivo"
           />
         </div>
 
         <div style={fieldBox}>
-          <label style={labelStyle}>Categoria</label>
+          <label style={labelStyle}>
+            {renderFieldLabel("Categoria", { required: true })}
+          </label>
           <select
             value={category}
             onChange={(e) => setCategory(e.target.value)}
@@ -344,16 +440,21 @@ export default function OrganizerEventForm({
         </div>
 
         <div style={{ ...fieldBox, gridColumn: "1 / -1" }}>
-          <label style={labelStyle}>Descripcion del evento</label>
+          <label style={labelStyle}>
+            {renderFieldLabel("Descripcion del evento", { required: true })}
+          </label>
           <textarea
             value={longDescription}
             onChange={(e) => setLongDescription(e.target.value)}
             style={textAreaStyle}
+            placeholder="Contale al publico que va a vivir en el evento, quienes participan, desde que hora se ingresa y cualquier detalle importante antes de comprar."
           />
         </div>
 
         <div style={fieldBox}>
-          <label style={labelStyle}>Fecha</label>
+          <label style={labelStyle}>
+            {renderFieldLabel("Fecha", { required: true })}
+          </label>
           <input
             type="date"
             value={date}
@@ -363,7 +464,9 @@ export default function OrganizerEventForm({
         </div>
 
         <div style={fieldBox}>
-          <label style={labelStyle}>Hora</label>
+          <label style={labelStyle}>
+            {renderFieldLabel("Hora", { required: true })}
+          </label>
           <div
             style={{
               display: "grid",
@@ -377,7 +480,7 @@ export default function OrganizerEventForm({
               value={time}
               onChange={(e) => setTime(normalizeEventTimeInput(e.target.value))}
               style={inputStyle}
-              placeholder="Ej: 1115"
+              placeholder="Ej: 21:30"
               maxLength={5}
             />
             <span
@@ -400,25 +503,33 @@ export default function OrganizerEventForm({
         </div>
 
         <div style={fieldBox}>
-          <label style={labelStyle}>Locacion (lugar)</label>
+          <label style={labelStyle}>
+            {renderFieldLabel("Locacion (lugar)", { required: true })}
+          </label>
           <input
             value={venue}
             onChange={(e) => setVenue(e.target.value)}
             style={inputStyle}
+            placeholder="Ej: Club Cultural Matienzo"
           />
         </div>
 
         <div style={fieldBox}>
-          <label style={labelStyle}>Direccion</label>
+          <label style={labelStyle}>
+            {renderFieldLabel("Direccion", { optional: true })}
+          </label>
           <input
             value={direccion}
             onChange={(e) => setDireccion(e.target.value)}
             style={inputStyle}
+            placeholder="Ej: Pringles 1249, CABA"
           />
         </div>
 
         <div style={fieldBox}>
-          <label style={labelStyle}>Provincia</label>
+          <label style={labelStyle}>
+            {renderFieldLabel("Provincia", { required: true })}
+          </label>
           <select
             value={provincia}
             onChange={(e) => {
@@ -437,7 +548,9 @@ export default function OrganizerEventForm({
         </div>
 
         <div style={fieldBox}>
-          <label style={labelStyle}>Localidad</label>
+          <label style={labelStyle}>
+            {renderFieldLabel("Localidad", { required: true })}
+          </label>
           <select
             key={provincia || "sin-provincia"}
             value={localidad}
@@ -459,13 +572,16 @@ export default function OrganizerEventForm({
         </div>
 
         <div style={fieldBox}>
-          <label style={labelStyle}>Precio de la entrada</label>
+          <label style={labelStyle}>
+            {renderFieldLabel("Precio de la entrada", { optional: true })}
+          </label>
           <input
             type="number"
             min={0}
             value={price}
             onChange={(e) => setPrice(e.target.value)}
             style={inputStyle}
+            placeholder="Ej: 12000"
           />
           {priceNum > 0 && (
             <span
@@ -481,18 +597,23 @@ export default function OrganizerEventForm({
         </div>
 
         <div style={fieldBox}>
-          <label style={labelStyle}>Cantidad de Entradas</label>
+          <label style={labelStyle}>
+            {renderFieldLabel("Cantidad de Entradas", { optional: true })}
+          </label>
           <input
             type="number"
             min={0}
             value={totalEntradas}
             onChange={(e) => setTotalEntradas(e.target.value)}
             style={inputStyle}
+            placeholder="Ej: 180"
           />
         </div>
 
         <div style={fieldBox}>
-          <label style={labelStyle}>Medio de pago</label>
+          <label style={labelStyle}>
+            {renderFieldLabel("Medio de pago", { required: true })}
+          </label>
           <select
             value={paymentMethod}
             onChange={(e) =>
@@ -518,7 +639,9 @@ export default function OrganizerEventForm({
               background: "var(--bg-surface-2)",
             }}
           >
-            <label style={labelStyle}>Cobros con Mercado Pago</label>
+            <label style={labelStyle}>
+              {renderFieldLabel("Cobros con Mercado Pago", { required: true })}
+            </label>
             <strong style={{ fontSize: "var(--font-sm)", color: "#1f1f1f" }}>
               {isMpStatusLoading
                 ? "Verificando estado de tu cuenta..."
@@ -559,11 +682,14 @@ export default function OrganizerEventForm({
 
         {paymentMethod === "transferencia" && (
           <div style={fieldBox}>
-            <label style={labelStyle}>CBU / CVU</label>
+            <label style={labelStyle}>
+              {renderFieldLabel("CBU / CVU", { required: true })}
+            </label>
             <input
               value={cbuCvu}
               onChange={(e) => setCbuCvu(e.target.value)}
               style={inputStyle}
+              placeholder="Ej: 0000003100000001234567"
             />
           </div>
         )}
@@ -596,20 +722,10 @@ export default function OrganizerEventForm({
       </div>
 
       <style>{`
-        @media (max-width: 768px) {
+        @media (min-width: 48rem) {
           .org-form-grid {
-            grid-template-columns: 1fr !important;
-          }
-        }
-
-        @media (max-width: 480px) {
-          .org-form-grid {
-            grid-template-columns: 1fr !important;
-            gap: 0.625rem !important;
-          }
-
-          .org-form-grid > div {
-            width: 100%;
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            gap: 0.875rem !important;
           }
         }
       `}</style>
