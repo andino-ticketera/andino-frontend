@@ -413,8 +413,79 @@ export default function IniciarSesionPage() {
               style={{
                 padding: "1.25rem",
                 background: "var(--bg-surface-1)",
+                position: "relative",
               }}
             >
+              {isSubmitting && pendingMessage && (
+                <div
+                  role="status"
+                  aria-live="polite"
+                  aria-busy="true"
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    zIndex: 3,
+                    display: "grid",
+                    placeItems: "center",
+                    padding: "1.5rem",
+                    background: "rgba(12, 8, 18, 0.78)",
+                    backdropFilter: "blur(6px)",
+                  }}
+                >
+                  <div
+                    style={{
+                      width: "min(100%, 24rem)",
+                      borderRadius: "var(--radius-xl)",
+                      border: "1px solid rgba(92, 255, 157, 0.26)",
+                      background:
+                        "linear-gradient(180deg, rgba(35, 24, 49, 0.96), rgba(23, 15, 33, 0.98))",
+                      boxShadow: "0 1.5rem 3rem rgba(0, 0, 0, 0.32)",
+                      padding: "1.5rem 1.25rem",
+                      display: "grid",
+                      justifyItems: "center",
+                      gap: "0.875rem",
+                      textAlign: "center",
+                    }}
+                  >
+                    <span
+                      aria-hidden="true"
+                      style={{
+                        width: "3rem",
+                        height: "3rem",
+                        borderRadius: "var(--radius-full)",
+                        border: "3px solid rgba(92, 255, 157, 0.22)",
+                        borderTopColor: "var(--color-primary)",
+                        animation: "auth-spinner 0.8s linear infinite",
+                        boxShadow: "0 0 0 0.375rem rgba(92, 255, 157, 0.08)",
+                      }}
+                    />
+
+                    <div style={{ display: "grid", gap: "0.375rem" }}>
+                      <strong
+                        style={{
+                          fontSize: "var(--font-lg)",
+                          color: "var(--text-primary)",
+                          lineHeight: 1.2,
+                        }}
+                      >
+                        {pendingMessage}
+                      </strong>
+                      <p
+                        style={{
+                          margin: 0,
+                          fontSize: "var(--font-sm)",
+                          color: "var(--text-secondary)",
+                          lineHeight: 1.6,
+                        }}
+                      >
+                        Esto puede tardar unos segundos. No cierres esta
+                        ventana.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div
                 style={{
                   display: "inline-flex",
@@ -749,39 +820,6 @@ export default function IniciarSesionPage() {
                   </p>
                 )}
 
-                {isSubmitting && pendingMessage && (
-                  <p
-                    role="status"
-                    aria-live="polite"
-                    style={{
-                      margin: 0,
-                      padding: "0.75rem 0.875rem",
-                      borderRadius: "var(--radius-md)",
-                      border: "1px solid rgba(92, 255, 157, 0.3)",
-                      background: "rgba(92, 255, 157, 0.08)",
-                      color: "var(--text-primary)",
-                      fontSize: "var(--font-sm)",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "0.625rem",
-                    }}
-                  >
-                    <span
-                      aria-hidden="true"
-                      style={{
-                        width: "1rem",
-                        height: "1rem",
-                        borderRadius: "var(--radius-full)",
-                        border: "2px solid rgba(92, 255, 157, 0.25)",
-                        borderTopColor: "var(--color-primary)",
-                        animation: "auth-spinner 0.8s linear infinite",
-                        flexShrink: 0,
-                      }}
-                    />
-                    {pendingMessage}
-                  </p>
-                )}
-
                 {formSuccess && (
                   <p
                     role="status"
@@ -815,9 +853,7 @@ export default function IniciarSesionPage() {
                     opacity: isSubmitting ? 0.8 : 1,
                   }}
                 >
-                  {isSubmitting
-                    ? pendingMessage || "Procesando..."
-                    : submitLabel}
+                  {isSubmitting ? "Procesando..." : submitLabel}
                 </button>
               </form>
             </div>
