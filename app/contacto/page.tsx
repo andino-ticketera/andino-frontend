@@ -4,6 +4,7 @@ import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import EvaIcon from "@/components/EvaIcon";
+import { sendContactMessage } from "@/lib/contact-api";
 
 export default function ContactoPage() {
   const [form, setForm] = useState({
@@ -13,12 +14,30 @@ export default function ContactoPage() {
     mensaje: "",
   });
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const update = (field: string, value: string) =>
     setForm((prev) => ({ ...prev, [field]: value }));
 
-  const handleSubmit = () => {
-    setSubmitted(true);
+  const handleSubmit = async () => {
+    if (isSubmitting) return;
+
+    setSubmitError(null);
+    setIsSubmitting(true);
+
+    try {
+      await sendContactMessage(form);
+      setSubmitted(true);
+    } catch (error) {
+      setSubmitError(
+        error instanceof Error
+          ? error.message
+          : "No se pudo enviar el mensaje",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const inputStyle: React.CSSProperties = {
@@ -171,11 +190,15 @@ export default function ContactoPage() {
             Tenes alguna consulta? Escribinos y te respondemos.
           </p>
 
-          <div
+          <form
             style={{
               display: "flex",
               flexDirection: "column",
               gap: "1.125rem",
+            }}
+            onSubmit={(event) => {
+              event.preventDefault();
+              void handleSubmit();
             }}
           >
             {/* Nombre */}
@@ -190,6 +213,7 @@ export default function ContactoPage() {
                   placeholder="Tu nombre"
                   value={form.nombre}
                   onChange={(e) => update("nombre", e.target.value)}
+                  required
                   style={inputStyle}
                 />
                 <span style={iconWrapStyle}>
@@ -210,6 +234,7 @@ export default function ContactoPage() {
                   placeholder="tu@email.com"
                   value={form.email}
                   onChange={(e) => update("email", e.target.value)}
+                  required
                   style={inputStyle}
                 />
                 <span style={iconWrapStyle}>
@@ -230,6 +255,7 @@ export default function ContactoPage() {
                   placeholder="Motivo de tu consulta"
                   value={form.asunto}
                   onChange={(e) => update("asunto", e.target.value)}
+                  required
                   style={inputStyle}
                 />
                 <span style={iconWrapStyle}>
@@ -249,6 +275,8 @@ export default function ContactoPage() {
                 value={form.mensaje}
                 onChange={(e) => update("mensaje", e.target.value)}
                 rows={4}
+                required
+                minLength={10}
                 style={{
                   ...inputStyle,
                   resize: "vertical",
@@ -256,11 +284,28 @@ export default function ContactoPage() {
                 }}
               />
             </div>
-          </div>
 
-          <div style={{ textAlign: "center", marginTop: "1.75rem" }}>
-            <button
-              onClick={handleSubmit}
+            {submitError ? (
+              <p
+                role="alert"
+                style={{
+                  margin: 0,
+                  padding: "0.875rem 1rem",
+                  borderRadius: "0.75rem",
+                  border: "1px solid rgba(255, 143, 143, 0.35)",
+                  background: "rgba(255, 143, 143, 0.08)",
+                  color: "#ffd0d0",
+                  fontSize: "0.875rem",
+                }}
+              >
+                {submitError}
+              </p>
+            ) : null}
+
+            <div style={{ textAlign: "center", marginTop: "1.75rem" }}>
+              <button
+                type="submit"
+                disabled={isSubmitting}
               className="btn-primary"
               style={{
                 background: "var(--color-accent)",
@@ -270,15 +315,17 @@ export default function ContactoPage() {
                 padding: "0.875rem 3rem",
                 borderRadius: "0.625rem",
                 border: "none",
-                cursor: "pointer",
+                cursor: isSubmitting ? "wait" : "pointer",
                 fontFamily: "inherit",
                 letterSpacing: "0.03em",
                 textTransform: "uppercase",
+                opacity: isSubmitting ? 0.8 : 1,
               }}
-            >
-              Enviar
-            </button>
-          </div>
+              >
+                {isSubmitting ? "Enviando..." : "Enviar"}
+              </button>
+            </div>
+          </form>
         </div>
       </div>
 
