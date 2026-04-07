@@ -36,6 +36,7 @@ export default function IniciarSesionPage() {
 
   const [mode, setMode] = useState<AuthMode>("login");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [pendingMessage, setPendingMessage] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [formSuccess, setFormSuccess] = useState<string | null>(null);
 
@@ -49,6 +50,7 @@ export default function IniciarSesionPage() {
   const submitLabel = mode === "login" ? "Ingresar" : "Crear cuenta";
 
   const resetMessages = () => {
+    setPendingMessage(null);
     setFormError(null);
     setFormSuccess(null);
   };
@@ -69,6 +71,9 @@ export default function IniciarSesionPage() {
     if (!hasOAuthFragment) return;
 
     const syncOAuthSession = async () => {
+      setIsSubmitting(true);
+      setPendingMessage("Validando tu cuenta de Google...");
+
       try {
         const oauthResult = await hydrateSupabaseSessionAuth();
         if (!oauthResult || cancelled) return;
@@ -97,6 +102,11 @@ export default function IniciarSesionPage() {
             ? err.message
             : "No se pudo completar el login con Google";
         setFormError(message);
+      } finally {
+        if (!cancelled) {
+          setIsSubmitting(false);
+          setPendingMessage(null);
+        }
       }
     };
 
@@ -111,6 +121,7 @@ export default function IniciarSesionPage() {
     if (isSubmitting) return;
     resetMessages();
     setIsSubmitting(true);
+    setPendingMessage("Redirigiendo a Google para iniciar sesion...");
 
     try {
       const redirectTo = `${window.location.origin}/iniciar-sesion${window.location.search}`;
@@ -121,6 +132,7 @@ export default function IniciarSesionPage() {
       setFormError(message);
     } finally {
       setIsSubmitting(false);
+      setPendingMessage(null);
     }
   };
 
@@ -135,6 +147,7 @@ export default function IniciarSesionPage() {
 
     if (isSubmitting) return;
     setIsSubmitting(true);
+    setPendingMessage("Enviando enlace de recuperacion...");
 
     try {
       await requestPasswordResetAuth(normalizedEmail);
@@ -149,6 +162,7 @@ export default function IniciarSesionPage() {
       setFormError(message);
     } finally {
       setIsSubmitting(false);
+      setPendingMessage(null);
     }
   };
 
@@ -173,6 +187,11 @@ export default function IniciarSesionPage() {
     }
 
     setIsSubmitting(true);
+    setPendingMessage(
+      mode === "login"
+        ? "Cargando informacion de tu cuenta..."
+        : "Creando tu cuenta...",
+    );
 
     try {
       if (mode === "register") {
@@ -411,6 +430,7 @@ export default function IniciarSesionPage() {
                 <button
                   type="button"
                   onClick={() => onSwitchMode("login")}
+                  disabled={isSubmitting}
                   style={{
                     flex: 1,
                     border: "none",
@@ -431,6 +451,7 @@ export default function IniciarSesionPage() {
                 <button
                   type="button"
                   onClick={() => onSwitchMode("register")}
+                  disabled={isSubmitting}
                   style={{
                     flex: 1,
                     border: "none",
@@ -728,6 +749,39 @@ export default function IniciarSesionPage() {
                   </p>
                 )}
 
+                {isSubmitting && pendingMessage && (
+                  <p
+                    role="status"
+                    aria-live="polite"
+                    style={{
+                      margin: 0,
+                      padding: "0.75rem 0.875rem",
+                      borderRadius: "var(--radius-md)",
+                      border: "1px solid rgba(92, 255, 157, 0.3)",
+                      background: "rgba(92, 255, 157, 0.08)",
+                      color: "var(--text-primary)",
+                      fontSize: "var(--font-sm)",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.625rem",
+                    }}
+                  >
+                    <span
+                      aria-hidden="true"
+                      style={{
+                        width: "1rem",
+                        height: "1rem",
+                        borderRadius: "var(--radius-full)",
+                        border: "2px solid rgba(92, 255, 157, 0.25)",
+                        borderTopColor: "var(--color-primary)",
+                        animation: "auth-spinner 0.8s linear infinite",
+                        flexShrink: 0,
+                      }}
+                    />
+                    {pendingMessage}
+                  </p>
+                )}
+
                 {formSuccess && (
                   <p
                     role="status"
@@ -761,7 +815,7 @@ export default function IniciarSesionPage() {
                     opacity: isSubmitting ? 0.8 : 1,
                   }}
                 >
-                  {isSubmitting ? "Procesando..." : submitLabel}
+                  {isSubmitting ? pendingMessage || "Procesando..." : submitLabel}
                 </button>
               </form>
             </div>
@@ -806,6 +860,12 @@ export default function IniciarSesionPage() {
         .google-auth-button:disabled {
           cursor: wait !important;
           background: #f3f4f6 !important;
+        }
+
+        @keyframes auth-spinner {
+          to {
+            transform: rotate(360deg);
+          }
         }
       `}</style>
     </div>

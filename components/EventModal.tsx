@@ -6,6 +6,12 @@ import Image from "next/image";
 import Link from "next/link";
 import EvaIcon from "./EvaIcon";
 import { createCheckoutPreference } from "@/lib/mercadopago-api";
+import { readAuthSession } from "@/lib/auth-client";
+import {
+  readStoredBuyerProfile,
+  writeStoredBuyerProfile,
+} from "@/lib/buyer-profile";
+import { fetchBuyerProfile } from "@/lib/compras-api";
 
 interface EventModalProps {
   event: Event;
@@ -44,6 +50,32 @@ const selectStyle: React.CSSProperties = {
   cursor: "pointer",
 };
 
+function splitFullName(fullName: string): { nombre: string; apellido: string } {
+  const normalized = fullName.trim().replace(/\s+/g, " ");
+  if (!normalized) {
+    return { nombre: "", apellido: "" };
+  }
+
+  const parts = normalized.split(" ");
+  if (parts.length === 1) {
+    return { nombre: parts[0], apellido: "" };
+  }
+
+  return {
+    nombre: parts.slice(0, -1).join(" "),
+    apellido: parts[parts.length - 1],
+  };
+}
+
+function applyIfEmpty(
+  value: string,
+  setter: React.Dispatch<React.SetStateAction<string>>,
+): void {
+  if (!value.trim()) return;
+
+  setter((current) => (current.trim() ? current : value.trim()));
+}
+
 export default function EventModal({ event, onClose }: EventModalProps) {
   const [quantity, setQuantity] = useState(1);
   const [dniType, setDniType] = useState("DNI");
@@ -58,6 +90,7 @@ export default function EventModal({ event, onClose }: EventModalProps) {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [purchaseError, setPurchaseError] = useState<string | null>(null);
   const [isSubmittingPurchase, setIsSubmittingPurchase] = useState(false);
+  const [isLoadingBuyerProfile, setIsLoadingBuyerProfile] = useState(false);
 
   const unitPrice = event.price;
   const serviceFee = Math.round(unitPrice * SERVICE_FEE_RATE * 100) / 100;
@@ -92,6 +125,71 @@ export default function EventModal({ event, onClose }: EventModalProps) {
     document.addEventListener("keydown", handleKey);
     return () => document.removeEventListener("keydown", handleKey);
   }, [onClose]);
+
+  useEffect(() => {
+    const session = readAuthSession();
+    const sessionEmail = session?.user.email?.trim() || "";
+    const sessionNames = splitFullName(session?.user.nombreCompleto || "");
+
+    applyIfEmpty(sessionNames.nombre, setFirstName);
+    applyIfEmpty(sessionNames.apellido, setLastName);
+    applyIfEmpty(sessionEmail, setEmail);
+    applyIfEmpty(sessionEmail, setConfirmEmail);
+
+    const storedProfile = readStoredBuyerProfile();
+    if (storedProfile) {
+      applyIfEmpty(storedProfile.nombre, setFirstName);
+      applyIfEmpty(storedProfile.apellido, setLastName);
+      applyIfEmpty(storedProfile.documento, setDniNumber);
+      applyIfEmpty(storedProfile.email, setEmail);
+      applyIfEmpty(storedProfile.email, setConfirmEmail);
+      setDniType((current) =>
+        current.trim() && current !== "DNI"
+          ? current
+          : storedProfile.tipoDocumento || current,
+      );
+    }
+
+    if (!session?.user?.id) {
+      return;
+    }
+
+    let cancelled = false;
+
+    const hydrateBuyerProfile = async () => {
+      setIsLoadingBuyerProfile(true);
+
+      try {
+        const buyerProfile = await fetchBuyerProfile();
+        if (!buyerProfile || cancelled) {
+          return;
+        }
+
+        applyIfEmpty(buyerProfile.nombre, setFirstName);
+        applyIfEmpty(buyerProfile.apellido, setLastName);
+        applyIfEmpty(buyerProfile.documento, setDniNumber);
+        applyIfEmpty(buyerProfile.email, setEmail);
+        applyIfEmpty(buyerProfile.email, setConfirmEmail);
+        setDniType((current) =>
+          current.trim() && current !== "DNI"
+            ? current
+            : buyerProfile.tipoDocumento || current,
+        );
+      } catch {
+        // Best effort hydration. The form remains editable without saved data.
+      } finally {
+        if (!cancelled) {
+          setIsLoadingBuyerProfile(false);
+        }
+      }
+    };
+
+    void hydrateBuyerProfile();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const mapsQuery = useMemo(
     () => encodeURIComponent(event.venue),
@@ -611,6 +709,18 @@ export default function EventModal({ event, onClose }: EventModalProps) {
               Datos del Comprador
             </h4>
 
+            {isLoadingBuyerProfile ? (
+              <p
+                style={{
+                  margin: "0 0 0.75rem",
+                  fontSize: "0.75rem",
+                  color: "var(--text-secondary)",
+                }}
+              >
+                Cargando tus datos guardados...
+              </p>
+            ) : null}
+
             {/* DNI */}
             <div
               className="modal-form-row-dni"
@@ -878,6 +988,14 @@ export default function EventModal({ event, onClose }: EventModalProps) {
                       documento: dniNumber.trim(),
                       tipoDocumento: dniType,
                     },
+                  });
+
+                  writeStoredBuyerProfile({
+                    nombre: firstName.trim(),
+                    apellido: lastName.trim(),
+                    email: email.trim(),
+                    documento: dniNumber.trim(),
+                    tipoDocumento: dniType,
                   });
 
                   window.location.assign(preference.checkoutUrl);

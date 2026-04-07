@@ -53,8 +53,20 @@ export interface EntradaCompleta {
   };
 }
 
+export interface BuyerProfile {
+  nombre: string;
+  apellido: string;
+  email: string;
+  documento: string;
+  tipoDocumento: string;
+}
+
 interface ComprasResponse {
   data: Compra[];
+}
+
+interface BuyerProfileResponse {
+  data: BuyerProfile | null;
 }
 
 interface CompraDetalleResponse {
@@ -105,6 +117,26 @@ export async function fetchMisCompras(): Promise<Compra[]> {
   }
 
   const json: ComprasResponse = await response.json();
+  return json.data;
+}
+
+export async function fetchBuyerProfile(): Promise<BuyerProfile | null> {
+  const response = await fetch("/api/proxy/compras/mias/perfil-comprador", {
+    method: "GET",
+    headers: buildAuthHeaders(),
+    credentials: "include",
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error("No autenticado");
+    }
+
+    throw new Error(await parseApiError(response));
+  }
+
+  const json: BuyerProfileResponse = await response.json();
   return json.data;
 }
 
