@@ -276,7 +276,9 @@ function buildEventUpdatePayload(
 
   const previousValues = {
     titulo: previousEvent.title.trim(),
-    descripcion: (previousEvent.longDescription || previousEvent.description).trim(),
+    descripcion: (
+      previousEvent.longDescription || previousEvent.description
+    ).trim(),
     locacion: buildLocacionFromVenue(previousEvent.venue),
     direccion: previousEvent.direccion.trim(),
     provincia: previousEvent.provincia.trim(),
@@ -289,7 +291,9 @@ function buildEventUpdatePayload(
   };
 
   (Object.keys(nextValues) as Array<keyof typeof nextValues>).forEach((key) => {
-    if (JSON.stringify(nextValues[key]) !== JSON.stringify(previousValues[key])) {
+    if (
+      JSON.stringify(nextValues[key]) !== JSON.stringify(previousValues[key])
+    ) {
       if (key === "fecha_evento" && !nextValues[key]) {
         return;
       }

@@ -815,7 +815,9 @@ export default function IniciarSesionPage() {
                     opacity: isSubmitting ? 0.8 : 1,
                   }}
                 >
-                  {isSubmitting ? pendingMessage || "Procesando..." : submitLabel}
+                  {isSubmitting
+                    ? pendingMessage || "Procesando..."
+                    : submitLabel}
                 </button>
               </form>
             </div>
