@@ -216,16 +216,28 @@ export default function Navbar() {
           className="desktop-nav"
         >
           {session ? (
-            <>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "0.875rem",
+              }}
+            >
               {panelHref && panelHref !== "/" && (
                 <Link
                   href={panelHref}
                   style={{
-                    color: "var(--text-disabled)",
+                    color: "var(--color-primary)",
                     fontSize: "var(--font-sm)",
-                    fontWeight: 500,
+                    fontWeight: 700,
                     textDecoration: "none",
-                    transition: "color 0.2s ease",
+                    transition:
+                      "color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease",
+                    padding: "0.625rem 1rem",
+                    borderRadius: "var(--radius-full)",
+                    border: "1px solid var(--primary-25)",
+                    background: "var(--primary-10)",
+                    boxShadow: "0 0.5rem 1.5rem rgba(92, 255, 157, 0.08)",
                   }}
                 >
                   Mi panel
@@ -243,11 +255,12 @@ export default function Navbar() {
                   background: "transparent",
                   border: "none",
                   cursor: "pointer",
+                  padding: 0,
                 }}
               >
                 Cerrar sesion
               </button>
-            </>
+            </div>
           ) : (
             <Link
               href="/iniciar-sesion"
@@ -310,10 +323,10 @@ export default function Navbar() {
       {mobileOpen && (
         <div
           style={{
-            padding: "1.5rem",
+            padding: "1.25rem 1.25rem 1.5rem",
             display: "flex",
             flexDirection: "column",
-            gap: "1rem",
+            gap: "1.125rem",
             borderTop: "1px solid var(--border-color-50)",
             background: "var(--bg-base-98)",
             animation: "heroFadeUp 0.2s ease-out both",
@@ -334,6 +347,7 @@ export default function Navbar() {
                 fontSize: "var(--font-base)",
                 fontWeight: isActive(href) ? 600 : 500,
                 textDecoration: "none",
+                padding: "0.125rem 0",
               }}
             >
               {label}
@@ -345,48 +359,66 @@ export default function Navbar() {
               borderTop: "1px solid var(--border-color)",
             }}
           />
-          <Link
-            href="/iniciar-sesion"
+          <div
             style={{
-              color: "var(--text-disabled)",
-              fontSize: "var(--font-base)",
-              textAlign: "left",
-              textDecoration: "none",
+              display: "grid",
+              gap: "0.75rem",
+              padding: session ? "0.875rem" : 0,
+              borderRadius: session ? "var(--radius-lg)" : 0,
+              border: session ? "1px solid var(--border-color)" : "none",
+              background: session ? "rgba(255, 255, 255, 0.03)" : "transparent",
             }}
           >
-            {session ? "Cuenta" : "Iniciar Sesion"}
-          </Link>
-          {session && panelHref && panelHref !== "/" && (
             <Link
-              href={panelHref}
+              href="/iniciar-sesion"
               style={{
                 color: "var(--text-disabled)",
                 fontSize: "var(--font-base)",
                 textAlign: "left",
                 textDecoration: "none",
+                padding: session ? 0 : "0.125rem 0",
               }}
             >
-              Mi panel
+              {session ? "Cuenta" : "Iniciar Sesion"}
             </Link>
-          )}
-          {session && (
-            <button
-              type="button"
-              onClick={requestLogoutConfirmation}
-              style={{
-                color: "var(--text-disabled)",
-                fontSize: "var(--font-base)",
-                textAlign: "left",
-                textDecoration: "none",
-                background: "transparent",
-                border: "none",
-                padding: 0,
-                cursor: "pointer",
-              }}
-            >
-              Cerrar sesion
-            </button>
-          )}
+            {session && panelHref && panelHref !== "/" && (
+              <Link
+                href={panelHref}
+                style={{
+                  color: "var(--color-primary)",
+                  fontSize: "var(--font-base)",
+                  textAlign: "left",
+                  textDecoration: "none",
+                  fontWeight: 700,
+                  padding: "0.9375rem 1rem",
+                  borderRadius: "var(--radius-md)",
+                  border: "1px solid var(--primary-25)",
+                  background: "var(--primary-10)",
+                  boxShadow: "0 0.5rem 1.5rem rgba(92, 255, 157, 0.08)",
+                }}
+              >
+                Mi panel
+              </Link>
+            )}
+            {session && (
+              <button
+                type="button"
+                onClick={requestLogoutConfirmation}
+                style={{
+                  color: "var(--text-disabled)",
+                  fontSize: "var(--font-sm)",
+                  textAlign: "left",
+                  textDecoration: "none",
+                  background: "transparent",
+                  border: "none",
+                  padding: "0.125rem 0",
+                  cursor: "pointer",
+                }}
+              >
+                Cerrar sesion
+              </button>
+            )}
+          </div>
           <Link
             href="/organizador"
             className="btn-primary"

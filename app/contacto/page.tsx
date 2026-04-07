@@ -31,9 +31,7 @@ export default function ContactoPage() {
       setSubmitted(true);
     } catch (error) {
       setSubmitError(
-        error instanceof Error
-          ? error.message
-          : "No se pudo enviar el mensaje",
+        error instanceof Error ? error.message : "No se pudo enviar el mensaje",
       );
     } finally {
       setIsSubmitting(false);
@@ -306,21 +304,21 @@ export default function ContactoPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-              className="btn-primary"
-              style={{
-                background: "var(--color-accent)",
-                color: "#fff",
-                fontSize: "0.9375rem",
-                fontWeight: 700,
-                padding: "0.875rem 3rem",
-                borderRadius: "0.625rem",
-                border: "none",
-                cursor: isSubmitting ? "wait" : "pointer",
-                fontFamily: "inherit",
-                letterSpacing: "0.03em",
-                textTransform: "uppercase",
-                opacity: isSubmitting ? 0.8 : 1,
-              }}
+                className="btn-primary"
+                style={{
+                  background: "var(--color-accent)",
+                  color: "#fff",
+                  fontSize: "0.9375rem",
+                  fontWeight: 700,
+                  padding: "0.875rem 3rem",
+                  borderRadius: "0.625rem",
+                  border: "none",
+                  cursor: isSubmitting ? "wait" : "pointer",
+                  fontFamily: "inherit",
+                  letterSpacing: "0.03em",
+                  textTransform: "uppercase",
+                  opacity: isSubmitting ? 0.8 : 1,
+                }}
               >
                 {isSubmitting ? "Enviando..." : "Enviar"}
               </button>
