@@ -25,6 +25,9 @@ export default function Navbar() {
   const pathname = usePathname();
 
   const panelHref = session ? getRedirectByRole(session.user.rol) : null;
+  const canShowOrganizerCta =
+    !session ||
+    (session.user.rol !== "ORGANIZADOR" && session.user.rol !== "ADMIN");
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -275,24 +278,26 @@ export default function Navbar() {
               Iniciar Sesion
             </Link>
           )}
-          <Link
-            href="/organizador"
-            className="btn-primary"
-            style={{
-              background: "var(--color-accent)",
-              color: "var(--text-primary)",
-              fontSize: "var(--font-sm)",
-              fontWeight: 700,
-              padding: "0.6875rem 1.5rem",
-              borderRadius: "var(--radius-md)",
-              border: "none",
-              cursor: "pointer",
-              textDecoration: "none",
-              display: "inline-block",
-            }}
-          >
-            Quiero ser Organizador
-          </Link>
+          {canShowOrganizerCta ? (
+            <Link
+              href="/organizador"
+              className="btn-primary"
+              style={{
+                background: "var(--color-accent)",
+                color: "var(--text-primary)",
+                fontSize: "var(--font-sm)",
+                fontWeight: 700,
+                padding: "0.6875rem 1.5rem",
+                borderRadius: "var(--radius-md)",
+                border: "none",
+                cursor: "pointer",
+                textDecoration: "none",
+                display: "inline-block",
+              }}
+            >
+              Quiero ser Organizador
+            </Link>
+          ) : null}
         </div>
 
         {/* Mobile menu button */}
@@ -419,26 +424,28 @@ export default function Navbar() {
               </button>
             )}
           </div>
-          <Link
-            href="/organizador"
-            className="btn-primary"
-            style={{
-              background: "var(--color-accent)",
-              color: "var(--text-primary)",
-              fontSize: "var(--font-base)",
-              fontWeight: 700,
-              padding: "0.875rem",
-              borderRadius: "var(--radius-md)",
-              border: "none",
-              cursor: "pointer",
-              width: "100%",
-              textDecoration: "none",
-              display: "block",
-              textAlign: "center",
-            }}
-          >
-            Quiero ser Organizador
-          </Link>
+          {canShowOrganizerCta ? (
+            <Link
+              href="/organizador"
+              className="btn-primary"
+              style={{
+                background: "var(--color-accent)",
+                color: "var(--text-primary)",
+                fontSize: "var(--font-base)",
+                fontWeight: 700,
+                padding: "0.875rem",
+                borderRadius: "var(--radius-md)",
+                border: "none",
+                cursor: "pointer",
+                width: "100%",
+                textDecoration: "none",
+                display: "block",
+                textAlign: "center",
+              }}
+            >
+              Quiero ser Organizador
+            </Link>
+          ) : null}
         </div>
       )}
 
