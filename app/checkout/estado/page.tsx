@@ -26,7 +26,7 @@ function getStatusTitle(status?: PublicCheckoutStatus["estado"]): string {
 
 function getStatusCopy(status?: PublicCheckoutStatus["estado"]): string {
   if (status === "PAGADO") {
-    return "Tu compra fue registrada correctamente. Si usaste un medio inmediato, las entradas ya deberian quedar emitidas.";
+    return "Tu compra fue registrada correctamente. Si usaste un medio inmediato, las entradas ya deberian quedar emitidas. Revisa tu email y acordate de mirar spam, promociones y las demas bandejas por si el mensaje llega filtrado.";
   }
   if (status === "CANCELADO") {
     return "Mercado Pago informo que el pago no se acreditó. Podés volver al evento e intentarlo otra vez.";
@@ -106,6 +106,24 @@ function CheckoutEstadoContent() {
           >
             {copy}
           </p>
+
+          {data?.estado === "PAGADO" ? (
+            <div
+              style={{
+                marginTop: "1rem",
+                padding: "0.9375rem 1rem",
+                borderRadius: "var(--radius-md)",
+                border: "1px solid rgba(92,255,157,0.2)",
+                background: "rgba(92,255,157,0.08)",
+                color: "var(--text-primary)",
+                lineHeight: 1.55,
+                fontSize: "var(--font-sm)",
+              }}
+            >
+              Tus entradas se envian por email. Si no las ves enseguida, revisa
+              spam, promociones, social y el resto de tus bandejas.
+            </div>
+          ) : null}
 
           <div
             style={{

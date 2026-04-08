@@ -960,6 +960,23 @@ export default function EventModal({ event, onClose }: EventModalProps) {
               </span>
             </label>
 
+            <div
+              style={{
+                marginBottom: "0.875rem",
+                padding: "0.875rem 0.9375rem",
+                borderRadius: "var(--radius-md)",
+                border: "1px solid rgba(93, 232, 160, 0.24)",
+                background: "rgba(93, 232, 160, 0.08)",
+                color: "var(--text-secondary)",
+                fontSize: "var(--font-xs)",
+                lineHeight: 1.6,
+              }}
+            >
+              Cuando se acredite el pago, las entradas te van a llegar por
+              email. Revisá tambien spam, promociones y las demas bandejas por
+              si el mensaje entra filtrado.
+            </div>
+
             {/* Submit */}
             <button
               className="btn-primary modal-submit-btn"
