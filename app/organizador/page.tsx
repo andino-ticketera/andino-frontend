@@ -4,6 +4,7 @@ import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import EvaIcon from "@/components/EvaIcon";
+import { sendOrganizerLead } from "@/lib/organizer-contact-api";
 
 export default function OrganizadorPage() {
   const [form, setForm] = useState({
@@ -15,12 +16,30 @@ export default function OrganizadorPage() {
     telefono: "+549",
   });
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const update = (field: string, value: string) =>
     setForm((prev) => ({ ...prev, [field]: value }));
 
-  const handleSubmit = () => {
-    setSubmitted(true);
+  const handleSubmit = async () => {
+    if (isSubmitting) return;
+
+    setSubmitError(null);
+    setIsSubmitting(true);
+
+    try {
+      await sendOrganizerLead(form);
+      setSubmitted(true);
+    } catch (error) {
+      setSubmitError(
+        error instanceof Error
+          ? error.message
+          : "No se pudo enviar la solicitud",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const inputStyle: React.CSSProperties = {
@@ -177,11 +196,15 @@ export default function OrganizadorPage() {
           </p>
 
           {/* Form fields */}
-          <div
+          <form
             style={{
               display: "flex",
               flexDirection: "column",
               gap: "1.125rem",
+            }}
+            onSubmit={(event) => {
+              event.preventDefault();
+              void handleSubmit();
             }}
           >
             {/* Pais */}
@@ -328,30 +351,48 @@ export default function OrganizadorPage() {
                 </span>
               </div>
             </div>
-          </div>
 
-          {/* Button */}
-          <div style={{ textAlign: "center", marginTop: "1.75rem" }}>
-            <button
-              onClick={handleSubmit}
-              className="btn-primary"
-              style={{
-                background: "var(--color-accent)",
-                color: "#fff",
-                fontSize: "0.9375rem",
-                fontWeight: 700,
-                padding: "0.875rem 3rem",
-                borderRadius: "0.625rem",
-                border: "none",
-                cursor: "pointer",
-                fontFamily: "inherit",
-                letterSpacing: "0.03em",
-                textTransform: "uppercase",
-              }}
-            >
-              Enviar
-            </button>
-          </div>
+            {submitError ? (
+              <p
+                role="alert"
+                style={{
+                  margin: "0.25rem 0 0",
+                  padding: "0.875rem 1rem",
+                  borderRadius: "0.75rem",
+                  border: "1px solid rgba(255, 143, 143, 0.35)",
+                  background: "rgba(255, 143, 143, 0.08)",
+                  color: "#ffd0d0",
+                  fontSize: "0.875rem",
+                }}
+              >
+                {submitError}
+              </p>
+            ) : null}
+
+            <div style={{ textAlign: "center", marginTop: "0.5rem" }}>
+              <button
+                type="submit"
+                className="btn-primary"
+                disabled={isSubmitting}
+                style={{
+                  background: "var(--color-accent)",
+                  color: "#fff",
+                  fontSize: "0.9375rem",
+                  fontWeight: 700,
+                  padding: "0.875rem 3rem",
+                  borderRadius: "0.625rem",
+                  border: "none",
+                  cursor: isSubmitting ? "wait" : "pointer",
+                  fontFamily: "inherit",
+                  letterSpacing: "0.03em",
+                  textTransform: "uppercase",
+                  opacity: isSubmitting ? 0.8 : 1,
+                }}
+              >
+                {isSubmitting ? "Enviando..." : "Enviar"}
+              </button>
+            </div>
+          </form>
         </div>
       </div>
 
