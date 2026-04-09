@@ -85,7 +85,14 @@ function matchesFecha(eventDate: string, fecha: string): boolean {
 }
 
 export default function Home() {
-  const { events, carouselEventIds, categories, isEventsLoading } = useAdmin();
+  const {
+    events,
+    carouselEventIds,
+    categories,
+    isEventsLoading,
+    isCategoriesLoading,
+    isCarouselLoading,
+  } = useAdmin();
   const [filters, setFilters] = useState<Filters>({
     query: "",
     provincia: "",
@@ -172,7 +179,7 @@ export default function Home() {
       }
 
       return true;
-    });
+    }).slice(0, 12);
   }, [filters, validActiveCategories, events]);
 
   const handleSearch = useCallback((newFilters: Filters) => {
@@ -200,101 +207,6 @@ export default function Home() {
     };
   }, [modalEvent]);
 
-  if (isEventsLoading) {
-    return (
-      <div className="page-fade-in" style={{ position: "relative" }}>
-        <Navbar />
-        <div style={{ height: "5rem" }} />
-
-        <section
-          style={{
-            maxWidth: "80rem",
-            margin: "0 auto",
-            padding: "1.5rem 1.5rem 1rem",
-          }}
-          aria-busy="true"
-        >
-          <div
-            className="skeleton-shimmer"
-            style={{
-              width: "100%",
-              height: "clamp(14rem, 36vw, 22rem)",
-              borderRadius: "var(--radius-xl)",
-              border: "1px solid var(--border-color-50)",
-            }}
-          />
-        </section>
-
-        <section
-          style={{
-            maxWidth: "80rem",
-            margin: "0 auto",
-            padding: "2rem 1.5rem 3rem",
-            minHeight: "55vh",
-          }}
-          aria-busy="true"
-        >
-          <div
-            style={{ marginBottom: "1.5rem", display: "grid", gap: "0.625rem" }}
-          >
-            <div
-              className="skeleton-shimmer"
-              style={{
-                width: "11rem",
-                height: "1.75rem",
-                borderRadius: "var(--radius-sm)",
-              }}
-            />
-            <div
-              className="skeleton-shimmer"
-              style={{
-                width: "16rem",
-                height: "0.875rem",
-                borderRadius: "var(--radius-full)",
-              }}
-            />
-          </div>
-
-          <div
-            style={{
-              display: "flex",
-              gap: "0.5rem",
-              marginBottom: "2rem",
-              flexWrap: "wrap",
-            }}
-          >
-            {Array.from({ length: 5 }).map((_, index) => (
-              <div
-                key={`home-pill-skeleton-${index}`}
-                className="skeleton-shimmer"
-                style={{
-                  width: `${4.5 + index * 0.4}rem`,
-                  height: "2rem",
-                  borderRadius: "var(--radius-full)",
-                }}
-              />
-            ))}
-          </div>
-
-          <EventGridSkeleton count={6} />
-          <div
-            style={{
-              textAlign: "center",
-              marginTop: "1.25rem",
-              color: "var(--text-disabled)",
-            }}
-          >
-            <p style={{ fontSize: "var(--font-sm)", fontWeight: 600 }}>
-              Cargando eventos...
-            </p>
-          </div>
-        </section>
-
-        <Footer />
-      </div>
-    );
-  }
-
   return (
     <>
       <div className="page-fade-in" style={{ position: "relative" }}>
@@ -303,12 +215,33 @@ export default function Home() {
         {/* Spacer for fixed navbar */}
         <div style={{ height: "5rem" }} />
 
-        {/* Hero Carousel */}
-        <HeroCarousel
-          events={featuredEvents}
-          onReserve={openModal}
-          onDetails={openModal}
-        />
+        {/* Hero Carousel — skeleton individual */}
+        {isCarouselLoading || isEventsLoading ? (
+          <section
+            style={{
+              maxWidth: "80rem",
+              margin: "0 auto",
+              padding: "1.5rem 1.5rem 1rem",
+            }}
+            aria-busy="true"
+          >
+            <div
+              className="skeleton-shimmer"
+              style={{
+                width: "100%",
+                height: "clamp(14rem, 36vw, 22rem)",
+                borderRadius: "var(--radius-xl)",
+                border: "1px solid var(--border-color-50)",
+              }}
+            />
+          </section>
+        ) : (
+          <HeroCarousel
+            events={featuredEvents}
+            onReserve={openModal}
+            onDetails={openModal}
+          />
+        )}
 
         {/* Search Bar */}
         <SearchBar onSearch={handleSearch} />
@@ -355,130 +288,173 @@ export default function Home() {
             Descubri los mejores eventos cerca tuyo
           </p>
 
-          <div
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              gap: "0.5rem",
-              marginBottom: "2.25rem",
-            }}
-          >
-            {categoryFilters.map((cat) => {
-              const isActive = validActiveCategories.has(cat);
-              return (
-                <button
-                  key={cat}
-                  onClick={() => toggleCategory(cat)}
-                  className="cat-pill"
+          {/* Category pills — skeleton individual */}
+          {isCategoriesLoading ? (
+            <div
+              style={{
+                display: "flex",
+                gap: "0.5rem",
+                marginBottom: "2.25rem",
+                flexWrap: "wrap",
+              }}
+            >
+              {Array.from({ length: 5 }).map((_, index) => (
+                <div
+                  key={`home-pill-skeleton-${index}`}
+                  className="skeleton-shimmer"
                   style={{
-                    padding: "0.5rem 1.125rem",
+                    width: `${4.5 + index * 0.4}rem`,
+                    height: "2rem",
+                    borderRadius: "var(--radius-full)",
+                  }}
+                />
+              ))}
+            </div>
+          ) : (
+            <div
+              style={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: "0.5rem",
+                marginBottom: "2.25rem",
+              }}
+            >
+              {categoryFilters.map((cat) => {
+                const isActive = validActiveCategories.has(cat);
+                return (
+                  <button
+                    key={cat}
+                    onClick={() => toggleCategory(cat)}
+                    className="cat-pill"
+                    style={{
+                      padding: "0.5rem 1.125rem",
+                      borderRadius: "var(--radius-full)",
+                      fontSize: "var(--font-xs)",
+                      fontWeight: 600,
+                      border: "none",
+                      cursor: "pointer",
+                      transition:
+                        "background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease",
+                      background: isActive
+                        ? "var(--color-primary)"
+                        : "var(--bg-surface-2)",
+                      color: isActive ? "#1a0a2e" : "var(--text-secondary)",
+                      boxShadow: isActive
+                        ? "0 0 12px rgba(92, 255, 157, 0.3)"
+                        : "none",
+                    }}
+                  >
+                    {cat}
+                  </button>
+                );
+              })}
+              {validActiveCategories.size > 0 && (
+                <button
+                  onClick={() => setActiveCategories(new Set())}
+                  style={{
+                    padding: "0.5rem 0.875rem",
                     borderRadius: "var(--radius-full)",
                     fontSize: "var(--font-xs)",
                     fontWeight: 600,
-                    border: "none",
+                    border: "1px solid var(--border-color)",
+                    background: "transparent",
+                    color: "var(--text-disabled)",
                     cursor: "pointer",
-                    transition:
-                      "background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease",
-                    background: isActive
-                      ? "var(--color-primary)"
-                      : "var(--bg-surface-2)",
-                    color: isActive ? "#1a0a2e" : "var(--text-secondary)",
-                    boxShadow: isActive
-                      ? "0 0 12px rgba(92, 255, 157, 0.3)"
-                      : "none",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.25rem",
                   }}
                 >
-                  {cat}
+                  <EvaIcon name="close" size={14} />
+                  Limpiar
                 </button>
-              );
-            })}
-            {validActiveCategories.size > 0 && (
-              <button
-                onClick={() => setActiveCategories(new Set())}
-                style={{
-                  padding: "0.5rem 0.875rem",
-                  borderRadius: "var(--radius-full)",
-                  fontSize: "var(--font-xs)",
-                  fontWeight: 600,
-                  border: "1px solid var(--border-color)",
-                  background: "transparent",
-                  color: "var(--text-disabled)",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "0.25rem",
-                }}
-              >
-                <EvaIcon name="close" size={14} />
-                Limpiar
-              </button>
-            )}
-          </div>
-
-          {/* Event Grid */}
-          <div
-            key={`${filters.query}-${filters.provincia}-${filters.localidad}-${filters.fecha}-${Array.from(validActiveCategories).sort().join("-")}`}
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr",
-              gap: "1rem",
-              marginTop: "2rem",
-            }}
-            className="event-grid"
-          >
-            {filteredEvents.map((event) => (
-              <EventCard key={event.id} event={event} onReserve={openModal} />
-            ))}
-          </div>
-
-          {/* Empty state */}
-          {filteredEvents.length === 0 && (
-            <div style={{ textAlign: "center", padding: "5rem 0" }}>
-              <div
-                className="empty-state-icon"
-                style={{
-                  marginBottom: "1.25rem",
-                  color: "var(--border-color)",
-                }}
-              >
-                <EvaIcon name="calendar" size={56} />
-              </div>
-              <p
-                style={{
-                  color: "var(--text-disabled)",
-                  fontSize: "var(--font-lg)",
-                  fontWeight: 700,
-                  marginBottom: "0.5rem",
-                }}
-              >
-                No hay eventos disponibles
-              </p>
-              <p
-                style={{
-                  color: "var(--text-disabled)",
-                  fontSize: "var(--font-base)",
-                  opacity: 0.7,
-                  marginBottom: "1.5rem",
-                }}
-              >
-                No encontramos eventos con esos filtros por ahora.
-              </p>
-              <button
-                onClick={clearFilters}
-                className="btn-outline"
-                style={{
-                  background: "transparent",
-                  color: "var(--color-primary)",
-                  fontSize: "var(--font-sm)",
-                  fontWeight: 600,
-                  padding: "0.625rem 1.5rem",
-                  borderRadius: "var(--radius-full)",
-                  border: "1px solid var(--primary-40)",
-                }}
-              >
-                Ver todos los eventos
-              </button>
+              )}
             </div>
+          )}
+
+          {/* Event Grid — skeleton individual */}
+          {isEventsLoading ? (
+            <>
+              <EventGridSkeleton count={6} />
+              <div
+                style={{
+                  textAlign: "center",
+                  marginTop: "1.25rem",
+                  color: "var(--text-disabled)",
+                }}
+              >
+                <p style={{ fontSize: "var(--font-sm)", fontWeight: 600 }}>
+                  Cargando eventos...
+                </p>
+              </div>
+            </>
+          ) : (
+            <>
+              <div
+                key={`${filters.query}-${filters.provincia}-${filters.localidad}-${filters.fecha}-${Array.from(validActiveCategories).sort().join("-")}`}
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr",
+                  gap: "1rem",
+                  marginTop: "2rem",
+                }}
+                className="event-grid"
+              >
+                {filteredEvents.map((event) => (
+                  <EventCard key={event.id} event={event} onReserve={openModal} />
+                ))}
+              </div>
+
+              {/* Empty state */}
+              {filteredEvents.length === 0 && (
+                <div style={{ textAlign: "center", padding: "5rem 0" }}>
+                  <div
+                    className="empty-state-icon"
+                    style={{
+                      marginBottom: "1.25rem",
+                      color: "var(--border-color)",
+                    }}
+                  >
+                    <EvaIcon name="calendar" size={56} />
+                  </div>
+                  <p
+                    style={{
+                      color: "var(--text-disabled)",
+                      fontSize: "var(--font-lg)",
+                      fontWeight: 700,
+                      marginBottom: "0.5rem",
+                    }}
+                  >
+                    No hay eventos disponibles
+                  </p>
+                  <p
+                    style={{
+                      color: "var(--text-disabled)",
+                      fontSize: "var(--font-base)",
+                      opacity: 0.7,
+                      marginBottom: "1.5rem",
+                    }}
+                  >
+                    No encontramos eventos con esos filtros por ahora.
+                  </p>
+                  <button
+                    onClick={clearFilters}
+                    className="btn-outline"
+                    style={{
+                      background: "transparent",
+                      color: "var(--color-primary)",
+                      fontSize: "var(--font-sm)",
+                      fontWeight: 600,
+                      padding: "0.625rem 1.5rem",
+                      borderRadius: "var(--radius-full)",
+                      border: "1px solid var(--primary-40)",
+                    }}
+                  >
+                    Ver todos los eventos
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </section>
 

@@ -34,6 +34,8 @@ export interface AdminToast {
 interface AdminContextValue {
   events: Event[];
   isEventsLoading: boolean;
+  isCategoriesLoading: boolean;
+  isCarouselLoading: boolean;
   purchases: Purchase[];
   categories: string[];
   carouselEventIds: string[];
@@ -127,7 +129,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     retry: 1,
   });
 
-  const { data: categoryRecords = [] } = useQuery({
+  const { data: categoryRecords = [], isLoading: isCatLoading } = useQuery({
     queryKey: ["public-categories"],
     queryFn: fetchPublicCategories,
     select: normalizeCategories,
@@ -140,7 +142,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     retry: 1,
   });
 
-  const { data: fetchedCarouselEventIds = [] } = useQuery({
+  const { data: fetchedCarouselEventIds = [], isLoading: isCarouselLoading } = useQuery({
     queryKey: ["carousel-events"],
     queryFn: fetchCarouselEventIds,
     enabled: shouldFetchCatalogData,
@@ -166,6 +168,12 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
   const isEventsLoading =
     shouldFetchCatalogData && isLoading && events.length === 0;
+
+  const isCategoriesLoading =
+    shouldFetchCatalogData && isCatLoading && categoryRecords.length === 0;
+
+  const isCarouselLoadingState =
+    shouldFetchCatalogData && isCarouselLoading && fetchedCarouselEventIds.length === 0;
 
   const addEvent = useCallback(
     (event: Event | Omit<Event, "id">) => {
@@ -378,6 +386,8 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     () => ({
       events,
       isEventsLoading,
+      isCategoriesLoading,
+      isCarouselLoading: isCarouselLoadingState,
       purchases,
       categories,
       carouselEventIds,
@@ -396,6 +406,8 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     [
       events,
       isEventsLoading,
+      isCategoriesLoading,
+      isCarouselLoadingState,
       purchases,
       categories,
       carouselEventIds,
