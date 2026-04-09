@@ -217,54 +217,76 @@ export default function OrganizerDashboardPage() {
           >
             {mpDescription}
           </p>
-          <div
-            className="mp-onboarding-grid"
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-              gap: "0.625rem",
-              marginTop: "0.875rem",
-            }}
-          >
-            {[
-              "1. Toca activar cobros.",
-              "2. Autoriza tu cuenta en Mercado Pago.",
-              "3. Publica eventos y cobra con Mercado Pago.",
-            ].map((step) => (
-              <div
-                key={step}
-                style={{
-                  border: "1px solid var(--border-color)",
-                  borderRadius: "var(--radius-md)",
-                  padding: "0.625rem 0.75rem",
-                  background: "rgba(255,255,255,0.04)",
-                  fontSize: "var(--font-xs)",
-                  color: "var(--text-secondary)",
-                  lineHeight: 1.5,
-                }}
-              >
-                {step}
-              </div>
-            ))}
-          </div>
+          {mpStatus?.status !== "CONECTADA" && (
+            <div
+              className="mp-onboarding-grid"
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+                gap: "0.625rem",
+                marginTop: "0.875rem",
+              }}
+            >
+              {[
+                "1. Toca activar cobros.",
+                "2. Autoriza tu cuenta en Mercado Pago.",
+                "3. Publica eventos y cobra con Mercado Pago.",
+              ].map((step) => (
+                <div
+                  key={step}
+                  style={{
+                    border: "1px solid var(--border-color)",
+                    borderRadius: "var(--radius-md)",
+                    padding: "0.625rem 0.75rem",
+                    background: "rgba(255,255,255,0.04)",
+                    fontSize: "var(--font-xs)",
+                    color: "var(--text-secondary)",
+                    lineHeight: 1.5,
+                  }}
+                >
+                  {step}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
-        <button
-          type="button"
-          onClick={handleConnectMercadoPago}
-          disabled={isConnectingMp}
-          style={{
-            border: "none",
-            borderRadius: "var(--radius-full)",
-            background: "var(--color-primary)",
-            color: "#06130f",
-            fontWeight: 800,
-            padding: "0.75rem 1rem",
-            cursor: isConnectingMp ? "not-allowed" : "pointer",
-          }}
-        >
-          {isConnectingMp ? "Conectando..." : mpActionLabel}
-        </button>
+        {mpStatus?.status !== "CONECTADA" ? (
+          <button
+            type="button"
+            onClick={handleConnectMercadoPago}
+            disabled={isConnectingMp}
+            style={{
+              border: "none",
+              borderRadius: "var(--radius-full)",
+              background: "var(--color-primary)",
+              color: "#06130f",
+              fontWeight: 800,
+              padding: "0.75rem 1rem",
+              cursor: isConnectingMp ? "not-allowed" : "pointer",
+            }}
+          >
+            {isConnectingMp ? "Conectando..." : mpActionLabel}
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={handleConnectMercadoPago}
+            disabled={isConnectingMp}
+            style={{
+              border: "1px solid var(--border-color)",
+              borderRadius: "var(--radius-full)",
+              background: "transparent",
+              color: "var(--text-secondary)",
+              fontWeight: 700,
+              padding: "0.5rem 0.875rem",
+              fontSize: "var(--font-xs)",
+              cursor: isConnectingMp ? "not-allowed" : "pointer",
+            }}
+          >
+            {isConnectingMp ? "Conectando..." : "Actualizar conexion"}
+          </button>
+        )}
       </article>
 
       {/* Stats */}

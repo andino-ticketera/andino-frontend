@@ -83,14 +83,27 @@ export default function HeroCarousel({ events, onReserve }: HeroCarouselProps) {
           {events.map((event) => (
             <div key={event.id} className="embla__slide">
               <div className="hero-slide" style={{ position: "relative" }}>
-                {/* Background image via next/image */}
+                {/* Blurred background fill — prevents empty bars on portrait images */}
+                <Image
+                  src={event.image}
+                  alt=""
+                  fill
+                  sizes="100vw"
+                  aria-hidden="true"
+                  style={{
+                    objectFit: "cover",
+                    filter: "blur(24px) brightness(0.4)",
+                    transform: "scale(1.15)",
+                  }}
+                />
+                {/* Main image — contain ensures no cropping */}
                 <Image
                   src={event.image}
                   alt={event.title}
                   fill
                   priority
                   sizes="100vw"
-                  style={{ objectFit: "cover" }}
+                  style={{ objectFit: "contain", objectPosition: "center" }}
                 />
 
                 {/* Gradient overlay */}
@@ -343,7 +356,7 @@ export default function HeroCarousel({ events, onReserve }: HeroCarouselProps) {
               alt={event.title}
               fill
               sizes="80px"
-              style={{ objectFit: "cover" }}
+              style={{ objectFit: "cover", objectPosition: "center 20%" }}
             />
           </button>
         ))}

@@ -22,7 +22,7 @@ export default function EventCard({ event, onReserve }: EventCardProps) {
     >
       {/* Image */}
       <div
-        style={{ position: "relative", height: "13.75rem", overflow: "hidden" }}
+        style={{ position: "relative", aspectRatio: "16 / 9", overflow: "hidden" }}
       >
         <Image
           src={event.image}
@@ -30,7 +30,7 @@ export default function EventCard({ event, onReserve }: EventCardProps) {
           fill
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
           className="event-card-img"
-          style={{ objectFit: "cover" }}
+          style={{ objectFit: "cover", objectPosition: "center 20%" }}
         />
         <div
           style={{
