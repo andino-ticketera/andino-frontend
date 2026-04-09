@@ -334,7 +334,7 @@ export default function Home() {
           }}
         >
           {/* Section title */}
-          <h2
+          <h1
             style={{
               fontSize: "var(--font-2xl)",
               fontWeight: 900,
@@ -344,7 +344,7 @@ export default function Home() {
             }}
           >
             Eventos
-          </h2>
+          </h1>
           <p
             style={{
               fontSize: "var(--font-base)",

@@ -13,9 +13,31 @@ const montserrat = Montserrat({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://andinotickets.com"),
-  title: "Andino Tickets — Descubri los mejores eventos",
+  title: {
+    default: "Andino Tickets — Descubri los mejores eventos",
+    template: "%s | Andino Tickets",
+  },
   description:
     "Tu plataforma de confianza para descubrir y reservar entradas a los mejores eventos en vivo.",
+  openGraph: {
+    title: "Andino Tickets — Descubri los mejores eventos",
+    description:
+      "Tu plataforma de confianza para descubrir y reservar entradas a los mejores eventos en vivo.",
+    url: "https://andinotickets.com",
+    siteName: "Andino Tickets",
+    locale: "es_AR",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Andino Tickets — Descubri los mejores eventos",
+    description:
+      "Tu plataforma de confianza para descubrir y reservar entradas a los mejores eventos en vivo.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({

@@ -29,6 +29,7 @@ export default function EventCard({ event, onReserve }: EventCardProps) {
           alt={event.title}
           fill
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          loading="lazy"
           className="event-card-img"
           style={{ objectFit: "cover", objectPosition: "center 20%" }}
         />

@@ -294,7 +294,7 @@ export default function CompraDetallePage() {
                           fontSize: "var(--font-sm)",
                         }}
                       >
-                        Token: {entrada.qr_token}
+                        {entrada.qr_token ? `Token: ${entrada.qr_token}` : `Entrada #${entrada.numero_entrada}`}
                       </span>
                       {entrada.fecha_uso ? (
                         <span

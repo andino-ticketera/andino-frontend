@@ -1,6 +1,11 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import Logo from "@/components/Logo";
 import EvaIcon from "@/components/EvaIcon";
+
+export const metadata: Metadata = {
+  robots: "noindex, nofollow",
+};
 
 export default function NotFound() {
   return (

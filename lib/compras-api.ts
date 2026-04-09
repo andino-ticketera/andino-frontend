@@ -20,7 +20,7 @@ export interface Compra {
 export interface EntradaResumen {
   id: string;
   numero_entrada: number;
-  qr_token: string;
+  qr_token?: string;
   estado: "DISPONIBLE" | "USADA";
   fecha_uso?: string;
 }
