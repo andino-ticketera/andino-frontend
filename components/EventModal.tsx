@@ -466,6 +466,10 @@ export default function EventModal({ event, onClose }: EventModalProps) {
                 alignItems: "center",
                 gap: "0.75rem",
                 marginTop: "auto",
+                padding: "0.75rem 1rem",
+                borderRadius: "var(--radius-lg)",
+                background: "rgba(245, 245, 245, 0.08)",
+                border: "1px solid rgba(255, 255, 255, 0.1)",
               }}
             >
               {/* Name */}
@@ -485,7 +489,7 @@ export default function EventModal({ event, onClose }: EventModalProps) {
                 <p
                   style={{
                     fontSize: "var(--font-xs)",
-                    color: "var(--text-disabled)",
+                    color: "var(--text-secondary)",
                     marginTop: "0.125rem",
                   }}
                 >
@@ -960,22 +964,23 @@ export default function EventModal({ event, onClose }: EventModalProps) {
               </span>
             </label>
 
-            <div
+            <p
               style={{
-                marginBottom: "0.875rem",
-                padding: "0.875rem 0.9375rem",
-                borderRadius: "var(--radius-md)",
-                border: "1px solid rgba(93, 232, 160, 0.24)",
-                background: "rgba(93, 232, 160, 0.08)",
-                color: "var(--text-secondary)",
+                margin: "0 0 0.875rem",
+                textAlign: "center",
                 fontSize: "var(--font-xs)",
-                lineHeight: 1.6,
+                color: "var(--text-disabled)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "0.375rem",
               }}
             >
-              Cuando se acredite el pago, las entradas te van a llegar por
-              email. Revisá tambien spam, promociones y las demas bandejas por
-              si el mensaje entra filtrado.
-            </div>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="var(--color-primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              Pago seguro y privado
+            </p>
 
             {/* Submit */}
             <button

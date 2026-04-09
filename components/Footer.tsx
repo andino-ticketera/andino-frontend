@@ -76,9 +76,6 @@ export default function Footer() {
               <Link href="/explorar" style={linkStyle}>
                 Explorar
               </Link>
-              <Link href="/contacto" style={linkStyle}>
-                Contacto
-              </Link>
             </div>
           </div>
 
@@ -106,9 +103,6 @@ export default function Footer() {
               <Link href="/contacto" style={linkStyle}>
                 Contacto
               </Link>
-              <Link href="/contacto" style={linkStyle}>
-                FAQ
-              </Link>
             </div>
           </div>
 
@@ -133,7 +127,7 @@ export default function Footer() {
               <Link href="/terminos-y-condiciones" style={linkStyle}>
                 Terminos y Condiciones
               </Link>
-              <Link href="/terminos-y-condiciones" style={linkStyle}>
+              <Link href="/politica-de-privacidad" style={linkStyle}>
                 Politica de Privacidad
               </Link>
             </div>
