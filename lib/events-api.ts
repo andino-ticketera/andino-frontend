@@ -304,6 +304,53 @@ function buildEventUpdatePayload(
   return payload;
 }
 
+function buildEventUpdateFormData(
+  event: Omit<Event, "id">,
+  previousEvent?: Omit<Event, "id">,
+): FormData | null {
+  const payload = buildEventUpdatePayload(event, previousEvent);
+  const imageFile = dataUrlToFile(event.image, "evento-imagen");
+  const flyerFile = dataUrlToFile(event.flyer, "evento-flyer");
+  const shouldRemoveFlyer =
+    !!previousEvent?.flyer.trim() && !event.flyer.trim() && !flyerFile;
+
+  if (
+    Object.keys(payload).length === 0 &&
+    !imageFile &&
+    !flyerFile &&
+    !shouldRemoveFlyer
+  ) {
+    return null;
+  }
+
+  const formData = new FormData();
+
+  for (const [key, value] of Object.entries(payload)) {
+    if (value === undefined || value === null) {
+      continue;
+    }
+
+    if (key === "medios_pago") {
+      formData.append(key, JSON.stringify(value));
+      continue;
+    }
+
+    formData.append(key, String(value));
+  }
+
+  if (imageFile) {
+    formData.append("imagen", imageFile);
+  }
+
+  if (flyerFile) {
+    formData.append("flyer", flyerFile);
+  } else if (shouldRemoveFlyer) {
+    formData.append("remove_flyer", "true");
+  }
+
+  return formData;
+}
+
 function dataUrlToFile(dataUrl: string, filename: string): File | null {
   const match = dataUrl.match(/^data:([^;]+);base64,(.*)$/);
   if (!match) return null;
@@ -382,9 +429,9 @@ export async function updateEventFromAdmin(
   event: Omit<Event, "id">,
   previousEvent?: Omit<Event, "id">,
 ): Promise<Event> {
-  const payload = buildEventUpdatePayload(event, previousEvent);
+  const formData = buildEventUpdateFormData(event, previousEvent);
 
-  if (Object.keys(payload).length === 0) {
+  if (!formData) {
     return {
       ...(previousEvent ?? event),
       id: eventId,
@@ -393,8 +440,8 @@ export async function updateEventFromAdmin(
 
   const response = await fetch(`${getEventsBaseEndpoint()}/${eventId}`, {
     method: "PUT",
-    headers: buildAdminJsonHeaders(),
-    body: JSON.stringify(payload),
+    headers: buildAdminMultipartHeaders(),
+    body: formData,
   });
 
   if (!response.ok) {

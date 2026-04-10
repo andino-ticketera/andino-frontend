@@ -344,8 +344,7 @@ export default function AdminEventForm({
     venue.trim() &&
     provincia.trim() &&
     localidad.trim() &&
-    // Imagen obligatoria solo al crear. En edicion puede mantenerse la existente.
-    (mode === "edit" || image.trim());
+    image.trim();
 
   const canSubmit = baseCanSubmit && hasChanges;
   const firstMissingField = useMemo(() => {
@@ -359,7 +358,7 @@ export default function AdminEventForm({
     if (!venue.trim()) return "Locacion";
     if (!provincia.trim()) return "Provincia";
     if (!localidad.trim()) return "Localidad";
-    if (mode === "create" && !image.trim()) return "Imagen del evento";
+    if (!image.trim()) return "Imagen del evento";
     return "";
   }, [
     categories.length,
@@ -367,7 +366,6 @@ export default function AdminEventForm({
     image,
     localidad,
     longDescription,
-    mode,
     provincia,
     selectedCategory,
     time,
@@ -747,7 +745,13 @@ export default function AdminEventForm({
               <div style={previewGridStyle}>
                 {image.trim() && (
                   <div style={previewThumbWrap}>
-                    <div style={{ ...previewThumbFrame, width: "64px", height: "40px" }}>
+                    <div
+                      style={{
+                        ...previewThumbFrame,
+                        width: "64px",
+                        height: "40px",
+                      }}
+                    >
                       <Image
                         src={image}
                         alt="Preview imagen"
@@ -756,7 +760,17 @@ export default function AdminEventForm({
                         style={{ objectFit: "cover" }}
                       />
                     </div>
-                    <span style={{ fontSize: "var(--font-xs)", color: "#1f1f1f", flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    <span
+                      style={{
+                        fontSize: "var(--font-xs)",
+                        color: "#1f1f1f",
+                        flex: 1,
+                        minWidth: 0,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
                       Imagen principal
                     </span>
                     <button
@@ -765,7 +779,8 @@ export default function AdminEventForm({
                       title="Eliminar imagen"
                       onClick={() => {
                         setImage("");
-                        if (imageInputRef.current) imageInputRef.current.value = "";
+                        if (imageInputRef.current)
+                          imageInputRef.current.value = "";
                       }}
                     >
                       <EvaIcon name="close-circle-outline" size={18} />
@@ -775,7 +790,13 @@ export default function AdminEventForm({
 
                 {flyer.trim() && (
                   <div style={previewThumbWrap}>
-                    <div style={{ ...previewThumbFrame, width: "48px", height: "60px" }}>
+                    <div
+                      style={{
+                        ...previewThumbFrame,
+                        width: "48px",
+                        height: "60px",
+                      }}
+                    >
                       <Image
                         src={flyer}
                         alt="Preview flyer"
@@ -784,7 +805,17 @@ export default function AdminEventForm({
                         style={{ objectFit: "cover" }}
                       />
                     </div>
-                    <span style={{ fontSize: "var(--font-xs)", color: "#1f1f1f", flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    <span
+                      style={{
+                        fontSize: "var(--font-xs)",
+                        color: "#1f1f1f",
+                        flex: 1,
+                        minWidth: 0,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
                       Flyer del evento
                     </span>
                     <button
@@ -793,7 +824,8 @@ export default function AdminEventForm({
                       title="Eliminar flyer"
                       onClick={() => {
                         setFlyer("");
-                        if (flyerInputRef.current) flyerInputRef.current.value = "";
+                        if (flyerInputRef.current)
+                          flyerInputRef.current.value = "";
                       }}
                     >
                       <EvaIcon name="close-circle-outline" size={18} />
