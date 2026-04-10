@@ -16,7 +16,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
   if (!token) {
     return NextResponse.json(
-      { error: "NO_AUTENTICADO", mensaje: "Debe iniciar sesion" },
+      { error: "NO_AUTENTICADO", mensaje: "Debe iniciar sesión" },
       { status: 401 },
     );
   }

@@ -4,11 +4,11 @@ import EvaIcon from "./EvaIcon";
 
 const categoryIcons: Record<string, string> = {
   "Todos los Eventos": "search",
-  "Musica en Vivo": "music",
+  "Música en Vivo": "music",
   "Fiestas": "flash",
   "Teatro": "film",
   "Danza": "activity",
-  "Recreacion": "sun",
+  "Recreación": "sun",
   "Eventos Especiales": "star",
 };
 

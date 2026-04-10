@@ -109,17 +109,17 @@ export default function OrganizerDashboardPage() {
   const mpDescription =
     mpStatus?.status === "CONECTADA"
       ? mpStatus?.mpEmail
-        ? `Tu cuenta ${mpStatus.mpEmail} ya esta autorizada para cobrar con Mercado Pago.`
-        : "Tu cuenta de Mercado Pago ya esta autorizada para cobrar con Mercado Pago."
+        ? `Tu cuenta ${mpStatus.mpEmail} ya está autorizada para cobrar con Mercado Pago.`
+        : "Tu cuenta de Mercado Pago ya está autorizada para cobrar con Mercado Pago."
       : mpStatus?.status === "REQUIERE_RECONEXION"
-        ? "Mercado Pago pidio una nueva autorizacion. Reconecta para seguir cobrando en tus eventos."
+        ? "Mercado Pago pidió una nueva autorización. Reconectá para seguir cobrando en tus eventos."
         : mpStatus?.mode === "platform_test"
           ? "En desarrollo podes seguir con la cuenta plataforma o conectar tu propia cuenta sandbox para ver el flujo real del organizador."
-          : "Solo tenes que conectar tu cuenta una vez. Despues publicas eventos y cobras con Mercado Pago de forma simple.";
+          : "Solo tenés que conectar tu cuenta una vez. Después publicás eventos y cobrás con Mercado Pago de forma simple.";
 
   const mpActionLabel =
     mpStatus?.status === "CONECTADA"
-      ? "Actualizar conexion"
+      ? "Actualizar conexión"
       : mpStatus?.status === "REQUIERE_RECONEXION"
         ? "Reconectar cuenta"
         : mpStatus?.mode === "platform_test"

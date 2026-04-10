@@ -61,7 +61,7 @@ export default function Footer() {
                 marginBottom: "1rem",
               }}
             >
-              Navegacion
+              Navegación
             </h4>
             <div
               style={{
@@ -125,10 +125,10 @@ export default function Footer() {
               }}
             >
               <Link href="/terminos-y-condiciones" style={linkStyle}>
-                Terminos y Condiciones
+                Términos y Condiciones
               </Link>
               <Link href="/politica-de-privacidad" style={linkStyle}>
-                Politica de Privacidad
+                Política de Privacidad
               </Link>
             </div>
           </div>

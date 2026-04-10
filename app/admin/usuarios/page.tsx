@@ -561,8 +561,8 @@ export default function AdminUsuariosPage() {
                         ? "Los admins no se modifican desde esta pantalla."
                         : "No puedes cambiar tu propio rol desde esta pantalla."
                       : canPromote
-                        ? "Puede acceder al panel organizador luego de sincronizar su sesion."
-                        : "Perdera acceso al panel organizador en la siguiente sincronizacion de sesion."}
+                        ? "Puede acceder al panel organizador luego de sincronizar su sesión."
+                        : "Perderá acceso al panel organizador en la siguiente sincronización de sesión."}
                   </span>
 
                   <div

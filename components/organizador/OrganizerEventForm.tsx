@@ -28,11 +28,11 @@ interface OrganizerEventFormProps {
 }
 
 const fallbackCategories = [
-  "Musica en Vivo",
+  "Música en Vivo",
   "Fiestas",
   "Teatro",
   "Danza",
-  "Recreacion",
+  "Recreación",
   "Arte",
   "Festival",
 ];
@@ -151,7 +151,7 @@ export default function OrganizerEventForm({
     provincia: "",
     localidad: "",
     price: 0,
-    category: categories[0] ?? "Musica en Vivo",
+    category: categories[0] ?? "Música en Vivo",
     image: "",
     flyer: "",
     featured: false,
@@ -668,10 +668,10 @@ export default function OrganizerEventForm({
               {isMpStatusLoading
                 ? "Verificando estado de tu cuenta..."
                 : mpStatus?.status === "CONECTADA"
-                  ? "Tu cuenta ya esta lista para cobrar con Mercado Pago."
+                  ? "Tu cuenta ya está lista para cobrar con Mercado Pago."
                   : mpStatus?.mode === "platform_test"
                     ? "Estas en modo test: podes publicar ahora o conectar tu cuenta sandbox para probar el flujo real del organizador."
-                    : "Antes de publicar con Mercado Pago tenes que activar cobros una sola vez."}
+                    : "Antes de publicar con Mercado Pago tenés que activar cobros una sola vez."}
             </strong>
             <span
               style={{
@@ -683,8 +683,8 @@ export default function OrganizerEventForm({
               {mpStatus?.status === "CONECTADA"
                 ? mpStatus.mpEmail
                   ? `Cuenta vinculada: ${mpStatus.mpEmail}`
-                  : "La cuenta conectada quedo habilitada para tus proximos eventos."
-                : "Desde tu panel podes conectar Mercado Pago, autorizar el acceso y volver para publicar el evento sin cargar datos manuales."}
+                  : "La cuenta conectada quedó habilitada para tus próximos eventos."
+                : "Desde tu panel podés conectar Mercado Pago, autorizar el acceso y volver para publicar el evento sin cargar datos manuales."}
             </span>
             {!isMercadoPagoReady && !isMpStatusLoading && (
               <Link

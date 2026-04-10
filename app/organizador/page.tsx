@@ -309,7 +309,7 @@ export default function OrganizadorPage() {
             {/* Email */}
             <div style={fieldStyle}>
               <label htmlFor="org-email" style={labelTextStyle}>
-                Correo electronico
+                Correo electrónico
               </label>
               <div style={{ position: "relative" }}>
                 <input

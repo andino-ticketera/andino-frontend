@@ -304,7 +304,7 @@ export default function CarteleraPage() {
             letterSpacing: "-0.01em",
           }}
         >
-          Proximos eventos
+          Próximos eventos
         </h1>
         <p
           style={{
@@ -313,7 +313,7 @@ export default function CarteleraPage() {
             marginBottom: "1.5rem",
           }}
         >
-          Nos vemos pronto
+          No te pierdas lo que viene
         </p>
 
         {/* Category filter pills */}

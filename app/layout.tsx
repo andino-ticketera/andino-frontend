@@ -14,13 +14,13 @@ const montserrat = Montserrat({
 export const metadata: Metadata = {
   metadataBase: new URL("https://andinotickets.com"),
   title: {
-    default: "Andino Tickets — Descubri los mejores eventos",
+    default: "Andino Tickets — Descubrí los mejores eventos",
     template: "%s | Andino Tickets",
   },
   description:
     "Tu plataforma de confianza para descubrir y reservar entradas a los mejores eventos en vivo.",
   openGraph: {
-    title: "Andino Tickets — Descubri los mejores eventos",
+    title: "Andino Tickets — Descubrí los mejores eventos",
     description:
       "Tu plataforma de confianza para descubrir y reservar entradas a los mejores eventos en vivo.",
     url: "https://andinotickets.com",
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Andino Tickets — Descubri los mejores eventos",
+    title: "Andino Tickets — Descubrí los mejores eventos",
     description:
       "Tu plataforma de confianza para descubrir y reservar entradas a los mejores eventos en vivo.",
   },

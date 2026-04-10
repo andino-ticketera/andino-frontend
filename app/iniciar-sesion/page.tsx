@@ -45,7 +45,7 @@ export default function IniciarSesionPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  const title = mode === "login" ? "Iniciar sesion" : "Crear cuenta";
+  const title = mode === "login" ? "Iniciar sesión" : "Crear cuenta";
 
   const submitLabel = mode === "login" ? "Ingresar" : "Crear cuenta";
 
@@ -89,7 +89,7 @@ export default function IniciarSesionPage() {
             ? redirectFromQuery
             : getRedirectByRole(oauthResult.user.rol);
 
-        setFormSuccess("Sesion iniciada con Google. Te redirigimos...");
+        setFormSuccess("Sesión iniciada con Google. Te redirigimos...");
         window.setTimeout(() => {
           if (!cancelled) {
             router.push(destination);
@@ -121,7 +121,7 @@ export default function IniciarSesionPage() {
     if (isSubmitting) return;
     resetMessages();
     setIsSubmitting(true);
-    setPendingMessage("Redirigiendo a Google para iniciar sesion...");
+    setPendingMessage("Redirigiendo a Google para iniciar sesión...");
 
     try {
       const redirectTo = `${window.location.origin}/iniciar-sesion${window.location.search}`;
@@ -141,13 +141,13 @@ export default function IniciarSesionPage() {
 
     const normalizedEmail = email.trim().toLowerCase();
     if (!EMAIL_REGEX.test(normalizedEmail)) {
-      setFormError("Ingresa un email valido para recuperar tu clave.");
+      setFormError("Ingresá un email válido para recuperar tu clave.");
       return;
     }
 
     if (isSubmitting) return;
     setIsSubmitting(true);
-    setPendingMessage("Enviando enlace de recuperacion...");
+    setPendingMessage("Enviando enlace de recuperación...");
 
     try {
       await requestPasswordResetAuth(normalizedEmail);
@@ -158,7 +158,7 @@ export default function IniciarSesionPage() {
       const message =
         err instanceof Error
           ? err.message
-          : "No se pudo enviar el email de recuperacion";
+          : "No se pudo enviar el email de recuperación";
       setFormError(message);
     } finally {
       setIsSubmitting(false);
@@ -171,7 +171,7 @@ export default function IniciarSesionPage() {
     resetMessages();
 
     if (!EMAIL_REGEX.test(email.trim().toLowerCase())) {
-      setFormError("Ingresa un email valido.");
+      setFormError("Ingresá un email válido.");
       return;
     }
 
@@ -189,7 +189,7 @@ export default function IniciarSesionPage() {
     setIsSubmitting(true);
     setPendingMessage(
       mode === "login"
-        ? "Cargando informacion de tu cuenta..."
+        ? "Cargando información de tu cuenta..."
         : "Creando tu cuenta...",
     );
 
@@ -213,7 +213,7 @@ export default function IniciarSesionPage() {
 
         if (registerResult.requiresEmailVerification) {
           setFormSuccess(
-            "Te enviamos un email para verificar tu cuenta. Confirma tu correo y luego inicia sesion.",
+            "Te enviamos un email para verificar tu cuenta. Confirma tu correo y luego iniciá sesión.",
           );
           setMode("login");
           return;
@@ -255,14 +255,14 @@ export default function IniciarSesionPage() {
           ? redirectFromQuery
           : getRedirectByRole(loginResult.user.rol);
 
-      setFormSuccess("Sesion iniciada. Te redirigimos...");
+      setFormSuccess("Sesión iniciada. Te redirigimos...");
 
       window.setTimeout(() => {
         router.push(destination);
       }, 800);
     } catch (err) {
       const message =
-        err instanceof Error ? err.message : "No se pudo iniciar sesion";
+        err instanceof Error ? err.message : "No se pudo iniciar sesión";
       setFormError(message);
     } finally {
       setIsSubmitting(false);
@@ -517,7 +517,7 @@ export default function IniciarSesionPage() {
                     fontWeight: 700,
                   }}
                 >
-                  Iniciar sesion
+                  Iniciar sesión
                 </button>
                 <button
                   type="button"

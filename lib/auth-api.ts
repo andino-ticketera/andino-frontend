@@ -149,7 +149,7 @@ export async function startGoogleOAuthAuth(input?: {
   });
 
   if (error) {
-    throw new Error(error.message || "No se pudo iniciar sesion con Google");
+    throw new Error(error.message || "No se pudo iniciar sesión con Google");
   }
 
   if (data.url) {
@@ -162,7 +162,7 @@ export async function hydrateSupabaseSessionAuth(): Promise<AuthApiResponse | nu
   const { data, error } = await supabase.auth.getSession();
 
   if (error) {
-    throw new Error(error.message || "No se pudo leer la sesion de Supabase");
+    throw new Error(error.message || "No se pudo leer la sesión de Supabase");
   }
 
   const token = data.session?.access_token;

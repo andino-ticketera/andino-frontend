@@ -185,7 +185,7 @@ export default function ContactoPage() {
               marginBottom: "2rem",
             }}
           >
-            Tenes alguna consulta? Escribinos y te respondemos.
+            ¿Tenés alguna consulta? Escribinos y te respondemos.
           </p>
 
           <form
@@ -223,7 +223,7 @@ export default function ContactoPage() {
             {/* Email */}
             <div style={fieldStyle}>
               <label htmlFor="contacto-email" style={labelTextStyle}>
-                Correo electronico
+                Correo electrónico
               </label>
               <div style={{ position: "relative" }}>
                 <input

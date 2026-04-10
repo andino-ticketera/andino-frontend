@@ -3,11 +3,11 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Cartelera de eventos",
   description:
-    "Mira la cartelera completa de eventos en vivo. Musica, teatro, deportes y mas en toda Argentina.",
+    "Mira la cartelera completa de eventos en vivo. Música, teatro, deportes y más en toda Argentina.",
   openGraph: {
     title: "Cartelera de eventos",
     description:
-      "Mira la cartelera completa de eventos en vivo. Musica, teatro, deportes y mas en toda Argentina.",
+      "Mira la cartelera completa de eventos en vivo. Música, teatro, deportes y más en toda Argentina.",
     url: "https://andinotickets.com/cartelera",
   },
   alternates: {

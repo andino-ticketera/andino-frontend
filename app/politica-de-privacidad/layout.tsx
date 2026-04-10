@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Politica de privacidad",
+  title: "Política de privacidad",
   description:
-    "Politica de privacidad de Andino Tickets. Conoce como protegemos tus datos personales y tu informacion.",
+    "Política de privacidad de Andino Tickets. Conocé cómo protegemos tus datos personales y tu información.",
   alternates: {
     canonical: "/politica-de-privacidad",
   },

@@ -261,7 +261,7 @@ export default function Navbar() {
                   padding: 0,
                 }}
               >
-                Cerrar sesion
+                Cerrar sesión
               </button>
             </div>
           ) : (
@@ -275,7 +275,7 @@ export default function Navbar() {
                 transition: "color 0.2s ease",
               }}
             >
-              Iniciar Sesion
+              Iniciar Sesión
             </Link>
           )}
           {canShowOrganizerCta ? (
@@ -384,7 +384,7 @@ export default function Navbar() {
                 padding: session ? 0 : "0.125rem 0",
               }}
             >
-              {session ? "Cuenta" : "Iniciar Sesion"}
+              {session ? "Cuenta" : "Iniciar Sesión"}
             </Link>
             {session && panelHref && panelHref !== "/" && (
               <Link
@@ -420,7 +420,7 @@ export default function Navbar() {
                   cursor: "pointer",
                 }}
               >
-                Cerrar sesion
+                Cerrar sesión
               </button>
             )}
           </div>
@@ -509,7 +509,7 @@ export default function Navbar() {
                       id="logout-toast-title"
                       style={{ fontSize: "var(--font-base)", fontWeight: 700 }}
                     >
-                      Confirmar cierre de sesion
+                      Confirmar cierre de sesión
                     </strong>
                   </div>
                 </div>
@@ -539,7 +539,7 @@ export default function Navbar() {
                       opacity: isLoggingOut ? 0.75 : 1,
                     }}
                   >
-                    {isLoggingOut ? "Cerrando sesion..." : "Si, cerrar sesion"}
+                    {isLoggingOut ? "Cerrando sesión..." : "Sí, cerrar sesión"}
                   </button>
 
                   <button

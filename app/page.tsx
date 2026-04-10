@@ -184,7 +184,6 @@ export default function Home() {
 
   const handleSearch = useCallback((newFilters: Filters) => {
     setFilters(newFilters);
-    sectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, []);
 
   const clearFilters = useCallback(() => {

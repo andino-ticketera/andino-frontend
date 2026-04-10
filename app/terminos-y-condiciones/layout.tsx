@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Terminos y condiciones",
+  title: "Términos y condiciones",
   description:
-    "Terminos y condiciones de uso de Andino Tickets. Lee las reglas y politicas que aplican al usar nuestra plataforma.",
+    "Términos y condiciones de uso de Andino Tickets. Leé las reglas y políticas que aplican al usar nuestra plataforma.",
   alternates: {
     canonical: "/terminos-y-condiciones",
   },

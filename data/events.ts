@@ -32,16 +32,16 @@ export const events: Event[] = [
     id: "1",
     title: "Folk You Mondays 30/3",
     description:
-      "Noche de folk y acustico con artistas independientes en un bar con historia.",
+      "Noche de folk y acústico con artistas independientes en un bar con historia.",
     longDescription:
-      "Cada lunes, La Dama de Bollini abre sus puertas para una noche intima de folk y musica acustica. Artistas emergentes y consagrados comparten escenario en un ambiente unico. Entrada libre con consumicion minima.",
+      "Cada lunes, La Dama de Bollini abre sus puertas para una noche íntima de folk y música acústica. Artistas emergentes y consagrados comparten escenario en un ambiente único. Entrada libre con consumición mínima.",
     date: "30 Marzo, 2026",
     time: "20:30",
     venue: "La Dama de Bollini, Buenos Aires",
     provincia: "Buenos Aires",
     localidad: "CABA",
     price: 0,
-    category: "Musica en Vivo",
+    category: "Música en Vivo",
     image:
       "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&h=500&fit=crop",
     flyer:
@@ -97,7 +97,7 @@ export const events: Event[] = [
     provincia: "Buenos Aires",
     localidad: "Mar del Plata",
     price: 35,
-    category: "Recreacion",
+    category: "Recreación",
     image:
       "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=800&h=500&fit=crop",
     flyer:
@@ -153,7 +153,7 @@ export const events: Event[] = [
     provincia: "Buenos Aires",
     localidad: "CABA",
     price: 30,
-    category: "Musica en Vivo",
+    category: "Música en Vivo",
     image:
       "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800&h=500&fit=crop",
     flyer:
@@ -181,7 +181,7 @@ export const events: Event[] = [
     provincia: "Cordoba",
     localidad: "Cordoba Capital",
     price: 45,
-    category: "Musica en Vivo",
+    category: "Música en Vivo",
     image:
       "https://images.unsplash.com/photo-1415201364774-f6f0bb35f28f?w=800&h=500&fit=crop",
     flyer:
@@ -225,7 +225,7 @@ export const events: Event[] = [
   },
   {
     id: "8",
-    title: "Feria de Vinilos y Musica Independiente",
+    title: "Feria de Vinilos y Música Independiente",
     description:
       "Compra, vende e intercambia vinilos con musica en vivo y cerveza artesanal.",
     longDescription:
@@ -236,7 +236,7 @@ export const events: Event[] = [
     provincia: "Buenos Aires",
     localidad: "CABA",
     price: 0,
-    category: "Recreacion",
+    category: "Recreación",
     image:
       "https://images.unsplash.com/photo-1483412033650-1015ddeb83d1?w=800&h=500&fit=crop",
     flyer:
@@ -317,7 +317,7 @@ export const events: Event[] = [
     provincia: "Buenos Aires",
     localidad: "CABA",
     price: 0,
-    category: "Recreacion",
+    category: "Recreación",
     image:
       "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=800&h=500&fit=crop",
     flyer:
@@ -344,7 +344,7 @@ export const events: Event[] = [
     provincia: "Buenos Aires",
     localidad: "La Plata",
     price: 90,
-    category: "Musica en Vivo",
+    category: "Música en Vivo",
     image:
       "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800&h=500&fit=crop",
     flyer:
@@ -371,7 +371,7 @@ export const events: Event[] = [
     provincia: "Tucuman",
     localidad: "San Miguel de Tucuman",
     price: 35,
-    category: "Musica en Vivo",
+    category: "Música en Vivo",
     image:
       "https://images.unsplash.com/photo-1501386761578-eac5c94b800a?w=800&h=500&fit=crop",
     flyer:
@@ -425,7 +425,7 @@ export const events: Event[] = [
     provincia: "Mendoza",
     localidad: "Mendoza Capital",
     price: 70,
-    category: "Musica en Vivo",
+    category: "Música en Vivo",
     image:
       "https://images.unsplash.com/photo-1524368535928-5b5e00ddc76b?w=800&h=500&fit=crop",
     flyer:
@@ -443,9 +443,9 @@ export const events: Event[] = [
 
 export const categories = [
   "Todos los Eventos",
-  "Musica en Vivo",
+  "Música en Vivo",
   "Fiestas",
   "Teatro",
   "Danza",
-  "Recreacion",
+  "Recreación",
 ];

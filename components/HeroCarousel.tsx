@@ -96,14 +96,14 @@ export default function HeroCarousel({ events, onReserve }: HeroCarouselProps) {
                     transform: "scale(1.15)",
                   }}
                 />
-                {/* Main image — contain ensures no cropping */}
+                {/* Main image — cover fills the entire slide */}
                 <Image
                   src={event.image}
                   alt={event.title}
                   fill
                   priority
                   sizes="100vw"
-                  style={{ objectFit: "contain", objectPosition: "center" }}
+                  style={{ objectFit: "cover", objectPosition: "center" }}
                 />
 
                 {/* Gradient overlay */}
