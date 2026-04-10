@@ -77,23 +77,38 @@ const optionalHintStyle: React.CSSProperties = {
   fontWeight: 600,
 };
 
-const previewCardStyle: React.CSSProperties = {
+const previewThumbWrap: React.CSSProperties = {
   display: "flex",
-  flexDirection: "column",
-  gap: "0.5rem",
-  padding: "0.875rem",
+  alignItems: "center",
+  gap: "0.625rem",
+  padding: "0.5rem 0.625rem",
   border: "1px solid var(--border-color)",
   borderRadius: "var(--radius-md)",
   background: "#ffffff",
+  maxWidth: "320px",
 };
 
-const previewFrameStyle: React.CSSProperties = {
+const previewThumbFrame: React.CSSProperties = {
   position: "relative",
-  width: "100%",
-  aspectRatio: "4 / 5",
+  width: "48px",
+  height: "60px",
+  flexShrink: 0,
   overflow: "hidden",
-  borderRadius: "calc(var(--radius-md) - 2px)",
+  borderRadius: "4px",
   background: "#eef1f7",
+};
+
+const previewRemoveBtn: React.CSSProperties = {
+  marginLeft: "auto",
+  background: "none",
+  border: "none",
+  cursor: "pointer",
+  color: "#888",
+  padding: "4px",
+  borderRadius: "4px",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
 };
 
 function renderFieldLabel(
@@ -330,31 +345,30 @@ export default function OrganizerEventForm({
     <form onSubmit={handleSubmit}>
       <div style={{ ...fieldBox, marginBottom: "18px" }}>
         {flyer.trim() && (
-          <div style={previewCardStyle}>
-            <span style={labelStyle}>
-              {mode === "edit"
-                ? "Preview del flyer actual"
-                : "Preview del flyer seleccionado"}
-            </span>
-            <div style={previewFrameStyle}>
+          <div style={previewThumbWrap}>
+            <div style={previewThumbFrame}>
               <Image
                 src={flyer}
-                alt="Preview del flyer del evento"
+                alt="Preview del flyer"
                 fill
-                sizes="(min-width: 48rem) 33vw, 100vw"
+                sizes="48px"
                 style={{ objectFit: "cover" }}
               />
             </div>
-            <span
-              style={{
-                fontSize: "var(--font-xs)",
-                color: "var(--text-disabled)",
+            <span style={{ fontSize: "var(--font-xs)", color: "#1f1f1f", flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              Flyer cargado
+            </span>
+            <button
+              type="button"
+              style={previewRemoveBtn}
+              title="Eliminar flyer"
+              onClick={() => {
+                setFlyer("");
+                if (flyerInputRef.current) flyerInputRef.current.value = "";
               }}
             >
-              {mode === "edit"
-                ? "Si cambias el flyer, la vista previa se actualiza antes de guardar."
-                : "Asi se vera el flyer que estas por publicar."}
-            </span>
+              <EvaIcon name="close-circle-outline" size={18} />
+            </button>
           </div>
         )}
 

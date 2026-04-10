@@ -83,28 +83,41 @@ const activeTabStyle: React.CSSProperties = {
 };
 
 const previewGridStyle: React.CSSProperties = {
-  display: "grid",
-  gridTemplateColumns: "1fr",
-  gap: "0.75rem",
-};
-
-const previewCardStyle: React.CSSProperties = {
   display: "flex",
   flexDirection: "column",
   gap: "0.5rem",
-  padding: "0.875rem",
+};
+
+const previewThumbWrap: React.CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  gap: "0.625rem",
+  padding: "0.5rem 0.625rem",
   border: "1px solid var(--border-color)",
   borderRadius: "var(--radius-md)",
   background: "#ffffff",
+  maxWidth: "360px",
 };
 
-const previewFrameStyle: React.CSSProperties = {
+const previewThumbFrame: React.CSSProperties = {
   position: "relative",
-  width: "100%",
-  aspectRatio: "16 / 10",
+  flexShrink: 0,
   overflow: "hidden",
-  borderRadius: "calc(var(--radius-md) - 2px)",
+  borderRadius: "4px",
   background: "#eef1f7",
+};
+
+const previewRemoveBtn: React.CSSProperties = {
+  marginLeft: "auto",
+  background: "none",
+  border: "none",
+  cursor: "pointer",
+  color: "#888",
+  padding: "4px",
+  borderRadius: "4px",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
 };
 
 function renderFieldLabel(
@@ -728,72 +741,63 @@ export default function AdminEventForm({
             <div style={{ ...fieldBox, gridColumn: "1 / -1" }}>
               <span style={labelStyle}>
                 {mode === "edit"
-                  ? "Preview de archivos actuales"
-                  : "Preview de archivos seleccionados"}
+                  ? "Archivos actuales"
+                  : "Archivos seleccionados"}
               </span>
-              <div style={previewGridStyle} className="admin-preview-grid">
+              <div style={previewGridStyle}>
                 {image.trim() && (
-                  <div style={previewCardStyle}>
-                    <strong
-                      style={{ fontSize: "var(--font-sm)", color: "#1f1f1f" }}
-                    >
-                      {mode === "edit"
-                        ? "Imagen principal actual"
-                        : "Imagen principal"}
-                    </strong>
-                    <div style={previewFrameStyle}>
+                  <div style={previewThumbWrap}>
+                    <div style={{ ...previewThumbFrame, width: "64px", height: "40px" }}>
                       <Image
                         src={image}
-                        alt="Preview de la imagen del evento"
+                        alt="Preview imagen"
                         fill
-                        sizes="(min-width: 48rem) 50vw, 100vw"
+                        sizes="64px"
                         style={{ objectFit: "cover" }}
                       />
                     </div>
-                    <span
-                      style={{
-                        fontSize: "var(--font-xs)",
-                        color: "var(--text-disabled)",
+                    <span style={{ fontSize: "var(--font-xs)", color: "#1f1f1f", flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      Imagen principal
+                    </span>
+                    <button
+                      type="button"
+                      style={previewRemoveBtn}
+                      title="Eliminar imagen"
+                      onClick={() => {
+                        setImage("");
+                        if (imageInputRef.current) imageInputRef.current.value = "";
                       }}
                     >
-                      {mode === "edit"
-                        ? "Si subis una nueva imagen, esta vista previa se actualiza antes de guardar."
-                        : "Asi se vera la imagen que acabas de cargar."}
-                    </span>
+                      <EvaIcon name="close-circle-outline" size={18} />
+                    </button>
                   </div>
                 )}
 
                 {flyer.trim() && (
-                  <div style={previewCardStyle}>
-                    <strong
-                      style={{ fontSize: "var(--font-sm)", color: "#1f1f1f" }}
-                    >
-                      {mode === "edit" ? "Flyer actual" : "Flyer"}
-                    </strong>
-                    <div
-                      style={{
-                        ...previewFrameStyle,
-                        aspectRatio: "4 / 5",
-                      }}
-                    >
+                  <div style={previewThumbWrap}>
+                    <div style={{ ...previewThumbFrame, width: "48px", height: "60px" }}>
                       <Image
                         src={flyer}
-                        alt="Preview del flyer del evento"
+                        alt="Preview flyer"
                         fill
-                        sizes="(min-width: 48rem) 50vw, 100vw"
+                        sizes="48px"
                         style={{ objectFit: "cover" }}
                       />
                     </div>
-                    <span
-                      style={{
-                        fontSize: "var(--font-xs)",
-                        color: "var(--text-disabled)",
+                    <span style={{ fontSize: "var(--font-xs)", color: "#1f1f1f", flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      Flyer del evento
+                    </span>
+                    <button
+                      type="button"
+                      style={previewRemoveBtn}
+                      title="Eliminar flyer"
+                      onClick={() => {
+                        setFlyer("");
+                        if (flyerInputRef.current) flyerInputRef.current.value = "";
                       }}
                     >
-                      {mode === "edit"
-                        ? "Tambien podes reemplazar el flyer y revisar el cambio antes de guardar."
-                        : "Vista previa del flyer seleccionado."}
-                    </span>
+                      <EvaIcon name="close-circle-outline" size={18} />
+                    </button>
                   </div>
                 )}
               </div>
