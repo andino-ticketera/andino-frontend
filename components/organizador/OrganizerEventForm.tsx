@@ -100,15 +100,18 @@ const previewThumbFrame: React.CSSProperties = {
 
 const previewRemoveBtn: React.CSSProperties = {
   marginLeft: "auto",
-  background: "none",
-  border: "none",
+  background: "#fff1f2",
+  border: "1px solid #fecaca",
   cursor: "pointer",
-  color: "#888",
-  padding: "4px",
-  borderRadius: "4px",
-  display: "flex",
+  color: "#b91c1c",
+  padding: "6px 10px",
+  borderRadius: "6px",
+  display: "inline-flex",
   alignItems: "center",
-  justifyContent: "center",
+  gap: "4px",
+  fontSize: "var(--font-xs)",
+  fontWeight: 600,
+  whiteSpace: "nowrap",
 };
 
 function renderFieldLabel(
@@ -361,13 +364,18 @@ export default function OrganizerEventForm({
             <button
               type="button"
               style={previewRemoveBtn}
-              title="Eliminar flyer"
-              onClick={() => {
+              title="Quitar flyer cargado"
+              onClick={(e) => {
+                // Evita que el click burbujee al dropzone padre y vuelva a abrir
+                // el selector de archivos justo despues de quitar el flyer.
+                e.preventDefault();
+                e.stopPropagation();
                 setFlyer("");
                 if (flyerInputRef.current) flyerInputRef.current.value = "";
               }}
             >
-              <EvaIcon name="close-circle-outline" size={18} />
+              <EvaIcon name="trash-2-outline" size={16} />
+              Quitar
             </button>
           </div>
         )}
