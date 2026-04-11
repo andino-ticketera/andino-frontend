@@ -269,7 +269,7 @@ export default function ContactoPage() {
               </label>
               <textarea
                 id="contacto-mensaje"
-                placeholder="Escribi tu mensaje..."
+                placeholder="Escribí tu mensaje..."
                 value={form.mensaje}
                 onChange={(e) => update("mensaje", e.target.value)}
                 rows={4}

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useMemo } from "react";
 import { useAdmin } from "@/context/AdminContext";
@@ -59,7 +59,7 @@ export default function AdminDashboardPage() {
           marginBottom: "0.375rem",
         }}
       >
-        Panel de administracion
+        Panel de administración
       </h1>
       <p
         className="section-mobile-description"
@@ -135,7 +135,7 @@ export default function AdminDashboardPage() {
                 borderRadius: "var(--radius-md)",
               }}
             >
-              Aun no hay compras registradas.
+              Aún no hay compras registradas.
             </p>
           ) : (
             recentPurchases.map((purchase) => (
@@ -216,3 +216,4 @@ export default function AdminDashboardPage() {
     </section>
   );
 }
+

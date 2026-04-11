@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import Image from "next/image";
@@ -8,7 +8,7 @@ import EvaIcon from "@/components/EvaIcon";
 import ExpandableTableRow from "@/components/ExpandableTableRow";
 import { isEventFinished } from "@/data/events";
 
-// Mismo patron que admin: filtra por estado temporal del evento derivado de la fecha.
+// Mismo patrón que admin: filtra por estado temporal del evento derivado de la fecha.
 type TimeFilter = "proximos" | "finalizados" | "todos";
 
 export default function OrganizerEventsPage() {
@@ -23,14 +23,14 @@ export default function OrganizerEventsPage() {
   );
   const finalizadosCount = events.length - proximosCount;
 
-  // Paso 1: aplico filtro temporal (proximos/finalizados/todos).
+  // Paso 1: aplico filtro temporal (próximos/finalizados/todos).
   const timeFilteredEvents = useMemo(() => {
     if (timeFilter === "todos") return events;
     const wantFinished = timeFilter === "finalizados";
     return events.filter((event) => isEventFinished(event) === wantFinished);
   }, [events, timeFilter]);
 
-  // Paso 2: aplico busqueda por texto sobre el subconjunto ya filtrado.
+  // Paso 2: aplico búsqueda por texto sobre el subconjunto ya filtrado.
   const filteredEvents = useMemo(() => {
     const normalized = query.trim().toLowerCase();
     if (!normalized) return timeFilteredEvents;
@@ -69,7 +69,7 @@ export default function OrganizerEventsPage() {
             className="section-mobile-description"
             style={{ color: "var(--text-disabled)" }}
           >
-            Gestion de tus eventos publicados.
+            Gestión de tus eventos publicados.
           </p>
         </div>
 
@@ -108,7 +108,7 @@ export default function OrganizerEventsPage() {
         {[
           {
             key: "proximos" as const,
-            label: "Proximos",
+            label: "Próximos",
             count: proximosCount,
           },
           {
@@ -173,7 +173,7 @@ export default function OrganizerEventsPage() {
       <input
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        placeholder="Buscar por titulo, lugar o categoria..."
+        placeholder="Buscar por título, lugar o categoría..."
         style={{
           width: "100%",
           maxWidth: "440px",
@@ -331,3 +331,4 @@ export default function OrganizerEventsPage() {
     </section>
   );
 }
+

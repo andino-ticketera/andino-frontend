@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useDeferredValue, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -336,7 +336,7 @@ export default function AdminUsuariosPage() {
         >
           <div>
             <strong style={{ display: "block", marginBottom: "0.25rem" }}>
-              No se pudo cargar la gestion de usuarios
+              No se pudo cargar la gestión de usuarios
             </strong>
             <span style={{ fontSize: "var(--font-sm)" }}>
               {error instanceof Error ? error.message : "Error inesperado"}
@@ -369,7 +369,7 @@ export default function AdminUsuariosPage() {
             background: "var(--bg-surface-1)",
           }}
         >
-          No hay usuarios que coincidan con la busqueda.
+          No hay usuarios que coincidan con la búsqueda.
         </div>
       ) : (
         <div style={{ display: "grid", gap: "0.875rem" }}>
@@ -526,7 +526,7 @@ export default function AdminUsuariosPage() {
                             marginBottom: "0.25rem",
                           }}
                         >
-                          Ultimo acceso
+                          Último acceso
                         </div>
                         <div
                           style={{
@@ -653,3 +653,4 @@ export default function AdminUsuariosPage() {
     </section>
   );
 }
+

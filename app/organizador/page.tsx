@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import Navbar from "@/components/Navbar";
@@ -135,7 +135,7 @@ export default function OrganizadorPage() {
                 lineHeight: 1.6,
               }}
             >
-              Gracias por tu interes. Un asesor se pondra en contacto contigo a
+              Gracias por tu interés. Un asesor se pondrá en contacto contigo a
               la brevedad para ayudarte a crear tu evento.
             </p>
           </div>
@@ -191,7 +191,7 @@ export default function OrganizadorPage() {
               marginBottom: "2rem",
             }}
           >
-            Completa tus datos y un asesor te contactara para ayudarte a crear
+            Completa tus datos y un asesor te contactará para ayudarte a crear
             tu evento.
           </p>
 
@@ -207,10 +207,10 @@ export default function OrganizadorPage() {
               void handleSubmit();
             }}
           >
-            {/* Pais */}
+            {/* País */}
             <div style={fieldStyle}>
               <label htmlFor="org-pais" style={labelTextStyle}>
-                Pais
+                País
               </label>
               <div style={{ position: "relative" }}>
                 <input
@@ -326,10 +326,10 @@ export default function OrganizadorPage() {
               </div>
             </div>
 
-            {/* Telefono */}
+            {/* Teléfono */}
             <div style={fieldStyle}>
               <label htmlFor="org-telefono" style={labelTextStyle}>
-                Telefono
+                Teléfono
               </label>
               <div style={{ position: "relative" }}>
                 <input
@@ -417,3 +417,4 @@ export default function OrganizadorPage() {
     </div>
   );
 }
+

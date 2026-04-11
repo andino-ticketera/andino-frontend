@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Image from "next/image";
 import { useMemo, useRef, useState } from "react";
@@ -238,7 +238,7 @@ export default function AdminEventForm({
     String(defaults.totalEntradas),
   );
   const mercadoPagoId = defaults.mercadoPagoId ?? "";
-  // Por el momento el unico medio de cobro es Mercado Pago.
+  // Por el momento el único medio de cobro es Mercado Pago.
   const paymentMethod: "mercadopago" = "mercadopago";
   const [activeTab, setActiveTab] = useState<"info" | "media">("info");
   const [isImageDragOver, setIsImageDragOver] = useState(false);
@@ -372,14 +372,14 @@ export default function AdminEventForm({
 
   const canSubmit = baseCanSubmit && hasChanges;
   const firstMissingField = useMemo(() => {
-    if (!title.trim()) return "Titulo";
+    if (!title.trim()) return "Título";
     if (categoryOptions.length === 0 || !selectedCategory.trim()) {
-      return "Categoria";
+      return "Categoría";
     }
-    if (!longDescription.trim()) return "Descripcion larga";
+    if (!longDescription.trim()) return "Descripción larga";
     if (!date.trim()) return "Fecha";
     if (!isCompleteEventTime(time)) return "Hora";
-    if (!venue.trim()) return "Locacion";
+    if (!venue.trim()) return "Locación";
     if (!provincia.trim()) return "Provincia";
     if (!localidad.trim()) return "Localidad";
     if (!image.trim()) return "Imagen del evento";
@@ -474,7 +474,7 @@ export default function AdminEventForm({
           }}
         >
           <EvaIcon name="edit" size={14} />
-          Informacion del evento
+          Información del evento
         </button>
 
         <button
@@ -488,7 +488,7 @@ export default function AdminEventForm({
           }}
         >
           <EvaIcon name="image" size={14} />
-          Imagenes y flyer
+          Imágenes y flyer
         </button>
       </div>
 
@@ -548,12 +548,12 @@ export default function AdminEventForm({
                   }}
                 >
                   <span>
-                    El evento quedara a nombre de{" "}
+                    El evento quedará a nombre de{" "}
                     <strong>
                       {selectedOrganizer.nombreCompleto || selectedOrganizer.email}
                     </strong>
                     . Para recibir pagos con Mercado Pago, el organizador tiene
-                    que iniciar sesion y conectar su cuenta desde su panel.
+                    que iniciar sesión y conectar su cuenta desde su panel.
                   </span>
                   {organizerPanelUrl && (
                     <button
@@ -583,19 +583,19 @@ export default function AdminEventForm({
 
           <div style={fieldBox}>
             <label style={labelStyle}>
-              {renderFieldLabel("Titulo", { required: true })}
+              {renderFieldLabel("Título", { required: true })}
             </label>
             <input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               style={inputStyle}
-              placeholder="Ej: Festival Andino de Otono"
+              placeholder="Ej: Festival Andino de Otoño"
             />
           </div>
 
           <div style={fieldBox}>
             <label style={labelStyle}>
-              {renderFieldLabel("Categoria", { required: true })}
+              {renderFieldLabel("Categoría", { required: true })}
             </label>
             <select
               value={selectedCategory}
@@ -604,7 +604,7 @@ export default function AdminEventForm({
               disabled={categoryOptions.length === 0}
             >
               {categoryOptions.length === 0 && (
-                <option value="">No hay categorias disponibles</option>
+                <option value="">No hay categorías disponibles</option>
               )}
               {categoryOptions.map((item) => (
                 <option key={item} value={item}>
@@ -619,7 +619,7 @@ export default function AdminEventForm({
                   color: "var(--text-disabled)",
                 }}
               >
-                Agrega categorias desde el panel de admin para poder crear
+                Agrega categorías desde el panel de admin para poder crear
                 eventos.
               </span>
             )}
@@ -627,13 +627,13 @@ export default function AdminEventForm({
 
           <div style={{ ...fieldBox, gridColumn: "1 / -1" }}>
             <label style={labelStyle}>
-              {renderFieldLabel("Descripcion larga", { required: true })}
+              {renderFieldLabel("Descripción larga", { required: true })}
             </label>
             <textarea
               value={longDescription}
               onChange={(e) => setLongDescription(e.target.value)}
               style={textAreaStyle}
-              placeholder="Contale al publico de que se trata el evento, quienes participan, desde que hora se puede ingresar y cualquier detalle importante para la compra."
+              placeholder="Contale al público de qué se trata el evento, quiénes participan, desde qué hora se puede ingresar y cualquier detalle importante para la compra."
             />
           </div>
 
@@ -704,7 +704,7 @@ export default function AdminEventForm({
 
           <div style={fieldBox}>
             <label style={labelStyle}>
-              {renderFieldLabel("Locacion", { required: true })}
+              {renderFieldLabel("Locación", { required: true })}
             </label>
             <input
               value={venue}
@@ -716,7 +716,7 @@ export default function AdminEventForm({
 
           <div style={fieldBox}>
             <label style={labelStyle}>
-              {renderFieldLabel("Direccion", { optional: true })}
+              {renderFieldLabel("Dirección", { optional: true })}
             </label>
             <input
               value={direccion}
@@ -761,7 +761,7 @@ export default function AdminEventForm({
               <option value="">
                 {provincia
                   ? "Seleccionar localidad"
-                  : "Primero elegi una provincia"}
+                  : "Primero elegí una provincia"}
               </option>
               {availableLocalidades.map((item) => (
                 <option key={item} value={item}>
@@ -1112,3 +1112,4 @@ export default function AdminEventForm({
     </form>
   );
 }
+

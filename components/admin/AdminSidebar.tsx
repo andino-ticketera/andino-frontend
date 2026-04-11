@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -14,7 +14,7 @@ const navItems = [
   { href: "/admin", label: "Panel", icon: "grid" },
   { href: "/admin/usuarios", label: "Usuarios", icon: "person" },
   { href: "/admin/carrusel", label: "Carrusel", icon: "activity" },
-  { href: "/admin/categorias", label: "Categorias", icon: "star" },
+  { href: "/admin/categorias", label: "Categorías", icon: "star" },
   { href: "/admin/eventos/nuevo", label: "Crear evento", icon: "plus" },
   { href: "/admin/eventos", label: "Eventos", icon: "calendar" },
   { href: "/admin/compradores", label: "Compradores", icon: "shopping-cart" },
@@ -250,7 +250,7 @@ export default function AdminSidebar() {
             }}
           >
             <EvaIcon name="log-out-outline" size={18} />
-            <span>{isLoggingOut ? "Cerrando sesion..." : "Cerrar sesion"}</span>
+            <span>{isLoggingOut ? "Cerrando sesión..." : "Cerrar sesión"}</span>
           </button>
         </div>
       </aside>
@@ -304,3 +304,4 @@ export default function AdminSidebar() {
     </>
   );
 }
+

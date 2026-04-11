@@ -148,12 +148,12 @@ export default function MisComprasPage() {
           >
             <div>
               <h2 style={{ fontSize: "var(--font-xl)", fontWeight: 800 }}>
-                Todavia no realizaste ninguna compra
+                Todavía no realizaste ninguna compra
               </h2>
               <p
                 style={{ color: "var(--text-secondary)", marginTop: "0.5rem" }}
               >
-                Cuando compres entradas vas a poder verlas aca y revisar el
+                Cuando compres entradas vas a poder verlas acá y revisar el
                 detalle de cada pedido desde tu cuenta.
               </p>
             </div>

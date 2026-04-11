@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Image from "next/image";
 import { useMemo, useRef, useState } from "react";
@@ -191,7 +191,7 @@ export default function OrganizerEventForm({
   const [totalEntradas, setTotalEntradas] = useState(
     String(defaults.totalEntradas),
   );
-  // Por el momento el unico medio de cobro es Mercado Pago.
+  // Por el momento el único medio de cobro es Mercado Pago.
   // El tipo `mediosDePago` se mantiene como union para poder agregar otros
   // medios (ej: transferencia) en el futuro sin romper el modelo de datos.
   const [isFlyerDragOver, setIsFlyerDragOver] = useState(false);
@@ -255,18 +255,18 @@ export default function OrganizerEventForm({
     !isMpStatusLoading;
   const firstMissingField = useMemo(() => {
     if (!flyer.trim()) return "Flyer / Poster del evento";
-    if (!title.trim()) return "Titulo";
-    if (categoryOptions.length === 0 || !selectedCategory.trim()) return "Categoria";
-    if (!longDescription.trim()) return "Descripcion del evento";
+    if (!title.trim()) return "Título";
+    if (categoryOptions.length === 0 || !selectedCategory.trim()) return "Categoría";
+    if (!longDescription.trim()) return "Descripción del evento";
     if (!date.trim()) return "Fecha";
     if (!isCompleteEventTime(time)) return "Hora";
-    if (!venue.trim()) return "Locacion";
-    if (!direccion.trim()) return "Direccion";
+    if (!venue.trim()) return "Locación";
+    if (!direccion.trim()) return "Dirección";
     if (!provincia.trim()) return "Provincia";
     if (!localidad.trim()) return "Localidad";
     if (!isPriceValid) return "Precio de la entrada";
     if (isMpStatusLoading || !isMercadoPagoReady) {
-      return "Activa los cobros con Mercado Pago desde el panel";
+      return "Activá los cobros con Mercado Pago desde el panel";
     }
     return "";
   }, [
@@ -451,7 +451,7 @@ export default function OrganizerEventForm({
       >
         <div style={fieldBox}>
           <label style={labelStyle}>
-            {renderFieldLabel("Titulo", { required: true })}
+            {renderFieldLabel("Título", { required: true })}
           </label>
           <input
             value={title}
@@ -463,7 +463,7 @@ export default function OrganizerEventForm({
 
         <div style={fieldBox}>
           <label style={labelStyle}>
-            {renderFieldLabel("Categoria", { required: true })}
+            {renderFieldLabel("Categoría", { required: true })}
           </label>
           <select
             value={selectedCategory}
@@ -472,7 +472,7 @@ export default function OrganizerEventForm({
             disabled={categoryOptions.length === 0}
           >
             {categoryOptions.length === 0 && (
-              <option value="">No hay categorias disponibles</option>
+              <option value="">No hay categorías disponibles</option>
             )}
             {categoryOptions.map((item) => (
               <option key={item} value={item}>
@@ -487,21 +487,21 @@ export default function OrganizerEventForm({
                 color: "var(--text-disabled)",
               }}
             >
-              Las categorias se administran desde el panel de admin. Crea una
-              categoria para publicar eventos.
+              Las categorías se administran desde el panel de admin. Creá una
+              categoría para publicar eventos.
             </span>
           )}
         </div>
 
         <div style={{ ...fieldBox, gridColumn: "1 / -1" }}>
           <label style={labelStyle}>
-            {renderFieldLabel("Descripcion del evento", { required: true })}
+            {renderFieldLabel("Descripción del evento", { required: true })}
           </label>
           <textarea
             value={longDescription}
             onChange={(e) => setLongDescription(e.target.value)}
             style={textAreaStyle}
-            placeholder="Contale al publico que va a vivir en el evento, quienes participan, desde que hora se ingresa y cualquier detalle importante antes de comprar."
+            placeholder="Contale al público qué va a vivir en el evento, quiénes participan, desde qué hora se ingresa y cualquier detalle importante antes de comprar."
           />
         </div>
 
@@ -558,7 +558,7 @@ export default function OrganizerEventForm({
 
         <div style={fieldBox}>
           <label style={labelStyle}>
-            {renderFieldLabel("Locacion (lugar)", { required: true })}
+            {renderFieldLabel("Locación (lugar)", { required: true })}
           </label>
           <input
             value={venue}
@@ -570,7 +570,7 @@ export default function OrganizerEventForm({
 
         <div style={fieldBox}>
           <label style={labelStyle}>
-            {renderFieldLabel("Direccion", { required: true })}
+            {renderFieldLabel("Dirección", { required: true })}
           </label>
           <input
             value={direccion}
@@ -615,7 +615,7 @@ export default function OrganizerEventForm({
             <option value="">
               {provincia
                 ? "Seleccionar localidad"
-                : "Primero elegi una provincia"}
+                : "Primero elegí una provincia"}
             </option>
             {availableLocalidades.map((item) => (
               <option key={item} value={item}>
@@ -655,7 +655,7 @@ export default function OrganizerEventForm({
                 color: "var(--text-disabled)",
               }}
             >
-              Comision Andino: ${serviceFee.toFixed(2)} (5%) — El comprador paga
+              Comisión Andino: ${serviceFee.toFixed(2)} (5%) - El comprador paga
               ${(priceNum + serviceFee).toFixed(2)}
             </span>
           )}
@@ -695,7 +695,7 @@ export default function OrganizerEventForm({
               textAlign: "right",
             }}
           >
-            {firstMissingField.startsWith("Activa")
+            {firstMissingField.startsWith("Activá")
               ? firstMissingField + "."
               : firstMissingField + " es obligatorio."}
           </span>
@@ -730,3 +730,4 @@ export default function OrganizerEventForm({
     </form>
   );
 }
+

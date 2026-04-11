@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { startTransition, useMemo, useState } from "react";
 import Link from "next/link";
@@ -57,7 +57,7 @@ export default function OrganizerDashboardPage() {
 
   const stats = [
     { label: "Recaudado bruto", value: `$${totalRevenue.toFixed(2)}` },
-    { label: "Comision Andino (5%)", value: `$${commission.toFixed(2)}` },
+    { label: "Comisión Andino (5%)", value: `$${commission.toFixed(2)}` },
     { label: "Ganancia neta", value: `$${netRevenue.toFixed(2)}` },
   ];
 
@@ -75,9 +75,9 @@ export default function OrganizerDashboardPage() {
 
   const mpBannerMessage =
     mpQueryStatus === "connected"
-      ? "Mercado Pago quedo conectado para este organizador."
+      ? "Mercado Pago quedó conectado para este organizador."
       : mpQueryStatus === "error"
-        ? "No se pudo completar la conexion con Mercado Pago."
+        ? "No se pudo completar la conexión con Mercado Pago."
         : null;
 
   const handleConnectMercadoPago = async () => {
@@ -95,7 +95,7 @@ export default function OrganizerDashboardPage() {
       setConnectError(
         error instanceof Error
           ? error.message
-          : "No se pudo iniciar la conexion con Mercado Pago",
+          : "No se pudo iniciar la conexión con Mercado Pago",
       );
       setIsConnectingMp(false);
     }
@@ -115,22 +115,22 @@ export default function OrganizerDashboardPage() {
         ? "Reconecta tu cuenta"
         : mpStatus?.mode === "platform_test"
           ? "Modo test disponible"
-          : "Activa cobros con Mercado Pago";
+          : "Activá cobros con Mercado Pago";
 
   const mpDescription =
     mpStatus?.status === "CONECTADA"
       ? mpStatus?.mpEmail
-        ? `Tu cuenta ${mpStatus.mpEmail} ya estÃ¡ autorizada para cobrar con Mercado Pago.`
-        : "Tu cuenta de Mercado Pago ya estÃ¡ autorizada para cobrar con Mercado Pago."
+        ? `Tu cuenta ${mpStatus.mpEmail} ya está autorizada para cobrar con Mercado Pago.`
+        : "Tu cuenta de Mercado Pago ya está autorizada para cobrar con Mercado Pago."
       : mpStatus?.status === "REQUIERE_RECONEXION"
-        ? "Mercado Pago pidiÃ³ una nueva autorizaciÃ³n. ReconectÃ¡ para seguir cobrando en tus eventos."
+        ? "Mercado Pago pidió una nueva autorización. Reconectá para seguir cobrando en tus eventos."
         : mpStatus?.mode === "platform_test"
-          ? "En desarrollo podes seguir con la cuenta plataforma o conectar tu propia cuenta sandbox para ver el flujo real del organizador."
-          : "Solo tenÃ©s que conectar tu cuenta una vez. DespuÃ©s publicÃ¡s eventos y cobrÃ¡s con Mercado Pago de forma simple.";
+          ? "En desarrollo podés seguir con la cuenta plataforma o conectar tu propia cuenta sandbox para ver el flujo real del organizador."
+          : "Solo tenés que conectar tu cuenta una vez. Después publicás eventos y cobrás con Mercado Pago de forma simple.";
 
   const mpActionLabel =
     mpStatus?.status === "CONECTADA"
-      ? "Actualizar conexiÃ³n"
+      ? "Actualizar conexión"
       : mpStatus?.status === "REQUIERE_RECONEXION"
         ? "Reconectar cuenta"
         : mpStatus?.mode === "platform_test"
@@ -148,7 +148,7 @@ export default function OrganizerDashboardPage() {
           marginBottom: "6px",
         }}
       >
-        Panel de {organizer.empresa || "tu organizacion"}
+        Panel de {organizer.empresa || "tu organización"}
       </h1>
       <p
         className="org-dashboard-description section-mobile-description"
@@ -396,7 +396,7 @@ export default function OrganizerDashboardPage() {
                 borderRadius: "var(--radius-md)",
               }}
             >
-              Aun no hay compras registradas.
+              Aún no hay compras registradas.
             </p>
           ) : (
             recentPurchases.map((purchase) => (
@@ -501,3 +501,5 @@ export default function OrganizerDashboardPage() {
     </section>
   );
 }
+
+

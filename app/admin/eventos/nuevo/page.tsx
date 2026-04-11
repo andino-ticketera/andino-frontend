@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
@@ -80,7 +80,7 @@ export default function AdminNewEventPage() {
         className="section-mobile-description"
         style={{ color: "var(--text-disabled)", marginBottom: "1.125rem" }}
       >
-        Completa la informacion para publicar un nuevo evento.
+        Completa la información para publicar un nuevo evento.
       </p>
 
       <div
@@ -103,3 +103,5 @@ export default function AdminNewEventPage() {
     </section>
   );
 }
+
+

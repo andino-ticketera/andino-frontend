@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -260,7 +260,7 @@ export default function OrganizerSidebar() {
             }}
           >
             <EvaIcon name="log-out-outline" size={18} />
-            <span>{isLoggingOut ? "Cerrando sesion..." : "Cerrar sesion"}</span>
+            <span>{isLoggingOut ? "Cerrando sesión..." : "Cerrar sesión"}</span>
           </button>
         </div>
       </aside>
@@ -314,3 +314,4 @@ export default function OrganizerSidebar() {
     </>
   );
 }
+

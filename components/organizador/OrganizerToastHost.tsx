@@ -44,7 +44,7 @@ export default function OrganizerToastHost() {
       <button
         type="button"
         onClick={clearToast}
-        aria-label="Cerrar notificacion"
+        aria-label="Cerrar notificación"
         style={{
           border: "none",
           background: "transparent",

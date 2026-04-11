@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useRouter } from "next/navigation";
 import OrganizerEventForm from "@/components/organizador/OrganizerEventForm";
@@ -40,7 +40,7 @@ export default function OrganizerNewEventPage() {
         className="section-mobile-description"
         style={{ color: "var(--text-disabled)", marginBottom: "18px" }}
       >
-        Completa la informacion de tu evento para publicarlo.
+        Completa la información de tu evento para publicarlo.
       </p>
 
       <div
@@ -60,3 +60,5 @@ export default function OrganizerNewEventPage() {
     </section>
   );
 }
+
+

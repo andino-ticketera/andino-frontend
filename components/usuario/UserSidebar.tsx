@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -55,7 +55,7 @@ export default function UserSidebar() {
 
   return (
     <>
-      {/* Header movil con logo y hamburguesa */}
+      {/* Header móvil con logo y hamburguesa */}
       <header
         className="mobile-header"
         style={{
@@ -237,7 +237,7 @@ export default function UserSidebar() {
             }}
           >
             <EvaIcon name="log-out-outline" size={18} />
-            <span>{isLoggingOut ? "Cerrando sesion..." : "Cerrar sesion"}</span>
+            <span>{isLoggingOut ? "Cerrando sesión..." : "Cerrar sesión"}</span>
           </button>
         </div>
       </aside>
@@ -288,3 +288,4 @@ export default function UserSidebar() {
     </>
   );
 }
+

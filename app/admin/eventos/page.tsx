@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import Image from "next/image";
@@ -183,7 +183,7 @@ export default function AdminEventsPage() {
         {[
           {
             key: "proximos" as const,
-            label: "Proximos",
+            label: "Próximos",
             count: proximosCount,
           },
           {
@@ -291,7 +291,7 @@ export default function AdminEventsPage() {
       <input
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        placeholder="Buscar por titulo, lugar o categoria..."
+        placeholder="Buscar por título, lugar o categoría..."
         style={{
           width: "100%",
           maxWidth: "440px",
@@ -489,7 +489,7 @@ export default function AdminEventsPage() {
                     value: `$${event.price.toFixed(2)}`,
                   },
                   {
-                    label: "Categoria",
+                    label: "Categoría",
                     value: event.category,
                   },
                   {
@@ -587,12 +587,12 @@ export default function AdminEventsPage() {
           description={
             <>
               <p>
-                Estas por eliminar <strong>{deleteDialog.eventTitle}</strong>.
+                Estás por eliminar <strong>{deleteDialog.eventTitle}</strong>.
               </p>
-              <p>Esta accion no se puede deshacer.</p>
+              <p>Esta acción no se puede deshacer.</p>
             </>
           }
-          confirmLabel="Si, eliminar"
+          confirmLabel="Sí, eliminar"
           onClose={() => setDeleteDialog(null)}
           onConfirm={() => {
             void handleConfirmDeleteEvent();
@@ -614,3 +614,4 @@ export default function AdminEventsPage() {
     </section>
   );
 }
+

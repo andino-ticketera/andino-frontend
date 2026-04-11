@@ -347,7 +347,7 @@ export default function IniciarSesionPage() {
                 }}
               >
                 Crea tu cuenta para guardar eventos favoritos, seguir compras y
-                pagar con mas rapidez.
+                pagar con más rapidez.
               </p>
 
               <div
@@ -367,7 +367,7 @@ export default function IniciarSesionPage() {
                     icon: "star",
                   },
                   {
-                    label: "Acceso rapido desde cualquier dispositivo",
+                    label: "Acceso rápido desde cualquier dispositivo",
                     icon: "activity",
                   },
                 ].map((item) => (

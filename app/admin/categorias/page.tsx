@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useMemo, useState } from "react";
 import AdminConfirmDialog from "@/components/admin/AdminConfirmDialog";
@@ -63,18 +63,18 @@ export default function AdminCategoriesPage() {
 
   const handleAddCategory = async () => {
     if (!newCategory.trim()) {
-      showToast("Escribi un nombre de categoria", "danger");
+      showToast("Escribí un nombre de categoría", "danger");
       return;
     }
 
     const wasAdded = await addCategory(newCategory);
     if (!wasAdded) {
-      showToast("No pudimos agregar la categoria", "danger");
+      showToast("No pudimos agregar la categoría", "danger");
       return;
     }
 
     setNewCategory("");
-    showToast("Categoria agregada correctamente", "success");
+    showToast("Categoría agregada correctamente", "success");
   };
 
   const handleStartEdit = (category: string) => {
@@ -93,7 +93,7 @@ export default function AdminCategoriesPage() {
     if (!editingCategory) return;
 
     if (!editingValue.trim()) {
-      showToast("El nombre no puede quedar vacio", "danger");
+      showToast("El nombre no puede quedar vacío", "danger");
       return;
     }
 
@@ -107,7 +107,7 @@ export default function AdminCategoriesPage() {
     setEditingValue("");
     setDeleteCategoryDialog(null);
     setCategoryVisibilityDialog(null);
-    showToast("Categoria actualizada correctamente", "success");
+    showToast("Categoría actualizada correctamente", "success");
   };
 
   const handleDeleteCategoryRequest = (category: string) => {
@@ -137,7 +137,7 @@ export default function AdminCategoriesPage() {
 
     const wasRemoved = await removeCategory(category);
     if (!wasRemoved) {
-      showToast("No pudimos eliminar la categoria", "danger");
+      showToast("No pudimos eliminar la categoría", "danger");
       return;
     }
 
@@ -148,7 +148,7 @@ export default function AdminCategoriesPage() {
       setExpandedCategory(null);
     }
 
-    showToast("Categoria eliminada correctamente", "success");
+    showToast("Categoría eliminada correctamente", "success");
   };
 
   const handleConfirmCategoryVisibility = async () => {
@@ -165,8 +165,8 @@ export default function AdminCategoriesPage() {
 
     showToast(
       nextVisibleInApp
-        ? "Categoria visible nuevamente en la app"
-        : "Categoria oculta correctamente",
+        ? "Categoría visible nuevamente en la app"
+        : "Categoría oculta correctamente",
       "success",
     );
   };
@@ -183,7 +183,7 @@ export default function AdminCategoriesPage() {
     }
 
     if (normalize(event.category) === normalize(targetCategory)) {
-      showToast("Ese evento ya esta en esta categoria", "danger");
+      showToast("Ese evento ya está en esta categoría", "danger");
       return;
     }
 
@@ -192,7 +192,7 @@ export default function AdminCategoriesPage() {
       updateEvent(event.id, { category: targetCategory });
       showToast(successMessage, "success");
     } catch {
-      showToast("No pudimos actualizar la categoria del evento", "danger");
+      showToast("No pudimos actualizar la categoría del evento", "danger");
     }
   };
 
@@ -212,7 +212,7 @@ export default function AdminCategoriesPage() {
     );
 
     if (alternatives.length === 0) {
-      showToast("Crea otra categoria para poder quitar este evento", "danger");
+      showToast("Creá otra categoría para poder quitar este evento", "danger");
       return;
     }
 
@@ -239,7 +239,7 @@ export default function AdminCategoriesPage() {
     await reassignEvent(
       eventId,
       targetCategory,
-      "Evento quitado de esta categoria",
+      "Evento quitado de esta categoría",
     );
   };
 
@@ -253,7 +253,7 @@ export default function AdminCategoriesPage() {
           marginBottom: "0.35rem",
         }}
       >
-        Categorias
+        Categorías
       </h1>
       <p
         className="section-mobile-description"
@@ -263,12 +263,12 @@ export default function AdminCategoriesPage() {
           fontSize: "clamp(0.82rem, 0.8rem + 0.2vw, 0.95rem)",
         }}
       >
-        Gestiona categorias y organiza eventos desde un solo lugar.
+        Gestiona categorías y organiza eventos desde un solo lugar.
       </p>
 
       <div className="surface-card" style={{ marginBottom: "1rem" }}>
         <label className="field-label" htmlFor="new-category">
-          Nueva categoria
+          Nueva categoría
         </label>
 
         <div className="add-grid">
@@ -276,7 +276,7 @@ export default function AdminCategoriesPage() {
             id="new-category"
             value={newCategory}
             onChange={(e) => setNewCategory(e.target.value)}
-            placeholder="Ej: Gastronomia"
+            placeholder="Ej: Gastronomía"
             className="field-input"
             onKeyDown={(e) => {
               if (e.key === "Enter") {
@@ -301,7 +301,7 @@ export default function AdminCategoriesPage() {
 
       {allCategories.length === 0 ? (
         <div className="surface-card empty-card">
-          No hay categorias configuradas.
+          No hay categorías configuradas.
         </div>
       ) : (
         <div className="cards-stack">
@@ -444,7 +444,7 @@ export default function AdminCategoriesPage() {
                       <div className="events-grid">
                         {assignedEvents.length === 0 ? (
                           <div className="empty-inline">
-                            Todavia no hay eventos en esta categoria.
+                            Todavía no hay eventos en esta categoría.
                           </div>
                         ) : (
                           assignedEvents.map((event) => (
@@ -537,21 +537,21 @@ export default function AdminCategoriesPage() {
         <AdminConfirmDialog
           title={
             categoryVisibilityDialog.nextVisibleInApp
-              ? "Mostrar categoria"
-              : "Ocultar categoria"
+              ? "Mostrar categoría"
+              : "Ocultar categoría"
           }
           description={
             <p>
               {categoryVisibilityDialog.nextVisibleInApp
-                ? "La categoria volvera a mostrarse en la app publica."
-                : "La categoria dejara de mostrarse en la app publica, pero seguira disponible en admin para editarla o volver a mostrarla."}{" "}
+                ? "La categoría volverá a mostrarse en la app pública."
+                : "La categoría dejará de mostrarse en la app pública, pero seguirá disponible en admin para editarla o volver a mostrarla."}{" "}
               <strong>{categoryVisibilityDialog.category}</strong>.
             </p>
           }
           confirmLabel={
             categoryVisibilityDialog.nextVisibleInApp
-              ? "Si, mostrar"
-              : "Si, ocultar"
+              ? "Sí, mostrar"
+              : "Sí, ocultar"
           }
           onClose={() => setCategoryVisibilityDialog(null)}
           onConfirm={() => {
@@ -562,20 +562,20 @@ export default function AdminCategoriesPage() {
 
       {removeEventDialog && (
         <AdminConfirmDialog
-          title="Quitar evento de categoria"
+          title="Quitar evento de categoría"
           description={
             <>
               <p>
-                Estas por quitar <strong>{removeEventDialog.eventTitle}</strong>{" "}
+                Estás por quitar <strong>{removeEventDialog.eventTitle}</strong>{" "}
                 de <strong>{removeEventDialog.currentCategory}</strong>.
               </p>
               <p>
-                Si confirmas, el sistema lo movera a{" "}
+                Si confirmás, el sistema lo moverá a{" "}
                 <strong>{removeEventDialog.targetCategory}</strong>.
               </p>
             </>
           }
-          confirmLabel="Si, quitar"
+          confirmLabel="Sí, quitar"
           onClose={() => setRemoveEventDialog(null)}
           onConfirm={() => {
             void handleConfirmRemoveEvent();
@@ -585,17 +585,17 @@ export default function AdminCategoriesPage() {
 
       {deleteCategoryDialog && (
         <AdminConfirmDialog
-          title="Eliminar categoria"
+          title="Eliminar categoría"
           description={
             <>
               <p>
-                Estas por eliminar{" "}
+                Estás por eliminar{" "}
                 <strong>{deleteCategoryDialog.category}</strong>.
               </p>
-              <p>Esta accion no se puede deshacer.</p>
+              <p>Esta acción no se puede deshacer.</p>
             </>
           }
-          confirmLabel="Si, eliminar"
+          confirmLabel="Sí, eliminar"
           onClose={() => setDeleteCategoryDialog(null)}
           onConfirm={() => {
             void handleConfirmDeleteCategory();
@@ -873,3 +873,4 @@ export default function AdminCategoriesPage() {
     </section>
   );
 }
+

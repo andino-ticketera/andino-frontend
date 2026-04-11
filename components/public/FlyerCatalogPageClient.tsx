@@ -303,7 +303,7 @@ export default function FlyerCatalogPageClient() {
             letterSpacing: "-0.01em",
           }}
         >
-          Proximos eventos
+          Próximos eventos
         </h1>
         <p
           style={{

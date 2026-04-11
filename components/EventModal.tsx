@@ -448,7 +448,7 @@ export default function EventModal({ event, onClose }: EventModalProps) {
                 }}
               >
                 <iframe
-                  title="Ubicacion del evento"
+                  title="Ubicación del evento"
                   width="100%"
                   height="100%"
                   style={{ border: 0, display: "block" }}
@@ -952,7 +952,7 @@ export default function EventModal({ event, onClose }: EventModalProps) {
                   }}
                   onClick={(e) => e.stopPropagation()}
                 >
-                  Terminos y Condiciones
+                  Términos y Condiciones
                 </Link>
               </span>
             </label>

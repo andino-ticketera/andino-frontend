@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
@@ -90,7 +90,7 @@ export default function LogoutConfirmDialog({
             id="logout-confirm-title"
             style={{ fontSize: "var(--font-base)", fontWeight: 700 }}
           >
-            Confirmar cierre de sesion
+            Confirmar cierre de sesión
           </strong>
         </div>
 
@@ -113,7 +113,7 @@ export default function LogoutConfirmDialog({
               opacity: isLoggingOut ? 0.75 : 1,
             }}
           >
-            {isLoggingOut ? "Cerrando sesion..." : "Si, cerrar sesion"}
+            {isLoggingOut ? "Cerrando sesión..." : "Sí, cerrar sesión"}
           </button>
 
           <button
@@ -142,3 +142,4 @@ export default function LogoutConfirmDialog({
     document.body,
   );
 }
+

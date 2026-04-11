@@ -106,7 +106,7 @@ export default function TicketQrModal({
 
     pdf.setTextColor(176, 163, 199);
     pdf.text(
-      "Conserva este PDF y no compartas tu codigo QR con terceros.",
+      "Conserva este PDF y no compartas tu código QR con terceros.",
       40,
       790,
       { maxWidth: 500 },
@@ -158,7 +158,7 @@ export default function TicketQrModal({
               Entrada con QR
             </strong>
             <p style={{ color: "var(--text-secondary)", marginTop: "0.25rem" }}>
-              Visualiza tu codigo y descargalo en PDF.
+              Visualizá tu código y descargalo en PDF.
             </p>
           </div>
 
@@ -296,13 +296,13 @@ export default function TicketQrModal({
                     </p>
                     <p>
                       <strong style={{ color: "var(--text-primary)" }}>
-                        Ubicacion:
+                        Ubicación:
                       </strong>{" "}
                       {entrada.evento.locacion}
                     </p>
                     <p>
                       <strong style={{ color: "var(--text-primary)" }}>
-                        Direccion:
+                        Dirección:
                       </strong>{" "}
                       {entrada.evento.direccion}
                     </p>
@@ -353,7 +353,7 @@ export default function TicketQrModal({
                     </strong>
                     <p style={{ color: "var(--text-secondary)" }}>
                       Presenta este QR en el acceso del evento. Si tu entrada ya
-                      fue usada, el codigo se muestra solo como referencia.
+                      fue usada, el código se muestra solo como referencia.
                     </p>
                   </div>
                 </div>

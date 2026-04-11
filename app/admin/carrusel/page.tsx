@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Image from "next/image";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -48,7 +48,7 @@ export default function AdminCarruselPage() {
       setCarouselEventIds(persistedIds);
       showToast("Carrusel actualizado correctamente", "success");
     } catch {
-      showToast("No se pudo guardar la configuracion del carrusel", "danger");
+      showToast("No se pudo guardar la configuración del carrusel", "danger");
     } finally {
       setIsSaving(false);
     }
@@ -64,7 +64,7 @@ export default function AdminCarruselPage() {
           marginBottom: "0.375rem",
         }}
       >
-        Configuracion de carrusel
+        Configuración de carrusel
       </h1>
       <p
         className="section-mobile-description"
@@ -384,3 +384,4 @@ export default function AdminCarruselPage() {
     </section>
   );
 }
+

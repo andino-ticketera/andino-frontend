@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
@@ -171,7 +171,7 @@ export default function Navbar() {
           <Logo size="md" />
         </Link>
 
-        {/* Desktop Nav — floating pill container */}
+        {/* Desktop Nav - floating pill container */}
         <div
           className="desktop-nav"
           style={{
@@ -261,7 +261,7 @@ export default function Navbar() {
                   padding: 0,
                 }}
               >
-                Cerrar sesion
+                Cerrar sesión
               </button>
             </div>
           ) : (
@@ -275,7 +275,7 @@ export default function Navbar() {
                 transition: "color 0.2s ease",
               }}
             >
-              Iniciar Sesion
+              Iniciar Sesión
             </Link>
           )}
           {canShowOrganizerCta ? (
@@ -312,7 +312,7 @@ export default function Navbar() {
           }}
           className="mobile-menu-btn"
           onClick={() => setMobileOpen(!mobileOpen)}
-          aria-label={mobileOpen ? "Cerrar menu" : "Abrir menu"}
+          aria-label={mobileOpen ? "Cerrar menú" : "Abrir menú"}
         >
           <EvaIcon name={mobileOpen ? "close" : "menu"} size={24} />
         </button>
@@ -330,7 +330,7 @@ export default function Navbar() {
           style={{
             padding: "1.25rem 1.25rem 1.5rem",
             display: "flex",
-            flexDirection: "column",
+            flexeirection: "column",
             gap: "1.125rem",
             borderTop: "1px solid var(--border-color-50)",
             background: "var(--bg-base-98)",
@@ -381,7 +381,7 @@ export default function Navbar() {
                   padding: "0.125rem 0",
                 }}
               >
-                Iniciar Sesion
+                Iniciar Sesión
               </Link>
             )}
             {session && panelHref && panelHref !== "/" && (
@@ -415,7 +415,7 @@ export default function Navbar() {
                   fontWeight: 500,
                 }}
               >
-                Cerrar sesion
+                Cerrar sesión
               </button>
             )}
           </div>
@@ -504,7 +504,7 @@ export default function Navbar() {
                       id="logout-toast-title"
                       style={{ fontSize: "var(--font-base)", fontWeight: 700 }}
                     >
-                      Confirmar cierre de sesion
+                      Confirmar cierre de sesión
                     </strong>
                   </div>
                 </div>
@@ -534,7 +534,7 @@ export default function Navbar() {
                       opacity: isLoggingOut ? 0.75 : 1,
                     }}
                   >
-                    {isLoggingOut ? "Cerrando sesion..." : "Si, cerrar sesion"}
+                    {isLoggingOut ? "Cerrando sesión..." : "Sí, cerrar sesión"}
                   </button>
 
                   <button
@@ -574,3 +574,5 @@ export default function Navbar() {
     </nav>
   );
 }
+
+
