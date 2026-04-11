@@ -475,8 +475,15 @@ export async function deleteEventFromAdmin(eventId: string): Promise<void> {
   }
 }
 
+export interface CreateEventOptions {
+  // Solo es respetado por el backend cuando el caller es ADMIN. Permite
+  // que un admin de alta el evento a nombre de un organizador existente.
+  organizadorId?: string;
+}
+
 export async function createEventFromAdmin(
   event: Omit<Event, "id">,
+  options: CreateEventOptions = {},
 ): Promise<Event> {
   const isoDate = parseDateAndTimeToIso(event.date, event.time);
   if (!isoDate) {
@@ -511,6 +518,9 @@ export async function createEventFromAdmin(
   formData.append("imagen", imageFile);
   if (flyerFile) {
     formData.append("flyer", flyerFile);
+  }
+  if (options.organizadorId && options.organizadorId.trim()) {
+    formData.append("organizador_id", options.organizadorId.trim());
   }
 
   const response = await fetch(getEventsBaseEndpoint(), {

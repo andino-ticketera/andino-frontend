@@ -16,11 +16,29 @@ import {
   normalizeEventTimeInput,
 } from "@/lib/event-form-utils";
 
+export interface AdminEventFormOrganizerOption {
+  id: string;
+  nombreCompleto: string;
+  email: string;
+}
+
+export interface AdminEventFormSubmitOptions {
+  organizadorId?: string;
+}
+
 interface AdminEventFormProps {
   mode: "create" | "edit";
   initialEvent?: Event;
-  onSubmit: (event: Omit<Event, "id">) => void;
+  onSubmit: (
+    event: Omit<Event, "id">,
+    options?: AdminEventFormSubmitOptions,
+  ) => void;
   submitLabel: string;
+  // Si se proveen, se muestra un selector "Asignar a organizador" al inicio del
+  // formulario. Solo tiene sentido cuando el caller es ADMIN creando un evento.
+  organizers?: AdminEventFormOrganizerOption[];
+  organizersLoading?: boolean;
+  organizerPanelUrl?: string;
 }
 
 const fieldBox: React.CSSProperties = {
@@ -166,7 +184,31 @@ export default function AdminEventForm({
   initialEvent,
   onSubmit,
   submitLabel,
+  organizers,
+  organizersLoading = false,
+  organizerPanelUrl,
 }: AdminEventFormProps) {
+  const showOrganizerSelector = mode === "create" && Array.isArray(organizers);
+  const [assignedOrganizerId, setAssignedOrganizerId] = useState<string>("");
+  const [copiedPanelLink, setCopiedPanelLink] = useState(false);
+
+  const selectedOrganizer = useMemo(() => {
+    if (!assignedOrganizerId || !organizers) return null;
+    return organizers.find((item) => item.id === assignedOrganizerId) ?? null;
+  }, [assignedOrganizerId, organizers]);
+
+  const handleCopyPanelLink = async () => {
+    if (!organizerPanelUrl) return;
+    try {
+      if (typeof navigator !== "undefined" && navigator.clipboard) {
+        await navigator.clipboard.writeText(organizerPanelUrl);
+        setCopiedPanelLink(true);
+        setTimeout(() => setCopiedPanelLink(false), 2000);
+      }
+    } catch {
+      // silencioso: el admin siempre puede copiar manualmente
+    }
+  };
   const { categories } = useAdmin();
   const fallbackCategory = categories[0] ?? "General";
   const defaults = initialEvent ?? defaultEventValues(fallbackCategory);
@@ -394,6 +436,11 @@ export default function AdminEventForm({
     const preservedFeatured =
       mode === "edit" && initialEvent ? initialEvent.featured : false;
 
+    const submitOptions: AdminEventFormSubmitOptions = {};
+    if (showOrganizerSelector && assignedOrganizerId) {
+      submitOptions.organizadorId = assignedOrganizerId;
+    }
+
     onSubmit({
       title: title.trim(),
       description: autoDescription,
@@ -423,7 +470,7 @@ export default function AdminEventForm({
       mercadoPagoId:
         paymentMethod === "mercadopago" ? mercadoPagoId.trim() : "",
       cbuCvu: paymentMethod === "transferencia" ? cbuCvu.trim() : "",
-    });
+    }, submitOptions);
   };
 
   return (
@@ -474,6 +521,86 @@ export default function AdminEventForm({
           }}
           className="admin-form-grid"
         >
+          {showOrganizerSelector && (
+            <div style={{ ...fieldBox, gridColumn: "1 / -1" }}>
+              <label style={labelStyle}>
+                {renderFieldLabel("Asignar a organizador", { optional: true })}
+              </label>
+              <select
+                value={assignedOrganizerId}
+                onChange={(e) => setAssignedOrganizerId(e.target.value)}
+                style={inputStyle}
+                disabled={organizersLoading}
+              >
+                <option value="">Crear como admin (yo)</option>
+                {(organizers ?? []).map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.nombreCompleto
+                      ? `${item.nombreCompleto} - ${item.email}`
+                      : item.email}
+                  </option>
+                ))}
+              </select>
+              {organizersLoading && (
+                <span
+                  style={{
+                    fontSize: "var(--font-xs)",
+                    color: "var(--text-disabled)",
+                  }}
+                >
+                  Cargando organizadores...
+                </span>
+              )}
+              {selectedOrganizer && (
+                <div
+                  style={{
+                    marginTop: "0.5rem",
+                    padding: "0.625rem 0.75rem",
+                    borderRadius: "var(--radius-md)",
+                    border: "1px solid #e3d7a7",
+                    background: "#fff8e1",
+                    color: "#5b4a00",
+                    fontSize: "var(--font-xs)",
+                    lineHeight: 1.4,
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "0.5rem",
+                  }}
+                >
+                  <span>
+                    El evento quedara a nombre de{" "}
+                    <strong>
+                      {selectedOrganizer.nombreCompleto || selectedOrganizer.email}
+                    </strong>
+                    . Para recibir pagos con Mercado Pago, el organizador tiene
+                    que iniciar sesion y conectar su cuenta desde su panel.
+                  </span>
+                  {organizerPanelUrl && (
+                    <button
+                      type="button"
+                      onClick={handleCopyPanelLink}
+                      style={{
+                        alignSelf: "flex-start",
+                        border: "1px solid #d6c48a",
+                        background: "#ffffff",
+                        color: "#5b4a00",
+                        borderRadius: "var(--radius-md)",
+                        padding: "0.375rem 0.625rem",
+                        fontSize: "var(--font-xs)",
+                        fontWeight: 700,
+                        cursor: "pointer",
+                      }}
+                    >
+                      {copiedPanelLink
+                        ? "Link copiado"
+                        : "Copiar link del panel"}
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
           <div style={fieldBox}>
             <label style={labelStyle}>
               {renderFieldLabel("Titulo", { required: true })}
