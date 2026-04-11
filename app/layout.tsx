@@ -3,6 +3,7 @@ import { Montserrat } from "next/font/google";
 import "./globals.css";
 import { AdminProvider } from "@/context/AdminContext";
 import QueryProvider from "@/components/QueryProvider";
+import PublicCatalogHydration from "@/components/public/PublicCatalogHydration";
 
 const montserrat = Montserrat({
   variable: "--font-montserrat",
@@ -27,7 +28,9 @@ export default function RootLayout({
     <html lang="es" className={`${montserrat.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
         <QueryProvider>
-          <AdminProvider>{children}</AdminProvider>
+          <PublicCatalogHydration includeCarousel>
+            <AdminProvider>{children}</AdminProvider>
+          </PublicCatalogHydration>
         </QueryProvider>
       </body>
     </html>

@@ -29,6 +29,14 @@ import {
   updateCategory,
   updateCategoryVisibility,
 } from "@/lib/categories-api";
+import {
+  ADMIN_CATEGORIES_QUERY_KEY,
+  ADMIN_EVENTS_QUERY_KEY,
+  ADMIN_PURCHASES_QUERY_KEY,
+  CAROUSEL_EVENTS_QUERY_KEY,
+  PUBLIC_CATEGORIES_QUERY_KEY,
+  PUBLIC_EVENTS_QUERY_KEY,
+} from "@/lib/query-keys";
 
 export type AdminToastType = "success" | "danger";
 
@@ -67,13 +75,6 @@ interface AdminContextValue {
 }
 
 const AdminContext = createContext<AdminContextValue | undefined>(undefined);
-
-const PUBLIC_EVENTS_QUERY_KEY = ["public-events"] as const;
-const ADMIN_EVENTS_QUERY_KEY = ["admin-events"] as const;
-const ADMIN_PURCHASES_QUERY_KEY = ["admin-purchases"] as const;
-const PUBLIC_CATEGORIES_QUERY_KEY = ["public-categories"] as const;
-const ADMIN_CATEGORIES_QUERY_KEY = ["admin-categories"] as const;
-const CAROUSEL_EVENTS_QUERY_KEY = ["carousel-events"] as const;
 
 function normalizeCategory(value: string): string {
   return value.trim().replace(/\s+/g, " ");
