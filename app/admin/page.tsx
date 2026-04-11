@@ -3,25 +3,36 @@
 import { useMemo } from "react";
 import { useAdmin } from "@/context/AdminContext";
 import ExpandableTableRow from "@/components/ExpandableTableRow";
+import {
+  formatManagedPurchaseDate,
+  getManagedPaymentMethodLabel,
+  getManagedPurchaseStatusColor,
+  getManagedPurchaseStatusLabel,
+} from "@/lib/managed-purchases-api";
 
 export default function AdminDashboardPage() {
-  const { events, purchases, carouselEventIds } = useAdmin();
+  const {
+    events,
+    purchases,
+    carouselEventIds,
+    isEventsLoading,
+    isPurchasesLoading,
+  } = useAdmin();
 
   const totalRevenue = useMemo(
-    () => purchases.reduce((acc, purchase) => acc + purchase.totalPrice, 0),
+    () =>
+      purchases
+        .filter((purchase) => purchase.status === "PAGADO")
+        .reduce((acc, purchase) => acc + purchase.totalPrice, 0),
     [purchases],
   );
 
   const stats = [
     { label: "Total de eventos", value: String(events.length) },
     { label: "Total de compras", value: String(purchases.length) },
-    { label: "Ingresos", value: `$${totalRevenue.toFixed(2)}` },
+    { label: "Ingresos cobrados", value: `$${totalRevenue.toFixed(2)}` },
     { label: "Slides del carrusel", value: String(carouselEventIds.length) },
   ];
-
-  const eventMap = useMemo(() => {
-    return new Map(events.map((event) => [event.id, event.title]));
-  }, [events]);
 
   const recentPurchases = useMemo(() => {
     return [...purchases]
@@ -133,7 +144,7 @@ export default function AdminDashboardPage() {
                   },
                   {
                     label: "Evento",
-                    value: eventMap.get(purchase.eventId) ?? "Evento eliminado",
+                    value: purchase.eventTitle || "Evento eliminado",
                   },
                   {
                     label: "Total",
@@ -146,8 +157,25 @@ export default function AdminDashboardPage() {
                     value: purchase.quantity,
                   },
                   {
+                    label: "Estado",
+                    value: (
+                      <span
+                        style={{
+                          color: getManagedPurchaseStatusColor(purchase.status),
+                          fontWeight: 700,
+                        }}
+                      >
+                        {getManagedPurchaseStatusLabel(purchase.status)}
+                      </span>
+                    ),
+                  },
+                  {
+                    label: "Pago",
+                    value: getManagedPaymentMethodLabel(purchase.paymentMethod),
+                  },
+                  {
                     label: "Fecha",
-                    value: purchase.purchaseDate,
+                    value: formatManagedPurchaseDate(purchase.purchaseDate),
                   },
                 ]}
               />
@@ -155,6 +183,18 @@ export default function AdminDashboardPage() {
           )}
         </div>
       </article>
+
+      {(isEventsLoading || isPurchasesLoading) && (
+        <p
+          style={{
+            marginTop: "0.875rem",
+            color: "var(--text-disabled)",
+            fontSize: "var(--font-sm)",
+          }}
+        >
+          Actualizando datos reales del panel...
+        </p>
+      )}
 
       <style>{`
         @media (max-width: 900px) {

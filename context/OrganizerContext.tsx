@@ -12,13 +12,17 @@ import {
 } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { type Event } from "@/data/events";
-import { purchases as initialPurchases, type Purchase } from "@/data/purchases";
+import type { Purchase } from "@/data/purchases";
 import type { Organizer } from "@/data/organizers";
 import {
   createEventFromOrganizer,
   fetchOrganizerEvents,
   updateEventFromOrganizer,
 } from "@/lib/events-api";
+import {
+  fetchOrganizerPurchases,
+  updateOrganizerPurchaseCheckIn,
+} from "@/lib/managed-purchases-api";
 import {
   clearAuthSession,
   readAuthSession,
@@ -35,12 +39,13 @@ export interface OrganizerToast {
 interface OrganizerContextValue {
   organizer: Organizer;
   events: Event[];
-  isEventsLoading: boolean;
   purchases: Purchase[];
   toast: OrganizerToast | null;
+  isEventsLoading: boolean;
+  isPurchasesLoading: boolean;
   addEvent: (event: Omit<Event, "id">) => Promise<Event>;
   updateEvent: (id: string, event: Omit<Event, "id">) => Promise<Event>;
-  toggleCheckedIn: (purchaseId: string) => void;
+  toggleCheckedIn: (purchaseId: string, checkedIn: boolean) => Promise<void>;
   showToast: (message: string, type: OrganizerToastType) => void;
   clearToast: () => void;
 }
@@ -49,26 +54,42 @@ const OrganizerContext = createContext<OrganizerContextValue | undefined>(
   undefined,
 );
 
+const ORGANIZER_EVENTS_QUERY_KEY = (userId?: string) =>
+  ["organizer-events", userId] as const;
+const ORGANIZER_PURCHASES_QUERY_KEY = (userId?: string) =>
+  ["organizer-purchases", userId] as const;
+const PUBLIC_EVENTS_QUERY_KEY = ["public-events"] as const;
+
+function isEventPubliclyVisible(event: Event): boolean {
+  return event.status !== "CANCELADO" && event.visibleInApp !== false;
+}
+
+function syncPublicEvents(events: Event[], nextEvent: Event): Event[] {
+  const withoutCurrent = events.filter((event) => event.id !== nextEvent.id);
+  if (!isEventPubliclyVisible(nextEvent)) {
+    return withoutCurrent;
+  }
+  return [nextEvent, ...withoutCurrent];
+}
+
 function buildOrganizerFromSession(): Organizer {
   const session = readAuthSession();
-  const nombreCompleto = session?.user.nombreCompleto?.trim() || "Organizador";
+  const nombreCompleto = session?.user.nombreCompleto?.trim() || "";
   const partes = nombreCompleto.split(/\s+/).filter(Boolean);
-  const nombre = partes[0] || "Organizador";
+  const nombre = partes[0] || "";
   const apellido = partes.slice(1).join(" ");
 
   return {
-    id: session?.user.id || "organizador-sin-sesion",
+    id: session?.user.id || "",
     nombre,
     apellido,
     empresa: nombreCompleto,
-    email: session?.user.email || "sin-email@example.com",
+    email: session?.user.email || "",
     telefono: "",
   };
 }
 
 export function OrganizerProvider({ children }: { children: ReactNode }) {
-  const [allPurchases, setAllPurchases] =
-    useState<Purchase[]>(initialPurchases);
   const [toast, setToast] = useState<OrganizerToast | null>(null);
   const [session, setSession] = useState(() => readAuthSession());
   const toastTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -132,7 +153,7 @@ export function OrganizerProvider({ children }: { children: ReactNode }) {
   const organizer = buildOrganizerFromSession();
 
   const { data: events = [], isLoading: isEventsLoading } = useQuery({
-    queryKey: ["organizer-events", session?.user.id],
+    queryKey: ORGANIZER_EVENTS_QUERY_KEY(session?.user.id),
     queryFn: fetchOrganizerEvents,
     enabled:
       session?.user.rol === "ORGANIZADOR" || session?.user.rol === "ADMIN",
@@ -140,25 +161,26 @@ export function OrganizerProvider({ children }: { children: ReactNode }) {
     refetchOnWindowFocus: false,
   });
 
-  const eventIds = useMemo(() => new Set(events.map((e) => e.id)), [events]);
-
-  const purchases = useMemo(
-    () => allPurchases.filter((p) => eventIds.has(p.eventId)),
-    [allPurchases, eventIds],
-  );
+  const { data: purchases = [], isLoading: isPurchasesLoading } = useQuery({
+    queryKey: ORGANIZER_PURCHASES_QUERY_KEY(session?.user.id),
+    queryFn: fetchOrganizerPurchases,
+    enabled:
+      session?.user.rol === "ORGANIZADOR" || session?.user.rol === "ADMIN",
+    staleTime: 0,
+    refetchOnWindowFocus: false,
+  });
 
   const addEvent = useCallback(
     async (event: Omit<Event, "id">) => {
       const createdEvent = await createEventFromOrganizer(event);
 
       queryClient.setQueryData<Event[]>(
-        ["organizer-events", session?.user.id],
+        ORGANIZER_EVENTS_QUERY_KEY(session?.user.id),
         (current = []) => [createdEvent, ...current],
       );
-      queryClient.setQueryData<Event[]>(["public-events"], (current = []) => [
-        ...current,
-        createdEvent,
-      ]);
+      queryClient.setQueryData<Event[]>(PUBLIC_EVENTS_QUERY_KEY, (current = []) =>
+        syncPublicEvents(current, createdEvent),
+      );
 
       return createdEvent;
     },
@@ -175,30 +197,38 @@ export function OrganizerProvider({ children }: { children: ReactNode }) {
       );
 
       queryClient.setQueryData<Event[]>(
-        ["organizer-events", session?.user.id],
+        ORGANIZER_EVENTS_QUERY_KEY(session?.user.id),
         (current = []) =>
-          current.map((item) =>
-            item.id === updatedEvent.id ? updatedEvent : item,
-          ),
+          current.map((item) => (item.id === updatedEvent.id ? updatedEvent : item)),
       );
-      queryClient.setQueryData<Event[]>(["public-events"], (current = []) =>
-        current.map((item) =>
-          item.id === updatedEvent.id ? updatedEvent : item,
-        ),
+      queryClient.setQueryData<Event[]>(PUBLIC_EVENTS_QUERY_KEY, (current = []) =>
+        syncPublicEvents(current, updatedEvent),
       );
 
       return updatedEvent;
     },
-    [queryClient, session?.user.id],
+    [events, queryClient, session?.user.id],
   );
 
-  const toggleCheckedIn = useCallback((purchaseId: string) => {
-    setAllPurchases((prev) =>
-      prev.map((p) =>
-        p.id === purchaseId ? { ...p, checkedIn: !p.checkedIn } : p,
-      ),
-    );
-  }, []);
+  const toggleCheckedIn = useCallback(
+    async (purchaseId: string, checkedIn: boolean) => {
+      const checkedInCount = await updateOrganizerPurchaseCheckIn(
+        purchaseId,
+        checkedIn,
+      );
+
+      queryClient.setQueryData<Purchase[]>(
+        ORGANIZER_PURCHASES_QUERY_KEY(session?.user.id),
+        (current = []) =>
+          current.map((purchase) =>
+            purchase.id === purchaseId
+              ? { ...purchase, checkedInCount }
+              : purchase,
+          ),
+      );
+    },
+    [queryClient, session?.user.id],
+  );
 
   const clearToast = useCallback(() => {
     if (toastTimeoutRef.current) {
@@ -231,9 +261,10 @@ export function OrganizerProvider({ children }: { children: ReactNode }) {
     () => ({
       organizer,
       events,
-      isEventsLoading,
       purchases,
       toast,
+      isEventsLoading,
+      isPurchasesLoading,
       addEvent,
       updateEvent,
       toggleCheckedIn,
@@ -241,16 +272,17 @@ export function OrganizerProvider({ children }: { children: ReactNode }) {
       clearToast,
     }),
     [
-      organizer,
+      addEvent,
+      clearToast,
       events,
       isEventsLoading,
+      isPurchasesLoading,
+      organizer,
       purchases,
-      toast,
-      addEvent,
-      updateEvent,
-      toggleCheckedIn,
       showToast,
-      clearToast,
+      toast,
+      toggleCheckedIn,
+      updateEvent,
     ],
   );
 

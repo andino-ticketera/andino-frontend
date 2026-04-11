@@ -13,8 +13,12 @@ import {
 import { usePathname } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Event } from "@/data/events";
-import { purchases as initialPurchases, type Purchase } from "@/data/purchases";
-import { fetchPublicEvents } from "@/lib/events-api";
+import type { Purchase } from "@/data/purchases";
+import {
+  fetchAdminEvents,
+  fetchPublicEvents,
+} from "@/lib/events-api";
+import { fetchAdminPurchases } from "@/lib/managed-purchases-api";
 import { fetchCarouselEventIds } from "@/lib/carousel-api";
 import {
   type BackendCategoria,
@@ -33,15 +37,16 @@ export interface AdminToast {
 
 interface AdminContextValue {
   events: Event[];
-  isEventsLoading: boolean;
-  isCategoriesLoading: boolean;
-  isCarouselLoading: boolean;
   purchases: Purchase[];
   categories: string[];
   carouselEventIds: string[];
   toast: AdminToast | null;
+  isEventsLoading: boolean;
+  isPurchasesLoading: boolean;
+  isCategoriesLoading: boolean;
+  isCarouselLoading: boolean;
   addEvent: (event: Event | Omit<Event, "id">) => void;
-  updateEvent: (id: string, updates: Partial<Event>) => void;
+  updateEvent: (id: string, updates: Partial<Event> | Event) => void;
   deleteEvent: (id: string) => void;
   addCategory: (category: string) => Promise<boolean>;
   renameCategory: (
@@ -50,26 +55,45 @@ interface AdminContextValue {
   ) => Promise<boolean>;
   removeCategory: (category: string) => Promise<boolean>;
   setCarouselEventIds: (ids: string[]) => void;
-  addPurchase: (purchase: Omit<Purchase, "id">) => void;
   showToast: (message: string, type: AdminToastType) => void;
   clearToast: () => void;
 }
 
 const AdminContext = createContext<AdminContextValue | undefined>(undefined);
 
-function generateId(prefix: string): string {
-  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
-    return `${prefix}-${crypto.randomUUID()}`;
-  }
-  return `${prefix}-${Date.now()}-${Math.floor(Math.random() * 1_000_000)}`;
-}
+const PUBLIC_EVENTS_QUERY_KEY = ["public-events"] as const;
+const ADMIN_EVENTS_QUERY_KEY = ["admin-events"] as const;
+const ADMIN_PURCHASES_QUERY_KEY = ["admin-purchases"] as const;
+const PUBLIC_CATEGORIES_QUERY_KEY = ["public-categories"] as const;
+const CAROUSEL_EVENTS_QUERY_KEY = ["carousel-events"] as const;
 
 function normalizeCategory(value: string): string {
   return value.trim().replace(/\s+/g, " ");
 }
 
+function isEventPubliclyVisible(event: Event): boolean {
+  return event.status !== "CANCELADO" && event.visibleInApp !== false;
+}
+
+function upsertEventList(events: Event[], nextEvent: Event): Event[] {
+  const withoutCurrent = events.filter((event) => event.id !== nextEvent.id);
+  return [nextEvent, ...withoutCurrent];
+}
+
+function syncPublicEvents(events: Event[], nextEvent: Event): Event[] {
+  const withoutCurrent = events.filter((event) => event.id !== nextEvent.id);
+  if (!isEventPubliclyVisible(nextEvent)) {
+    return withoutCurrent;
+  }
+  return [nextEvent, ...withoutCurrent];
+}
+
 function sanitizeCarouselIds(ids: string[], events: Event[]): string[] {
-  const validEventIds = new Set(events.map((event) => event.id));
+  const validEventIds = new Set(
+    events
+      .filter((event) => event.visibleInApp !== false)
+      .map((event) => event.id),
+  );
   const seen = new Set<string>();
   const sanitized: string[] = [];
 
@@ -106,21 +130,18 @@ function normalizeCategories(
 export function AdminProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const queryClient = useQueryClient();
-
-  const shouldFetchCatalogData =
-    pathname === "/" ||
-    pathname === "/cartelera" ||
-    pathname === "/explorar" ||
-    pathname.startsWith("/admin");
-
-  const [purchases, setPurchases] = useState<Purchase[]>(initialPurchases);
   const [toast, setToast] = useState<AdminToast | null>(null);
   const toastTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const { data: fetchedEvents = [], isLoading } = useQuery({
-    queryKey: ["public-events"],
+  const isAdminRoute = pathname.startsWith("/admin");
+  const shouldFetchPublicCatalog =
+    pathname === "/" || pathname === "/cartelera" || pathname === "/explorar";
+  const shouldFetchCatalogData = shouldFetchPublicCatalog || isAdminRoute;
+
+  const { data: publicEvents = [], isLoading: isPublicEventsLoading } = useQuery({
+    queryKey: PUBLIC_EVENTS_QUERY_KEY,
     queryFn: fetchPublicEvents,
-    enabled: shouldFetchCatalogData,
+    enabled: shouldFetchPublicCatalog,
     staleTime: Infinity,
     gcTime: 1000 * 60 * 60 * 24,
     refetchOnMount: false,
@@ -129,83 +150,117 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     retry: 1,
   });
 
-  const { data: categoryRecords = [], isLoading: isCatLoading } = useQuery({
-    queryKey: ["public-categories"],
-    queryFn: fetchPublicCategories,
-    select: normalizeCategories,
-    enabled: shouldFetchCatalogData,
-    staleTime: Infinity,
-    gcTime: 1000 * 60 * 60 * 24,
-    refetchOnMount: false,
+  const { data: adminEvents = [], isLoading: isAdminEventsLoading } = useQuery({
+    queryKey: ADMIN_EVENTS_QUERY_KEY,
+    queryFn: fetchAdminEvents,
+    enabled: isAdminRoute,
+    staleTime: 0,
     refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
     retry: 1,
   });
 
-  const { data: fetchedCarouselEventIds = [], isLoading: isCarouselLoading } = useQuery({
-    queryKey: ["carousel-events"],
-    queryFn: fetchCarouselEventIds,
-    enabled: shouldFetchCatalogData,
-    staleTime: Infinity,
-    gcTime: 1000 * 60 * 60 * 24,
-    refetchOnMount: false,
+  const { data: purchases = [], isLoading: isPurchasesLoading } = useQuery({
+    queryKey: ADMIN_PURCHASES_QUERY_KEY,
+    queryFn: fetchAdminPurchases,
+    enabled: isAdminRoute,
+    staleTime: 0,
     refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
     retry: 1,
   });
 
-  const events = fetchedEvents;
+  const { data: categoryRecords = [], isLoading: isCategoriesLoading } =
+    useQuery({
+      queryKey: PUBLIC_CATEGORIES_QUERY_KEY,
+      queryFn: fetchPublicCategories,
+      select: normalizeCategories,
+      enabled: shouldFetchCatalogData,
+      staleTime: Infinity,
+      gcTime: 1000 * 60 * 60 * 24,
+      refetchOnMount: false,
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
+      retry: 1,
+    });
 
+  const { data: fetchedCarouselEventIds = [], isLoading: isCarouselLoading } =
+    useQuery({
+      queryKey: CAROUSEL_EVENTS_QUERY_KEY,
+      queryFn: fetchCarouselEventIds,
+      enabled: pathname === "/" || isAdminRoute,
+      staleTime: Infinity,
+      gcTime: 1000 * 60 * 60 * 24,
+      refetchOnMount: false,
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
+      retry: 1,
+    });
+
+  const events = isAdminRoute ? adminEvents : publicEvents;
   const categories = useMemo(
     () => categoryRecords.map((category) => category.nombre),
     [categoryRecords],
   );
-
   const carouselEventIds = useMemo(
     () => sanitizeCarouselIds(fetchedCarouselEventIds, events),
-    [fetchedCarouselEventIds, events],
+    [events, fetchedCarouselEventIds],
   );
 
   const isEventsLoading =
-    shouldFetchCatalogData && isLoading && events.length === 0;
+    (isAdminRoute ? isAdminEventsLoading : isPublicEventsLoading) &&
+    events.length === 0;
 
-  const isCategoriesLoading =
-    shouldFetchCatalogData && isCatLoading && categoryRecords.length === 0;
+  const applyEventToCaches = useCallback(
+    (nextEvent: Event) => {
+      queryClient.setQueryData<Event[]>(ADMIN_EVENTS_QUERY_KEY, (prev = []) =>
+        upsertEventList(prev, nextEvent),
+      );
+      queryClient.setQueryData<Event[]>(PUBLIC_EVENTS_QUERY_KEY, (prev = []) =>
+        syncPublicEvents(prev, nextEvent),
+      );
 
-  const isCarouselLoadingState =
-    shouldFetchCatalogData && isCarouselLoading && fetchedCarouselEventIds.length === 0;
-
-  const addEvent = useCallback(
-    (event: Event | Omit<Event, "id">) => {
-      const createdEvent =
-        "id" in event ? event : { ...event, id: generateId("ev") };
-
-      queryClient.setQueryData<Event[]>(["public-events"], (prev = []) => [
-        ...prev,
-        createdEvent,
-      ]);
+      if (!isEventPubliclyVisible(nextEvent)) {
+        queryClient.setQueryData<string[]>(CAROUSEL_EVENTS_QUERY_KEY, (prev = []) =>
+          prev.filter((eventId) => eventId !== nextEvent.id),
+        );
+      }
     },
     [queryClient],
   );
 
-  const updateEvent = useCallback(
-    (id: string, updates: Partial<Event>) => {
-      queryClient.setQueryData<Event[]>(["public-events"], (prev = []) =>
-        prev.map((event) =>
-          event.id === id ? { ...event, ...updates } : event,
-        ),
-      );
+  const addEvent = useCallback(
+    (event: Event | Omit<Event, "id">) => {
+      if (!("id" in event)) return;
+      applyEventToCaches(event);
     },
-    [queryClient],
+    [applyEventToCaches],
+  );
+
+  const updateEvent = useCallback(
+    (id: string, updates: Partial<Event> | Event) => {
+      const currentEvent =
+        (queryClient.getQueryData<Event[]>(ADMIN_EVENTS_QUERY_KEY) || []).find(
+          (event) => event.id === id,
+        ) ||
+        (queryClient.getQueryData<Event[]>(PUBLIC_EVENTS_QUERY_KEY) || []).find(
+          (event) => event.id === id,
+        );
+
+      if (!currentEvent) return;
+
+      applyEventToCaches({ ...currentEvent, ...updates, id });
+    },
+    [applyEventToCaches, queryClient],
   );
 
   const deleteEvent = useCallback(
     (id: string) => {
-      queryClient.setQueryData<Event[]>(["public-events"], (prev = []) =>
+      queryClient.setQueryData<Event[]>(ADMIN_EVENTS_QUERY_KEY, (prev = []) =>
         prev.filter((event) => event.id !== id),
       );
-
-      queryClient.setQueryData<string[]>(["carousel-events"], (prev = []) =>
+      queryClient.setQueryData<Event[]>(PUBLIC_EVENTS_QUERY_KEY, (prev = []) =>
+        prev.filter((event) => event.id !== id),
+      );
+      queryClient.setQueryData<string[]>(CAROUSEL_EVENTS_QUERY_KEY, (prev = []) =>
         prev.filter((eventId) => eventId !== id),
       );
     },
@@ -227,7 +282,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       try {
         const created = await createCategory(normalizedCategory);
         queryClient.setQueryData<BackendCategoria[]>(
-          ["public-categories"],
+          PUBLIC_CATEGORIES_QUERY_KEY,
           (prev = []) =>
             normalizeCategories([
               ...prev,
@@ -270,19 +325,25 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         };
 
         queryClient.setQueryData<BackendCategoria[]>(
-          ["public-categories"],
+          PUBLIC_CATEGORIES_QUERY_KEY,
           (prev = []) =>
             prev.map((category) =>
               category.id === currentRecord.id ? normalizedUpdated : category,
             ),
         );
 
-        queryClient.setQueryData<Event[]>(["public-events"], (prev = []) =>
-          prev.map((event) =>
+        const syncCategoryInEvents = (items: Event[]) =>
+          items.map((event) =>
             event.category.toLowerCase() === normalizedCurrent.toLowerCase()
               ? { ...event, category: normalizedUpdated.nombre }
               : event,
-          ),
+          );
+
+        queryClient.setQueryData<Event[]>(ADMIN_EVENTS_QUERY_KEY, (prev = []) =>
+          syncCategoryInEvents(prev),
+        );
+        queryClient.setQueryData<Event[]>(PUBLIC_EVENTS_QUERY_KEY, (prev = []) =>
+          syncCategoryInEvents(prev),
         );
 
         return true;
@@ -308,7 +369,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       try {
         await deleteCategory(categoryRecord.id);
         queryClient.setQueryData<BackendCategoria[]>(
-          ["public-categories"],
+          PUBLIC_CATEGORIES_QUERY_KEY,
           (prev = []) =>
             prev.filter(
               (existingCategory) => existingCategory.id !== categoryRecord.id,
@@ -325,7 +386,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   const setCarouselEventIds = useCallback(
     (ids: string[]) => {
       queryClient.setQueryData<string[]>(
-        ["carousel-events"],
+        CAROUSEL_EVENTS_QUERY_KEY,
         sanitizeCarouselIds(ids, events),
       );
     },
@@ -352,28 +413,6 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     }, 3000);
   }, []);
 
-  const addPurchase = useCallback(
-    (purchase: Omit<Purchase, "id">) => {
-      const createdPurchase: Purchase = {
-        ...purchase,
-        id: generateId("purchase"),
-      };
-
-      setPurchases((prev) => [createdPurchase, ...prev]);
-
-      queryClient.setQueryData<Event[]>(["public-events"], (prev = []) =>
-        prev.map((event) => {
-          if (event.id !== createdPurchase.eventId) return event;
-          return {
-            ...event,
-            entradasVendidas: event.entradasVendidas + createdPurchase.quantity,
-          };
-        }),
-      );
-    },
-    [queryClient],
-  );
-
   useEffect(() => {
     return () => {
       if (toastTimeoutRef.current) {
@@ -385,13 +424,18 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   const value = useMemo<AdminContextValue>(
     () => ({
       events,
-      isEventsLoading,
-      isCategoriesLoading,
-      isCarouselLoading: isCarouselLoadingState,
       purchases,
       categories,
       carouselEventIds,
       toast,
+      isEventsLoading,
+      isPurchasesLoading,
+      isCategoriesLoading:
+        shouldFetchCatalogData && isCategoriesLoading && categoryRecords.length === 0,
+      isCarouselLoading:
+        (pathname === "/" || isAdminRoute) &&
+        isCarouselLoading &&
+        fetchedCarouselEventIds.length === 0,
       addEvent,
       updateEvent,
       deleteEvent,
@@ -399,29 +443,33 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       renameCategory,
       removeCategory,
       setCarouselEventIds,
-      addPurchase,
       showToast,
       clearToast,
     }),
     [
-      events,
-      isEventsLoading,
-      isCategoriesLoading,
-      isCarouselLoadingState,
-      purchases,
-      categories,
-      carouselEventIds,
-      toast,
-      addEvent,
-      updateEvent,
-      deleteEvent,
       addCategory,
-      renameCategory,
-      removeCategory,
-      setCarouselEventIds,
-      addPurchase,
-      showToast,
+      addEvent,
+      carouselEventIds,
+      categories,
+      categoryRecords.length,
       clearToast,
+      deleteEvent,
+      events,
+      fetchedCarouselEventIds.length,
+      isAdminRoute,
+      isCarouselLoading,
+      isCategoriesLoading,
+      isEventsLoading,
+      isPurchasesLoading,
+      pathname,
+      purchases,
+      removeCategory,
+      renameCategory,
+      setCarouselEventIds,
+      shouldFetchCatalogData,
+      showToast,
+      toast,
+      updateEvent,
     ],
   );
 

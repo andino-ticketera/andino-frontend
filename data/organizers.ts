@@ -6,12 +6,3 @@ export interface Organizer {
   email: string;
   telefono: string;
 }
-
-export const currentOrganizer: Organizer = {
-  id: "org-1",
-  nombre: "Carlos",
-  apellido: "Mendez",
-  empresa: "Bai Bai Producciones",
-  email: "carlos@baibai.com",
-  telefono: "+5491155551234",
-};

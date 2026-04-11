@@ -7,31 +7,56 @@ import AdminConfirmDialog from "@/components/admin/AdminConfirmDialog";
 import { useAdmin } from "@/context/AdminContext";
 import EvaIcon from "@/components/EvaIcon";
 import ExpandableTableRow from "@/components/ExpandableTableRow";
-import { deleteEventFromAdmin } from "@/lib/events-api";
+import {
+  deleteEventFromAdmin,
+  updateEventVisibilityFromAdmin,
+} from "@/lib/events-api";
 
 interface DeleteEventDialogState {
   eventId: string;
   eventTitle: string;
 }
 
+type VisibilityFilter = "all" | "visible" | "hidden";
+
 export default function AdminEventsPage() {
-  const { events, deleteEvent, showToast } = useAdmin();
+  const { events, deleteEvent, updateEvent, showToast, isEventsLoading } =
+    useAdmin();
   const [query, setQuery] = useState("");
+  const [visibilityFilter, setVisibilityFilter] =
+    useState<VisibilityFilter>("all");
   const [deleteDialog, setDeleteDialog] =
     useState<DeleteEventDialogState | null>(null);
+  const [pendingVisibilityId, setPendingVisibilityId] = useState<string | null>(
+    null,
+  );
 
   const filteredEvents = useMemo(() => {
     const normalized = query.trim().toLowerCase();
-    if (!normalized) return events;
 
     return events.filter((event) => {
+      if (visibilityFilter === "visible" && event.visibleInApp === false) {
+        return false;
+      }
+      if (visibilityFilter === "hidden" && event.visibleInApp !== false) {
+        return false;
+      }
+
+      if (!normalized) return true;
+
       return (
         event.title.toLowerCase().includes(normalized) ||
         event.venue.toLowerCase().includes(normalized) ||
         event.category.toLowerCase().includes(normalized)
       );
     });
-  }, [events, query]);
+  }, [events, query, visibilityFilter]);
+
+  const visibleCount = useMemo(
+    () => events.filter((event) => event.visibleInApp !== false).length,
+    [events],
+  );
+  const hiddenCount = events.length - visibleCount;
 
   const handleConfirmDeleteEvent = async () => {
     if (!deleteDialog) return;
@@ -45,6 +70,32 @@ export default function AdminEventsPage() {
       showToast("Evento eliminado correctamente", "danger");
     } catch {
       showToast("No se pudo eliminar el evento", "danger");
+    }
+  };
+
+  const handleToggleVisibility = async (
+    eventId: string,
+    visibleInApp: boolean,
+  ) => {
+    if (pendingVisibilityId) return;
+
+    setPendingVisibilityId(eventId);
+    try {
+      const updatedEvent = await updateEventVisibilityFromAdmin(
+        eventId,
+        visibleInApp,
+      );
+      updateEvent(eventId, updatedEvent);
+      showToast(
+        visibleInApp
+          ? "Evento visible nuevamente en inicio y explorar"
+          : "Evento oculto del inicio y explorar",
+        "success",
+      );
+    } catch {
+      showToast("No se pudo actualizar la visibilidad del evento", "danger");
+    } finally {
+      setPendingVisibilityId(null);
     }
   };
 
@@ -74,7 +125,8 @@ export default function AdminEventsPage() {
             className="section-mobile-description"
             style={{ color: "var(--text-disabled)" }}
           >
-            Administra todos los eventos publicados.
+            Administra los eventos y decide en segundos si se muestran o no en
+            la app.
           </p>
         </div>
 
@@ -93,6 +145,46 @@ export default function AdminEventsPage() {
         >
           Crear evento
         </Link>
+      </div>
+
+      <div
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          gap: "0.625rem",
+          marginBottom: "0.875rem",
+        }}
+      >
+        {[
+          { key: "all" as const, label: `Todos (${events.length})` },
+          { key: "visible" as const, label: `Visibles (${visibleCount})` },
+          { key: "hidden" as const, label: `Ocultos (${hiddenCount})` },
+        ].map((item) => {
+          const isActive = visibilityFilter === item.key;
+          return (
+            <button
+              key={item.key}
+              type="button"
+              onClick={() => setVisibilityFilter(item.key)}
+              style={{
+                border: isActive
+                  ? "1px solid rgba(92, 255, 157, 0.4)"
+                  : "1px solid var(--border-color)",
+                background: isActive
+                  ? "rgba(92, 255, 157, 0.12)"
+                  : "var(--bg-surface-1)",
+                color: isActive ? "var(--color-primary)" : "var(--text-secondary)",
+                borderRadius: "999px",
+                padding: "0.5rem 0.875rem",
+                fontWeight: 700,
+                fontSize: "var(--font-xs)",
+                cursor: "pointer",
+              }}
+            >
+              {item.label}
+            </button>
+          );
+        })}
       </div>
 
       <input
@@ -132,104 +224,170 @@ export default function AdminEventsPage() {
             No se encontraron eventos.
           </div>
         ) : (
-          filteredEvents.map((event) => (
-            <ExpandableTableRow
-              key={event.id}
-              summary={[
-                {
-                  label: "Imagen",
-                  value: (
-                    <div
+          filteredEvents.map((event) => {
+            const isVisible = event.visibleInApp !== false;
+            const isPending = pendingVisibilityId === event.id;
+
+            return (
+              <ExpandableTableRow
+                key={event.id}
+                summary={[
+                  {
+                    label: "Imagen",
+                    value: (
+                      <div
+                        style={{
+                          position: "relative",
+                          width: "48px",
+                          height: "32px",
+                          borderRadius: "0.5rem",
+                          overflow: "hidden",
+                        }}
+                      >
+                        <Image
+                          src={event.image}
+                          alt={event.title}
+                          fill
+                          sizes="48px"
+                          style={{ objectFit: "cover" }}
+                        />
+                      </div>
+                    ),
+                  },
+                  {
+                    label: "Evento",
+                    value: event.title,
+                  },
+                  {
+                    label: "Visibilidad",
+                    value: (
+                      <span
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "0.35rem",
+                          color: isVisible ? "var(--color-primary)" : "#f4b942",
+                          fontWeight: 700,
+                        }}
+                      >
+                        <span
+                          style={{
+                            width: "0.5rem",
+                            height: "0.5rem",
+                            borderRadius: "999px",
+                            background: isVisible
+                              ? "var(--color-primary)"
+                              : "#f4b942",
+                          }}
+                        />
+                        {isVisible ? "Visible" : "Oculto"}
+                      </span>
+                    ),
+                  },
+                ]}
+                details={[
+                  {
+                    label: "Fecha",
+                    value: event.date,
+                  },
+                  {
+                    label: "Lugar",
+                    value: event.venue,
+                  },
+                  {
+                    label: "Precio",
+                    value: `$${event.price.toFixed(2)}`,
+                  },
+                  {
+                    label: "Categoria",
+                    value: event.category,
+                  },
+                  {
+                    label: "Entradas",
+                    value: `${event.entradasVendidas}/${event.totalEntradas}`,
+                  },
+                ]}
+                actions={
+                  <>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        void handleToggleVisibility(event.id, !isVisible)
+                      }
+                      disabled={isPending}
                       style={{
-                        position: "relative",
-                        width: "48px",
-                        height: "32px",
-                        borderRadius: "0.5rem",
-                        overflow: "hidden",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "0.25rem",
+                        color: isVisible ? "#f4b942" : "var(--color-primary)",
+                        background: isVisible
+                          ? "rgba(244, 185, 66, 0.12)"
+                          : "rgba(92, 255, 157, 0.08)",
+                        border: isVisible
+                          ? "1px solid rgba(244, 185, 66, 0.25)"
+                          : "1px solid rgba(92, 255, 157, 0.25)",
+                        borderRadius: "var(--radius-sm)",
+                        padding: "6px 8px",
+                        fontSize: "var(--font-xs)",
+                        cursor: isPending ? "not-allowed" : "pointer",
+                        opacity: isPending ? 0.6 : 1,
                       }}
                     >
-                      <Image
-                        src={event.image}
-                        alt={event.title}
-                        fill
-                        sizes="48px"
-                        style={{ objectFit: "cover" }}
+                      <EvaIcon
+                        name={isVisible ? "close" : "sun"}
+                        size={14}
                       />
-                    </div>
-                  ),
-                },
-                {
-                  label: "Evento",
-                  value: event.title,
-                },
-                {
-                  label: "Fecha",
-                  value: event.date,
-                },
-              ]}
-              details={[
-                {
-                  label: "Lugar",
-                  value: event.venue,
-                },
-                {
-                  label: "Precio",
-                  value: `$${event.price.toFixed(2)}`,
-                },
-                {
-                  label: "Categoría",
-                  value: event.category,
-                },
-                {
-                  label: "Entradas",
-                  value: `${event.entradasVendidas}/${event.totalEntradas}`,
-                },
-              ]}
-              actions={
-                <>
-                  <Link
-                    href={`/admin/eventos/${event.id}`}
-                    style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: "0.25rem",
-                      color: "var(--text-primary)",
-                      background: "var(--primary-10)",
-                      border: "1px solid var(--primary-25)",
-                      borderRadius: "var(--radius-sm)",
-                      textDecoration: "none",
-                      padding: "6px 8px",
-                      fontSize: "var(--font-xs)",
-                    }}
-                  >
-                    <EvaIcon name="edit" size={14} /> Editar
-                  </Link>
-                  <button
-                    onClick={() => {
-                      setDeleteDialog({
-                        eventId: event.id,
-                        eventTitle: event.title,
-                      });
-                    }}
-                    style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: "0.25rem",
-                      color: "#ffd0d0",
-                      background: "rgba(255, 80, 80, 0.12)",
-                      border: "1px solid rgba(255, 80, 80, 0.25)",
-                      borderRadius: "var(--radius-sm)",
-                      padding: "6px 8px",
-                      fontSize: "var(--font-xs)",
-                      cursor: "pointer",
-                    }}
-                  >
-                    <EvaIcon name="trash" size={14} /> Eliminar
-                  </button>
-                </>
-              }
-            />
-          ))
+                      {isPending
+                        ? "Guardando..."
+                        : isVisible
+                          ? "Ocultar en app"
+                          : "Mostrar en app"}
+                    </button>
+
+                    <Link
+                      href={`/admin/eventos/${event.id}`}
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "0.25rem",
+                        color: "var(--text-primary)",
+                        background: "var(--primary-10)",
+                        border: "1px solid var(--primary-25)",
+                        borderRadius: "var(--radius-sm)",
+                        textDecoration: "none",
+                        padding: "6px 8px",
+                        fontSize: "var(--font-xs)",
+                      }}
+                    >
+                      <EvaIcon name="edit" size={14} /> Editar
+                    </Link>
+                    <button
+                      onClick={() => {
+                        setDeleteDialog({
+                          eventId: event.id,
+                          eventTitle: event.title,
+                        });
+                      }}
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "0.25rem",
+                        color: "#ffd0d0",
+                        background: "rgba(255, 80, 80, 0.12)",
+                        border: "1px solid rgba(255, 80, 80, 0.25)",
+                        borderRadius: "var(--radius-sm)",
+                        padding: "6px 8px",
+                        fontSize: "var(--font-xs)",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <EvaIcon name="trash" size={14} /> Eliminar
+                    </button>
+                  </>
+                }
+              />
+            );
+          })
         )}
       </div>
 
@@ -252,53 +410,17 @@ export default function AdminEventsPage() {
         />
       )}
 
-      <style>{`
-        @media (max-width: 768px) {
-          .events-table-container {
-            border: none !important;
-            background: transparent !important;
-            overflow: visible !important;
-          }
-
-          .events-table {
-            display: none !important;
-          }
-
-          .event-row {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 0.75rem;
-            border: 1px solid var(--border-color) !important;
-            border-radius: var(--radius-lg);
-            padding: 1rem;
-            margin-bottom: 0.875rem;
-            background: var(--bg-surface-1);
-          }
-
-          .event-row td {
-            display: flex;
-            flex-direction: column;
-            gap: 0.375rem;
-            padding: 0 !important;
-            border: none !important;
-          }
-
-          .event-row td:before {
-            content: attr(data-label);
-            font-size: var(--font-xs);
-            font-weight: 700;
-            color: var(--text-disabled);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-          }
-
-          tbody {
-            display: flex;
-            flex-direction: column;
-            gap: 0;
-          }
-        }
-      `}</style>
+      {isEventsLoading && (
+        <p
+          style={{
+            marginTop: "0.875rem",
+            color: "var(--text-disabled)",
+            fontSize: "var(--font-sm)",
+          }}
+        >
+          Cargando eventos reales...
+        </p>
+      )}
     </section>
   );
 }

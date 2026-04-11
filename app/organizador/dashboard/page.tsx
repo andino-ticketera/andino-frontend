@@ -9,9 +9,21 @@ import {
   fetchOrganizerMercadoPagoConnectUrl,
   fetchOrganizerMercadoPagoStatus,
 } from "@/lib/mercadopago-api";
+import {
+  formatManagedPurchaseDate,
+  getManagedPaymentMethodLabel,
+  getManagedPurchaseStatusColor,
+  getManagedPurchaseStatusLabel,
+} from "@/lib/managed-purchases-api";
 
 export default function OrganizerDashboardPage() {
-  const { events, purchases, organizer } = useOrganizer();
+  const {
+    events,
+    purchases,
+    organizer,
+    isPurchasesLoading,
+    isEventsLoading,
+  } = useOrganizer();
   const [isConnectingMp, setIsConnectingMp] = useState(false);
   const [connectError, setConnectError] = useState<string | null>(null);
   const [mpQueryStatus] = useState<string | null>(() => {
@@ -29,9 +41,14 @@ export default function OrganizerDashboardPage() {
     refetchOnWindowFocus: false,
   });
 
-  const totalRevenue = useMemo(
-    () => purchases.reduce((acc, p) => acc + p.totalPrice, 0),
+  const paidPurchases = useMemo(
+    () => purchases.filter((purchase) => purchase.status === "PAGADO"),
     [purchases],
+  );
+
+  const totalRevenue = useMemo(
+    () => paidPurchases.reduce((acc, p) => acc + p.totalPrice, 0),
+    [paidPurchases],
   );
 
   const commission = totalRevenue * 0.05;
@@ -42,11 +59,6 @@ export default function OrganizerDashboardPage() {
     { label: "Comision Andino (5%)", value: `$${commission.toFixed(2)}` },
     { label: "Ganancia neta", value: `$${netRevenue.toFixed(2)}` },
   ];
-
-  const eventMap = useMemo(
-    () => new Map(events.map((e) => [e.id, e])),
-    [events],
-  );
 
   const recentPurchases = useMemo(
     () =>
@@ -59,8 +71,6 @@ export default function OrganizerDashboardPage() {
         .slice(0, 5),
     [purchases],
   );
-
-  const visibleEvents = useMemo(() => events, [events]);
 
   const mpBannerMessage =
     mpQueryStatus === "connected"
@@ -109,17 +119,17 @@ export default function OrganizerDashboardPage() {
   const mpDescription =
     mpStatus?.status === "CONECTADA"
       ? mpStatus?.mpEmail
-        ? `Tu cuenta ${mpStatus.mpEmail} ya está autorizada para cobrar con Mercado Pago.`
-        : "Tu cuenta de Mercado Pago ya está autorizada para cobrar con Mercado Pago."
+        ? `Tu cuenta ${mpStatus.mpEmail} ya estÃ¡ autorizada para cobrar con Mercado Pago.`
+        : "Tu cuenta de Mercado Pago ya estÃ¡ autorizada para cobrar con Mercado Pago."
       : mpStatus?.status === "REQUIERE_RECONEXION"
-        ? "Mercado Pago pidió una nueva autorización. Reconectá para seguir cobrando en tus eventos."
+        ? "Mercado Pago pidiÃ³ una nueva autorizaciÃ³n. ReconectÃ¡ para seguir cobrando en tus eventos."
         : mpStatus?.mode === "platform_test"
           ? "En desarrollo podes seguir con la cuenta plataforma o conectar tu propia cuenta sandbox para ver el flujo real del organizador."
-          : "Solo tenés que conectar tu cuenta una vez. Después publicás eventos y cobrás con Mercado Pago de forma simple.";
+          : "Solo tenÃ©s que conectar tu cuenta una vez. DespuÃ©s publicÃ¡s eventos y cobrÃ¡s con Mercado Pago de forma simple.";
 
   const mpActionLabel =
     mpStatus?.status === "CONECTADA"
-      ? "Actualizar conexión"
+      ? "Actualizar conexiÃ³n"
       : mpStatus?.status === "REQUIERE_RECONEXION"
         ? "Reconectar cuenta"
         : mpStatus?.mode === "platform_test"
@@ -137,7 +147,7 @@ export default function OrganizerDashboardPage() {
           marginBottom: "6px",
         }}
       >
-        Panel de {organizer.empresa}
+        Panel de {organizer.empresa || "tu organizacion"}
       </h1>
       <p
         className="org-dashboard-description section-mobile-description"
@@ -217,79 +227,40 @@ export default function OrganizerDashboardPage() {
           >
             {mpDescription}
           </p>
-          {mpStatus?.status !== "CONECTADA" && (
-            <div
-              className="mp-onboarding-grid"
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-                gap: "0.625rem",
-                marginTop: "0.875rem",
-              }}
-            >
-              {[
-                "1. Toca activar cobros.",
-                "2. Autoriza tu cuenta en Mercado Pago.",
-                "3. Publica eventos y cobra con Mercado Pago.",
-              ].map((step) => (
-                <div
-                  key={step}
-                  style={{
-                    border: "1px solid var(--border-color)",
-                    borderRadius: "var(--radius-md)",
-                    padding: "0.625rem 0.75rem",
-                    background: "rgba(255,255,255,0.04)",
-                    fontSize: "var(--font-xs)",
-                    color: "var(--text-secondary)",
-                    lineHeight: 1.5,
-                  }}
-                >
-                  {step}
-                </div>
-              ))}
-            </div>
-          )}
         </div>
 
-        {mpStatus?.status !== "CONECTADA" ? (
-          <button
-            type="button"
-            onClick={handleConnectMercadoPago}
-            disabled={isConnectingMp}
-            style={{
-              border: "none",
-              borderRadius: "var(--radius-full)",
-              background: "var(--color-primary)",
-              color: "#06130f",
-              fontWeight: 800,
-              padding: "0.75rem 1rem",
-              cursor: isConnectingMp ? "not-allowed" : "pointer",
-            }}
-          >
-            {isConnectingMp ? "Conectando..." : mpActionLabel}
-          </button>
-        ) : (
-          <button
-            type="button"
-            onClick={handleConnectMercadoPago}
-            disabled={isConnectingMp}
-            style={{
-              border: "1px solid var(--border-color)",
-              borderRadius: "var(--radius-full)",
-              background: "transparent",
-              color: "var(--text-secondary)",
-              fontWeight: 700,
-              padding: "0.5rem 0.875rem",
-              fontSize: "var(--font-xs)",
-              cursor: isConnectingMp ? "not-allowed" : "pointer",
-            }}
-          >
-            {isConnectingMp ? "Conectando..." : "Actualizar conexion"}
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={handleConnectMercadoPago}
+          disabled={isConnectingMp}
+          style={{
+            border:
+              mpStatus?.status !== "CONECTADA"
+                ? "none"
+                : "1px solid var(--border-color)",
+            borderRadius: "var(--radius-full)",
+            background:
+              mpStatus?.status !== "CONECTADA"
+                ? "var(--color-primary)"
+                : "transparent",
+            color:
+              mpStatus?.status !== "CONECTADA" ? "#06130f" : "var(--text-secondary)",
+            fontWeight: mpStatus?.status !== "CONECTADA" ? 800 : 700,
+            padding:
+              mpStatus?.status !== "CONECTADA"
+                ? "0.75rem 1rem"
+                : "0.5rem 0.875rem",
+            fontSize:
+              mpStatus?.status !== "CONECTADA"
+                ? "var(--font-sm)"
+                : "var(--font-xs)",
+            cursor: isConnectingMp ? "not-allowed" : "pointer",
+          }}
+        >
+          {isConnectingMp ? "Conectando..." : mpActionLabel}
+        </button>
       </article>
 
-      {/* Stats */}
       <div
         className="org-stats-grid"
         style={{
@@ -327,8 +298,7 @@ export default function OrganizerDashboardPage() {
         ))}
       </div>
 
-      {/* Per-event breakdown */}
-      {visibleEvents.length > 0 && (
+      {events.length > 0 && (
         <article
           style={{
             background: "var(--bg-surface-1)",
@@ -349,39 +319,40 @@ export default function OrganizerDashboardPage() {
             </h2>
           </div>
           <div style={{ padding: "0.875rem" }}>
-            {visibleEvents.map((ev) => {
-              const evPurchases = purchases.filter((p) => p.eventId === ev.id);
-              const evRevenue = evPurchases.reduce(
-                (acc, p) => acc + p.totalPrice,
-                0,
+            {events.map((event) => {
+              const eventPurchases = purchases.filter(
+                (purchase) => purchase.eventId === event.id,
               );
+              const eventRevenue = eventPurchases
+                .filter((purchase) => purchase.status === "PAGADO")
+                .reduce((acc, purchase) => acc + purchase.totalPrice, 0);
 
               return (
                 <ExpandableTableRow
-                  key={ev.id}
+                  key={event.id}
                   summary={[
                     {
                       label: "Evento",
-                      value: ev.title,
+                      value: event.title,
                     },
                     {
                       label: "Entradas",
-                      value: `${ev.entradasVendidas}/${ev.totalEntradas}`,
+                      value: `${event.entradasVendidas}/${event.totalEntradas}`,
                     },
                     {
                       label: "Bruto",
-                      value: `$${evRevenue.toFixed(2)}`,
+                      value: `$${eventRevenue.toFixed(2)}`,
                     },
                   ]}
                   details={[
                     {
                       label: "Neto",
-                      value: `$${(evRevenue * 0.95).toFixed(2)}`,
+                      value: `$${(eventRevenue * 0.95).toFixed(2)}`,
                     },
                   ]}
                   actions={
                     <Link
-                      href={`/organizador/dashboard/checkin/${ev.id}`}
+                      href={`/organizador/dashboard/checkin/${event.id}`}
                       style={{
                         color: "var(--color-primary)",
                         fontSize: "var(--font-xs)",
@@ -405,7 +376,6 @@ export default function OrganizerDashboardPage() {
         </article>
       )}
 
-      {/* Recent purchases */}
       <article
         style={{
           background: "var(--bg-surface-1)",
@@ -439,35 +409,48 @@ export default function OrganizerDashboardPage() {
               Aun no hay compras registradas.
             </p>
           ) : (
-            recentPurchases.map((p) => (
+            recentPurchases.map((purchase) => (
               <ExpandableTableRow
-                key={p.id}
+                key={purchase.id}
                 summary={[
                   {
                     label: "Comprador",
-                    value: `${p.firstName} ${p.lastName}`,
+                    value: `${purchase.firstName} ${purchase.lastName}`,
                   },
                   {
                     label: "Evento",
-                    value: eventMap.get(p.eventId)?.title ?? "—",
+                    value: purchase.eventTitle || "—",
                   },
                   {
                     label: "Total",
-                    value: `$${p.totalPrice.toFixed(2)}`,
+                    value: `$${purchase.totalPrice.toFixed(2)}`,
                   },
                 ]}
                 details={[
                   {
                     label: "Cantidad",
-                    value: p.quantity,
+                    value: purchase.quantity,
                   },
                   {
                     label: "Pago",
-                    value: p.paymentMethod,
+                    value: getManagedPaymentMethodLabel(purchase.paymentMethod),
+                  },
+                  {
+                    label: "Estado",
+                    value: (
+                      <span
+                        style={{
+                          color: getManagedPurchaseStatusColor(purchase.status),
+                          fontWeight: 700,
+                        }}
+                      >
+                        {getManagedPurchaseStatusLabel(purchase.status)}
+                      </span>
+                    ),
                   },
                   {
                     label: "Fecha",
-                    value: p.purchaseDate,
+                    value: formatManagedPurchaseDate(purchase.purchaseDate),
                   },
                 ]}
               />
@@ -475,6 +458,18 @@ export default function OrganizerDashboardPage() {
           )}
         </div>
       </article>
+
+      {(isPurchasesLoading || isEventsLoading) && (
+        <p
+          style={{
+            marginTop: "0.875rem",
+            color: "var(--text-disabled)",
+            fontSize: "var(--font-sm)",
+          }}
+        >
+          Sincronizando eventos y compras reales...
+        </p>
+      )}
 
       <style>{`
         @media (max-width: 768px) {
@@ -485,10 +480,6 @@ export default function OrganizerDashboardPage() {
         @media (max-width: 900px) {
           .org-stats-grid {
             grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-          }
-
-          .mp-onboarding-grid {
-            grid-template-columns: 1fr !important;
           }
         }
         @media (max-width: 768px) {

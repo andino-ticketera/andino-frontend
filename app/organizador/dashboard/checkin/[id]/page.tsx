@@ -6,16 +6,24 @@ import { useParams } from "next/navigation";
 import { useOrganizer } from "@/context/OrganizerContext";
 import EvaIcon from "@/components/EvaIcon";
 import ExpandableTableRow from "@/components/ExpandableTableRow";
+import {
+  getManagedPaymentMethodLabel,
+  getPurchaseCheckInLabel,
+} from "@/lib/managed-purchases-api";
 
 export default function OrganizerCheckinPage() {
   const params = useParams<{ id: string }>();
-  const { events, purchases, toggleCheckedIn } = useOrganizer();
+  const { events, purchases, toggleCheckedIn, showToast, isEventsLoading } =
+    useOrganizer();
   const [query, setQuery] = useState("");
+  const [pendingPurchaseId, setPendingPurchaseId] = useState<string | null>(
+    null,
+  );
 
-  const event = events.find((e) => e.id === params.id);
+  const event = events.find((item) => item.id === params.id);
 
   const eventPurchases = useMemo(
-    () => purchases.filter((p) => p.eventId === params.id),
+    () => purchases.filter((purchase) => purchase.eventId === params.id),
     [purchases, params.id],
   );
 
@@ -23,27 +31,60 @@ export default function OrganizerCheckinPage() {
     const normalized = query.trim().toLowerCase();
     if (!normalized) return eventPurchases;
     return eventPurchases.filter(
-      (p) =>
-        `${p.firstName} ${p.lastName}`.toLowerCase().includes(normalized) ||
-        p.dniNumber.includes(normalized),
+      (purchase) =>
+        `${purchase.firstName} ${purchase.lastName}`
+          .toLowerCase()
+          .includes(normalized) ||
+        purchase.dniNumber.includes(normalized),
     );
   }, [eventPurchases, query]);
 
   const totalExpected = useMemo(
-    () => eventPurchases.reduce((acc, p) => acc + p.quantity, 0),
+    () => eventPurchases.reduce((acc, purchase) => acc + purchase.quantity, 0),
     [eventPurchases],
   );
 
   const checkedInCount = useMemo(
     () =>
-      eventPurchases
-        .filter((p) => p.checkedIn)
-        .reduce((acc, p) => acc + p.quantity, 0),
+      eventPurchases.reduce(
+        (acc, purchase) => acc + Math.min(purchase.checkedInCount, purchase.quantity),
+        0,
+      ),
     [eventPurchases],
   );
 
   const progressPct =
     totalExpected > 0 ? (checkedInCount / totalExpected) * 100 : 0;
+
+  const handleToggleCheckIn = async (purchaseId: string, checkedIn: boolean) => {
+    if (pendingPurchaseId) return;
+
+    setPendingPurchaseId(purchaseId);
+    try {
+      await toggleCheckedIn(purchaseId, checkedIn);
+      showToast(
+        checkedIn ? "Check-in registrado" : "Check-in desmarcado",
+        "success",
+      );
+    } catch (error) {
+      showToast(
+        error instanceof Error
+          ? error.message
+          : "No se pudo actualizar el check-in",
+        "danger",
+      );
+    } finally {
+      setPendingPurchaseId(null);
+    }
+  };
+
+  if (isEventsLoading) {
+    return (
+      <section>
+        <p style={{ color: "var(--text-disabled)" }}>Cargando evento...</p>
+      </section>
+    );
+  }
 
   if (!event) {
     return (
@@ -103,10 +144,9 @@ export default function OrganizerCheckinPage() {
           fontSize: "var(--font-sm)",
         }}
       >
-        {event.date} — {event.time} — {event.venue}
+        {event.date} - {event.time} - {event.venue}
       </p>
 
-      {/* Stats */}
       <div
         className="org-checkin-stats"
         style={{
@@ -116,78 +156,42 @@ export default function OrganizerCheckinPage() {
           marginBottom: "14px",
         }}
       >
-        <article
-          style={{
-            background: "var(--bg-surface-1)",
-            border: "1px solid var(--border-color)",
-            borderRadius: "var(--radius-lg)",
-            padding: "14px",
-          }}
-        >
-          <p
+        {[
+          { label: "Esperados", value: totalExpected },
+          { label: "Presentes", value: checkedInCount, accent: true },
+          { label: "Por llegar", value: totalExpected - checkedInCount },
+        ].map((item) => (
+          <article
+            key={item.label}
             style={{
-              fontSize: "var(--font-xs)",
-              color: "var(--text-disabled)",
-              textTransform: "uppercase",
+              background: "var(--bg-surface-1)",
+              border: "1px solid var(--border-color)",
+              borderRadius: "var(--radius-lg)",
+              padding: "14px",
             }}
           >
-            Esperados
-          </p>
-          <p style={{ fontSize: "var(--font-xl)", fontWeight: 900 }}>
-            {totalExpected}
-          </p>
-        </article>
-        <article
-          style={{
-            background: "var(--bg-surface-1)",
-            border: "1px solid var(--border-color)",
-            borderRadius: "var(--radius-lg)",
-            padding: "14px",
-          }}
-        >
-          <p
-            style={{
-              fontSize: "var(--font-xs)",
-              color: "var(--text-disabled)",
-              textTransform: "uppercase",
-            }}
-          >
-            Presentes
-          </p>
-          <p
-            style={{
-              fontSize: "var(--font-xl)",
-              fontWeight: 900,
-              color: "var(--color-primary)",
-            }}
-          >
-            {checkedInCount}
-          </p>
-        </article>
-        <article
-          style={{
-            background: "var(--bg-surface-1)",
-            border: "1px solid var(--border-color)",
-            borderRadius: "var(--radius-lg)",
-            padding: "14px",
-          }}
-        >
-          <p
-            style={{
-              fontSize: "var(--font-xs)",
-              color: "var(--text-disabled)",
-              textTransform: "uppercase",
-            }}
-          >
-            Por llegar
-          </p>
-          <p style={{ fontSize: "var(--font-xl)", fontWeight: 900 }}>
-            {totalExpected - checkedInCount}
-          </p>
-        </article>
+            <p
+              style={{
+                fontSize: "var(--font-xs)",
+                color: "var(--text-disabled)",
+                textTransform: "uppercase",
+              }}
+            >
+              {item.label}
+            </p>
+            <p
+              style={{
+                fontSize: "var(--font-xl)",
+                fontWeight: 900,
+                color: item.accent ? "var(--color-primary)" : "inherit",
+              }}
+            >
+              {item.value}
+            </p>
+          </article>
+        ))}
       </div>
 
-      {/* Progress bar */}
       <div
         style={{
           background: "var(--bg-surface-2)",
@@ -208,7 +212,6 @@ export default function OrganizerCheckinPage() {
         />
       </div>
 
-      {/* Search */}
       <input
         value={query}
         onChange={(e) => setQuery(e.target.value)}
@@ -226,7 +229,6 @@ export default function OrganizerCheckinPage() {
         }}
       />
 
-      {/* Table */}
       <div
         style={{
           display: "flex",
@@ -247,76 +249,98 @@ export default function OrganizerCheckinPage() {
             No se encontraron compradores.
           </div>
         ) : (
-          filteredPurchases.map((p) => (
-            <ExpandableTableRow
-              key={p.id}
-              summary={[
-                {
-                  label: "Comprador",
-                  value: `${p.firstName} ${p.lastName}`,
-                },
-                {
-                  label: "Estado",
-                  value: (
-                    <span
-                      style={{
-                        color: p.checkedIn
-                          ? "var(--color-primary)"
-                          : "var(--text-disabled)",
-                        fontWeight: 700,
-                        fontSize: "var(--font-xs)",
-                      }}
-                    >
-                      {p.checkedIn ? "✓ Presente" : "Ausente"}
-                    </span>
-                  ),
-                },
-                {
-                  label: "Entradas",
-                  value: p.quantity,
-                },
-              ]}
-              details={[
-                {
-                  label: "DNI",
-                  value: `${p.dniType} ${p.dniNumber}`,
-                },
-                {
-                  label: "Método de pago",
-                  value: p.paymentMethod,
-                },
-              ]}
-              actions={
-                <button
-                  type="button"
-                  onClick={() => toggleCheckedIn(p.id)}
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: "4px",
-                    border: p.checkedIn
-                      ? "1px solid rgba(255, 80, 80, 0.25)"
-                      : "1px solid rgba(92, 255, 157, 0.35)",
-                    background: p.checkedIn
-                      ? "rgba(255, 80, 80, 0.08)"
-                      : "rgba(92, 255, 157, 0.08)",
-                    color: p.checkedIn ? "#ff6b6b" : "var(--color-primary)",
-                    borderRadius: "var(--radius-sm)",
-                    padding: "6px 10px",
-                    fontSize: "var(--font-xs)",
-                    fontWeight: 700,
-                    cursor: "pointer",
-                  }}
-                >
-                  <EvaIcon
-                    name={p.checkedIn ? "close" : "checkmark"}
-                    size={14}
-                  />
-                  {p.checkedIn ? "Desmarcar" : "Marcar llegada"}
-                </button>
-              }
-            />
-          ))
+          filteredPurchases.map((purchase) => {
+            const isCheckedIn = purchase.checkedInCount >= purchase.quantity;
+            const nextCheckedInState = !isCheckedIn;
+            const isPending = pendingPurchaseId === purchase.id;
+
+            return (
+              <ExpandableTableRow
+                key={purchase.id}
+                summary={[
+                  {
+                    label: "Comprador",
+                    value: `${purchase.firstName} ${purchase.lastName}`,
+                  },
+                  {
+                    label: "Estado",
+                    value: (
+                      <span
+                        style={{
+                          color: isCheckedIn
+                            ? "var(--color-primary)"
+                            : "var(--text-disabled)",
+                          fontWeight: 700,
+                          fontSize: "var(--font-xs)",
+                        }}
+                      >
+                        {getPurchaseCheckInLabel(purchase)}
+                      </span>
+                    ),
+                  },
+                  {
+                    label: "Entradas",
+                    value: purchase.quantity,
+                  },
+                ]}
+                details={[
+                  {
+                    label: "DNI",
+                    value: `${purchase.dniType} ${purchase.dniNumber}`,
+                  },
+                  {
+                    label: "Metodo de pago",
+                    value: getManagedPaymentMethodLabel(purchase.paymentMethod),
+                  },
+                  {
+                    label: "Usadas",
+                    value: `${purchase.checkedInCount}/${purchase.quantity}`,
+                  },
+                ]}
+                actions={
+                  <button
+                    type="button"
+                    onClick={() =>
+                      void handleToggleCheckIn(purchase.id, nextCheckedInState)
+                    }
+                    disabled={isPending || purchase.status !== "PAGADO"}
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "4px",
+                      border: isCheckedIn
+                        ? "1px solid rgba(255, 80, 80, 0.25)"
+                        : "1px solid rgba(92, 255, 157, 0.35)",
+                      background: isCheckedIn
+                        ? "rgba(255, 80, 80, 0.08)"
+                        : "rgba(92, 255, 157, 0.08)",
+                      color: isCheckedIn ? "#ff6b6b" : "var(--color-primary)",
+                      borderRadius: "var(--radius-sm)",
+                      padding: "6px 10px",
+                      fontSize: "var(--font-xs)",
+                      fontWeight: 700,
+                      cursor:
+                        isPending || purchase.status !== "PAGADO"
+                          ? "not-allowed"
+                          : "pointer",
+                      opacity:
+                        isPending || purchase.status !== "PAGADO" ? 0.6 : 1,
+                    }}
+                  >
+                    <EvaIcon
+                      name={isCheckedIn ? "close" : "checkmark"}
+                      size={14}
+                    />
+                    {isPending
+                      ? "Guardando..."
+                      : isCheckedIn
+                        ? "Desmarcar"
+                        : "Marcar llegada"}
+                  </button>
+                }
+              />
+            );
+          })
         )}
       </div>
 

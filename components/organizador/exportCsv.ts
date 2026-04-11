@@ -1,4 +1,9 @@
 import type { Purchase } from "@/data/purchases";
+import {
+  formatManagedPurchaseDate,
+  getManagedPaymentMethodLabel,
+  getPurchaseCheckInLabel,
+} from "@/lib/managed-purchases-api";
 
 export function downloadBuyersCsv(
   purchases: Purchase[],
@@ -14,6 +19,7 @@ export function downloadBuyersCsv(
     "Precio Unitario",
     "Total",
     "Metodo Pago",
+    "Estado",
     "Fecha",
     "Check-in",
   ];
@@ -28,9 +34,10 @@ export function downloadBuyersCsv(
       p.quantity,
       p.unitPrice.toFixed(2),
       p.totalPrice.toFixed(2),
-      p.paymentMethod,
-      p.purchaseDate,
-      p.checkedIn ? "Si" : "No",
+      getManagedPaymentMethodLabel(p.paymentMethod),
+      p.status,
+      formatManagedPurchaseDate(p.purchaseDate),
+      getPurchaseCheckInLabel(p),
     ].join(","),
   );
 

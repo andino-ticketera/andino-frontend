@@ -17,6 +17,7 @@ interface BackendEvento {
   flyer_url: string | null;
   medios_pago: Array<"TRANSFERENCIA_CBU" | "MERCADO_PAGO">;
   estado: "ACTIVO" | "AGOTADO" | "CANCELADO";
+  visible_en_app: boolean;
   creador_id: string;
   creador_rol: "ORGANIZADOR" | "ADMIN";
 }
@@ -33,6 +34,10 @@ interface ApiErrorShape {
 
 function getEventsEndpoint(): string {
   return `/api/proxy/eventos?limit=100`;
+}
+
+function getAdminEventsEndpoint(): string {
+  return "/api/proxy/eventos/admin/todos";
 }
 
 function getEventsBaseEndpoint(): string {
@@ -175,6 +180,7 @@ function mapEventoToFrontend(evento: BackendEvento): Event {
     creatorId: evento.creador_id,
     creatorRole: evento.creador_rol,
     status: evento.estado,
+    visibleInApp: evento.visible_en_app !== false,
   };
 }
 
@@ -387,6 +393,29 @@ export async function fetchPublicEvents(): Promise<Event[]> {
   return data.map((evento) => mapEventoToFrontend(evento));
 }
 
+export async function fetchAdminEvents(): Promise<Event[]> {
+  const response = await fetch(getAdminEventsEndpoint(), {
+    method: "GET",
+    headers: {
+      Accept: "application/json",
+    },
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      await parseErrorMessage(
+        response,
+        `No se pudo obtener eventos del admin (${response.status})`,
+      ),
+    );
+  }
+
+  const payload = (await response.json()) as EventosResponse;
+  const data = Array.isArray(payload.data) ? payload.data : [];
+  return data.map((evento) => mapEventoToFrontend(evento));
+}
+
 export async function assignEventToCategory(
   eventId: string,
   category: string,
@@ -473,6 +502,29 @@ export async function deleteEventFromAdmin(eventId: string): Promise<void> {
       ),
     );
   }
+}
+
+export async function updateEventVisibilityFromAdmin(
+  eventId: string,
+  visibleInApp: boolean,
+): Promise<Event> {
+  const response = await fetch(`${getEventsBaseEndpoint()}/${eventId}`, {
+    method: "PUT",
+    headers: buildAdminJsonHeaders(),
+    body: JSON.stringify({ visible_en_app: visibleInApp }),
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      await parseErrorMessage(
+        response,
+        `No se pudo actualizar la visibilidad (${response.status})`,
+      ),
+    );
+  }
+
+  const updated = (await response.json()) as BackendEvento;
+  return mapEventoToFrontend(updated);
 }
 
 export interface CreateEventOptions {

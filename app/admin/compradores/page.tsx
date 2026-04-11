@@ -4,17 +4,18 @@ import { useMemo, useState } from "react";
 import { useAdmin } from "@/context/AdminContext";
 import EvaIcon from "@/components/EvaIcon";
 import ExpandableTableRow from "@/components/ExpandableTableRow";
+import {
+  formatManagedPurchaseDate,
+  getManagedPaymentMethodLabel,
+  getManagedPurchaseStatusColor,
+  getManagedPurchaseStatusLabel,
+} from "@/lib/managed-purchases-api";
 
 export default function AdminCompradoresPage() {
-  const { purchases, events } = useAdmin();
+  const { purchases, events, isPurchasesLoading } = useAdmin();
   const [eventFilter, setEventFilter] = useState("");
   const [selectedPurchaseId, setSelectedPurchaseId] = useState<string | null>(
     null,
-  );
-
-  const eventMap = useMemo(
-    () => new Map(events.map((event) => [event.id, event.title])),
-    [events],
   );
 
   const filteredPurchases = useMemo(() => {
@@ -22,20 +23,24 @@ export default function AdminCompradoresPage() {
     return purchases.filter((purchase) => purchase.eventId === eventFilter);
   }, [purchases, eventFilter]);
 
-  const revenue = useMemo(
-    () =>
-      filteredPurchases.reduce((acc, purchase) => acc + purchase.totalPrice, 0),
+  const paidPurchases = useMemo(
+    () => filteredPurchases.filter((purchase) => purchase.status === "PAGADO"),
     [filteredPurchases],
   );
 
+  const revenue = useMemo(
+    () => paidPurchases.reduce((acc, purchase) => acc + purchase.totalPrice, 0),
+    [paidPurchases],
+  );
+
   const avgTicket = useMemo(() => {
-    const totalQty = filteredPurchases.reduce(
+    const totalQty = paidPurchases.reduce(
       (acc, purchase) => acc + purchase.quantity,
       0,
     );
     if (totalQty === 0) return 0;
     return revenue / totalQty;
-  }, [filteredPurchases, revenue]);
+  }, [paidPurchases, revenue]);
 
   const selectedPurchase = useMemo(
     () =>
@@ -59,7 +64,7 @@ export default function AdminCompradoresPage() {
         className="section-mobile-description"
         style={{ color: "var(--text-disabled)", marginBottom: "1.125rem" }}
       >
-        Analisis de ventas y detalle de compras.
+        Analisis de ventas y detalle de compras reales.
       </p>
 
       <div
@@ -107,7 +112,7 @@ export default function AdminCompradoresPage() {
               textTransform: "uppercase",
             }}
           >
-            Ingresos
+            Ingresos cobrados
           </p>
           <p style={{ fontSize: "var(--font-xl)", fontWeight: 900 }}>
             ${revenue.toFixed(2)}
@@ -128,7 +133,7 @@ export default function AdminCompradoresPage() {
               textTransform: "uppercase",
             }}
           >
-            Precio promedio ticket
+            Ticket promedio
           </p>
           <p style={{ fontSize: "var(--font-xl)", fontWeight: 900 }}>
             ${avgTicket.toFixed(2)}
@@ -188,7 +193,7 @@ export default function AdminCompradoresPage() {
                 },
                 {
                   label: "Evento",
-                  value: eventMap.get(purchase.eventId) ?? "Evento eliminado",
+                  value: purchase.eventTitle || "Evento eliminado",
                 },
                 {
                   label: "Total",
@@ -213,12 +218,25 @@ export default function AdminCompradoresPage() {
                   value: `$${purchase.unitPrice.toFixed(2)}`,
                 },
                 {
-                  label: "Método de pago",
-                  value: purchase.paymentMethod,
+                  label: "Metodo de pago",
+                  value: getManagedPaymentMethodLabel(purchase.paymentMethod),
+                },
+                {
+                  label: "Estado",
+                  value: (
+                    <span
+                      style={{
+                        color: getManagedPurchaseStatusColor(purchase.status),
+                        fontWeight: 700,
+                      }}
+                    >
+                      {getManagedPurchaseStatusLabel(purchase.status)}
+                    </span>
+                  ),
                 },
                 {
                   label: "Fecha",
-                  value: purchase.purchaseDate,
+                  value: formatManagedPurchaseDate(purchase.purchaseDate),
                 },
               ]}
               actions={
@@ -310,66 +328,41 @@ export default function AdminCompradoresPage() {
               }}
               className="admin-contact-grid"
             >
-              <article
-                style={{
-                  border: "1px solid var(--border-color)",
-                  borderRadius: "var(--radius-md)",
-                  padding: "0.625rem",
-                  background: "var(--bg-surface-2)",
-                }}
-              >
-                <p
+              {[
+                {
+                  label: "Nombre",
+                  value: `${selectedPurchase.firstName} ${selectedPurchase.lastName}`,
+                },
+                { label: "Email", value: selectedPurchase.email },
+                {
+                  label: "Documento",
+                  value: `${selectedPurchase.dniType} ${selectedPurchase.dniNumber}`,
+                },
+                {
+                  label: "Estado",
+                  value: getManagedPurchaseStatusLabel(selectedPurchase.status),
+                },
+              ].map((item) => (
+                <article
+                  key={item.label}
                   style={{
-                    color: "var(--text-disabled)",
-                    fontSize: "var(--font-xs)",
+                    border: "1px solid var(--border-color)",
+                    borderRadius: "var(--radius-md)",
+                    padding: "0.625rem",
+                    background: "var(--bg-surface-2)",
                   }}
                 >
-                  Nombre
-                </p>
-                <p style={{ fontWeight: 700 }}>
-                  {selectedPurchase.firstName} {selectedPurchase.lastName}
-                </p>
-              </article>
-
-              <article
-                style={{
-                  border: "1px solid var(--border-color)",
-                  borderRadius: "var(--radius-md)",
-                  padding: "0.625rem",
-                  background: "var(--bg-surface-2)",
-                }}
-              >
-                <p
-                  style={{
-                    color: "var(--text-disabled)",
-                    fontSize: "var(--font-xs)",
-                  }}
-                >
-                  Email
-                </p>
-                <p style={{ fontWeight: 700 }}>{selectedPurchase.email}</p>
-              </article>
-
-              <article
-                style={{
-                  border: "1px solid var(--border-color)",
-                  borderRadius: "var(--radius-md)",
-                  padding: "0.625rem",
-                  background: "var(--bg-surface-2)",
-                }}
-              >
-                <p
-                  style={{
-                    color: "var(--text-disabled)",
-                    fontSize: "var(--font-xs)",
-                  }}
-                >
-                  Documento
-                </p>
-                <p style={{ fontWeight: 700 }}>
-                  {selectedPurchase.dniType} {selectedPurchase.dniNumber}
-                </p>
-              </article>
+                  <p
+                    style={{
+                      color: "var(--text-disabled)",
+                      fontSize: "var(--font-xs)",
+                    }}
+                  >
+                    {item.label}
+                  </p>
+                  <p style={{ fontWeight: 700 }}>{item.value}</p>
+                </article>
+              ))}
             </div>
 
             <div
@@ -397,6 +390,18 @@ export default function AdminCompradoresPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {isPurchasesLoading && (
+        <p
+          style={{
+            marginTop: "0.875rem",
+            color: "var(--text-disabled)",
+            fontSize: "var(--font-sm)",
+          }}
+        >
+          Cargando compras reales...
+        </p>
       )}
 
       <style>{`

@@ -27,16 +27,6 @@ interface OrganizerEventFormProps {
   submitLabel: string;
 }
 
-const fallbackCategories = [
-  "Música en Vivo",
-  "Fiestas",
-  "Teatro",
-  "Danza",
-  "Recreación",
-  "Arte",
-  "Festival",
-];
-
 const fieldBox: React.CSSProperties = {
   display: "flex",
   flexDirection: "column",
@@ -146,10 +136,7 @@ export default function OrganizerEventForm({
     retry: 1,
   });
 
-  const categories =
-    backendCategories.length > 0
-      ? backendCategories.map((category) => category.nombre)
-      : fallbackCategories;
+  const categories = backendCategories.map((category) => category.nombre);
 
   const { data: mpStatus, isLoading: isMpStatusLoading } = useQuery({
     queryKey: ["organizer-mercadopago-status"],
@@ -169,7 +156,7 @@ export default function OrganizerEventForm({
     provincia: "",
     localidad: "",
     price: 0,
-    category: categories[0] ?? "Música en Vivo",
+    category: categories[0] ?? "",
     image: "",
     flyer: "",
     featured: false,
@@ -240,11 +227,18 @@ export default function OrganizerEventForm({
     [provincia],
   );
   const timePeriod = getEventTimePeriod(time);
+  const selectedCategory =
+    categories.length > 0 &&
+    !categories.some((item) => item.toLowerCase() === category.toLowerCase())
+      ? categories[0]
+      : category;
   const isMercadoPagoReady =
     mpStatus?.status === "CONECTADA" || mpStatus?.mode === "platform_test";
 
   const canSubmit =
+    categories.length > 0 &&
     title.trim() &&
+    selectedCategory.trim() &&
     longDescription.trim() &&
     date.trim() &&
     isCompleteEventTime(time) &&
@@ -258,7 +252,7 @@ export default function OrganizerEventForm({
   const firstMissingField = useMemo(() => {
     if (!flyer.trim()) return "Flyer / Poster del evento";
     if (!title.trim()) return "Titulo";
-    if (!category.trim()) return "Categoria";
+    if (categories.length === 0 || !selectedCategory.trim()) return "Categoria";
     if (!longDescription.trim()) return "Descripcion del evento";
     if (!date.trim()) return "Fecha";
     if (!isCompleteEventTime(time)) return "Hora";
@@ -275,7 +269,7 @@ export default function OrganizerEventForm({
     }
     return "";
   }, [
-    category,
+    categories.length,
     cbuCvu,
     date,
     flyer,
@@ -285,6 +279,7 @@ export default function OrganizerEventForm({
     longDescription,
     paymentMethod,
     provincia,
+    selectedCategory,
     time,
     title,
     venue,
@@ -314,7 +309,7 @@ export default function OrganizerEventForm({
       title: title.trim(),
       description: autoDescription,
       longDescription: longDescription.trim(),
-      category,
+      category: selectedCategory,
       tags: preservedTags,
       date: eventDateInputToLabel(date),
       time: time.trim(),
@@ -471,16 +466,31 @@ export default function OrganizerEventForm({
             {renderFieldLabel("Categoria", { required: true })}
           </label>
           <select
-            value={category}
+            value={selectedCategory}
             onChange={(e) => setCategory(e.target.value)}
             style={inputStyle}
+            disabled={categories.length === 0}
           >
+            {categories.length === 0 && (
+              <option value="">No hay categorias disponibles</option>
+            )}
             {categories.map((item) => (
               <option key={item} value={item}>
                 {item}
               </option>
             ))}
           </select>
+          {categories.length === 0 && (
+            <span
+              style={{
+                fontSize: "var(--font-xs)",
+                color: "var(--text-disabled)",
+              }}
+            >
+              Las categorias se administran desde el panel de admin. Crea una
+              categoria para publicar eventos.
+            </span>
+          )}
         </div>
 
         <div style={{ ...fieldBox, gridColumn: "1 / -1" }}>

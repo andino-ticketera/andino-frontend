@@ -27,7 +27,7 @@ export default function AdminCarruselPage() {
     .filter((event): event is NonNullable<typeof event> => Boolean(event));
 
   const availableEvents = events.filter(
-    (event) => !localIds.includes(event.id),
+    (event) => event.visibleInApp !== false && !localIds.includes(event.id),
   );
 
   const hasChanges = useMemo(

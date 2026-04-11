@@ -210,7 +210,7 @@ export default function AdminEventForm({
     }
   };
   const { categories } = useAdmin();
-  const fallbackCategory = categories[0] ?? "General";
+  const fallbackCategory = categories[0] ?? "";
   const defaults = initialEvent ?? defaultEventValues(fallbackCategory);
   const defaultProvincia = matchProvinciaOption(defaults.provincia);
   const defaultLocalidad = matchLocalidadOption(
@@ -238,7 +238,7 @@ export default function AdminEventForm({
   const [totalEntradas, setTotalEntradas] = useState(
     String(defaults.totalEntradas),
   );
-  const [mercadoPagoId, setMercadoPagoId] = useState(defaults.mercadoPagoId);
+  const mercadoPagoId = defaults.mercadoPagoId ?? "";
   const [paymentMethod, setPaymentMethod] = useState<
     "transferencia" | "mercadopago"
   >(

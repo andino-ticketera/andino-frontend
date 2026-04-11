@@ -6,37 +6,48 @@ import { useOrganizer } from "@/context/OrganizerContext";
 import EvaIcon from "@/components/EvaIcon";
 import { downloadBuyersCsv } from "@/components/organizador/exportCsv";
 import ExpandableTableRow from "@/components/ExpandableTableRow";
+import {
+  formatManagedPurchaseDate,
+  getManagedPaymentMethodLabel,
+  getManagedPurchaseStatusColor,
+  getManagedPurchaseStatusLabel,
+} from "@/lib/managed-purchases-api";
 
 export default function OrganizerCompradoresPage() {
-  const { purchases, events } = useOrganizer();
+  const { purchases, events, isPurchasesLoading } = useOrganizer();
   const [eventFilter, setEventFilter] = useState("");
   const [selectedPurchaseId, setSelectedPurchaseId] = useState<string | null>(
     null,
   );
 
-  const eventMap = useMemo(
-    () => new Map(events.map((e) => [e.id, e])),
-    [events],
-  );
+  const eventMap = useMemo(() => new Map(events.map((e) => [e.id, e])), [events]);
 
   const filteredPurchases = useMemo(() => {
     if (!eventFilter) return purchases;
-    return purchases.filter((p) => p.eventId === eventFilter);
+    return purchases.filter((purchase) => purchase.eventId === eventFilter);
   }, [purchases, eventFilter]);
 
-  const revenue = useMemo(
-    () => filteredPurchases.reduce((acc, p) => acc + p.totalPrice, 0),
+  const paidPurchases = useMemo(
+    () => filteredPurchases.filter((purchase) => purchase.status === "PAGADO"),
     [filteredPurchases],
   );
 
+  const revenue = useMemo(
+    () => paidPurchases.reduce((acc, purchase) => acc + purchase.totalPrice, 0),
+    [paidPurchases],
+  );
+
   const avgTicket = useMemo(() => {
-    const totalQty = filteredPurchases.reduce((acc, p) => acc + p.quantity, 0);
+    const totalQty = paidPurchases.reduce(
+      (acc, purchase) => acc + purchase.quantity,
+      0,
+    );
     if (totalQty === 0) return 0;
     return revenue / totalQty;
-  }, [filteredPurchases, revenue]);
+  }, [paidPurchases, revenue]);
 
   const selectedPurchase = useMemo(
-    () => purchases.find((p) => p.id === selectedPurchaseId) ?? null,
+    () => purchases.find((purchase) => purchase.id === selectedPurchaseId) ?? null,
     [purchases, selectedPurchaseId],
   );
 
@@ -63,10 +74,9 @@ export default function OrganizerCompradoresPage() {
         className="section-mobile-description"
         style={{ color: "var(--text-disabled)", marginBottom: "18px" }}
       >
-        Detalle de ventas y listado de compradores de tus eventos.
+        Detalle de ventas y listado real de compradores de tus eventos.
       </p>
 
-      {/* Stats */}
       <div
         className="org-buyers-stats"
         style={{
@@ -76,72 +86,36 @@ export default function OrganizerCompradoresPage() {
           marginBottom: "14px",
         }}
       >
-        <article
-          style={{
-            background: "var(--bg-surface-1)",
-            border: "1px solid var(--border-color)",
-            borderRadius: "var(--radius-lg)",
-            padding: "14px",
-          }}
-        >
-          <p
+        {[
+          { label: "Total compras", value: filteredPurchases.length },
+          { label: "Recaudacion", value: `$${revenue.toFixed(2)}` },
+          { label: "Ticket promedio", value: `$${avgTicket.toFixed(2)}` },
+        ].map((item) => (
+          <article
+            key={item.label}
             style={{
-              fontSize: "var(--font-xs)",
-              color: "var(--text-disabled)",
-              textTransform: "uppercase",
+              background: "var(--bg-surface-1)",
+              border: "1px solid var(--border-color)",
+              borderRadius: "var(--radius-lg)",
+              padding: "14px",
             }}
           >
-            Total compras
-          </p>
-          <p style={{ fontSize: "var(--font-xl)", fontWeight: 900 }}>
-            {filteredPurchases.length}
-          </p>
-        </article>
-        <article
-          style={{
-            background: "var(--bg-surface-1)",
-            border: "1px solid var(--border-color)",
-            borderRadius: "var(--radius-lg)",
-            padding: "14px",
-          }}
-        >
-          <p
-            style={{
-              fontSize: "var(--font-xs)",
-              color: "var(--text-disabled)",
-              textTransform: "uppercase",
-            }}
-          >
-            Recaudacion
-          </p>
-          <p style={{ fontSize: "var(--font-xl)", fontWeight: 900 }}>
-            ${revenue.toFixed(2)}
-          </p>
-        </article>
-        <article
-          style={{
-            background: "var(--bg-surface-1)",
-            border: "1px solid var(--border-color)",
-            borderRadius: "var(--radius-lg)",
-            padding: "14px",
-          }}
-        >
-          <p
-            style={{
-              fontSize: "var(--font-xs)",
-              color: "var(--text-disabled)",
-              textTransform: "uppercase",
-            }}
-          >
-            Precio promedio ticket
-          </p>
-          <p style={{ fontSize: "var(--font-xl)", fontWeight: 900 }}>
-            ${avgTicket.toFixed(2)}
-          </p>
-        </article>
+            <p
+              style={{
+                fontSize: "var(--font-xs)",
+                color: "var(--text-disabled)",
+                textTransform: "uppercase",
+              }}
+            >
+              {item.label}
+            </p>
+            <p style={{ fontSize: "var(--font-xl)", fontWeight: 900 }}>
+              {item.value}
+            </p>
+          </article>
+        ))}
       </div>
 
-      {/* Filters & actions */}
       <div
         style={{
           display: "flex",
@@ -218,7 +192,6 @@ export default function OrganizerCompradoresPage() {
         )}
       </div>
 
-      {/* Table */}
       <div
         style={{
           display: "flex",
@@ -249,7 +222,7 @@ export default function OrganizerCompradoresPage() {
                 },
                 {
                   label: "Evento",
-                  value: eventMap.get(purchase.eventId)?.title ?? "—",
+                  value: purchase.eventTitle || eventMap.get(purchase.eventId)?.title || "—",
                 },
                 {
                   label: "Total",
@@ -270,12 +243,25 @@ export default function OrganizerCompradoresPage() {
                   value: purchase.quantity,
                 },
                 {
-                  label: "Método de pago",
-                  value: purchase.paymentMethod,
+                  label: "Metodo de pago",
+                  value: getManagedPaymentMethodLabel(purchase.paymentMethod),
+                },
+                {
+                  label: "Estado",
+                  value: (
+                    <span
+                      style={{
+                        color: getManagedPurchaseStatusColor(purchase.status),
+                        fontWeight: 700,
+                      }}
+                    >
+                      {getManagedPurchaseStatusLabel(purchase.status)}
+                    </span>
+                  ),
                 },
                 {
                   label: "Fecha",
-                  value: purchase.purchaseDate,
+                  value: formatManagedPurchaseDate(purchase.purchaseDate),
                 },
               ]}
               actions={
@@ -304,7 +290,6 @@ export default function OrganizerCompradoresPage() {
         )}
       </div>
 
-      {/* Contact modal */}
       {selectedPurchase && (
         <div
           onClick={() => setSelectedPurchaseId(null)}
@@ -368,66 +353,41 @@ export default function OrganizerCompradoresPage() {
               }}
               className="org-contact-grid"
             >
-              <article
-                style={{
-                  border: "1px solid var(--border-color)",
-                  borderRadius: "var(--radius-md)",
-                  padding: "10px",
-                  background: "var(--bg-surface-2)",
-                }}
-              >
-                <p
+              {[
+                {
+                  label: "Nombre",
+                  value: `${selectedPurchase.firstName} ${selectedPurchase.lastName}`,
+                },
+                { label: "Email", value: selectedPurchase.email },
+                {
+                  label: "Documento",
+                  value: `${selectedPurchase.dniType} ${selectedPurchase.dniNumber}`,
+                },
+                {
+                  label: "Estado",
+                  value: getManagedPurchaseStatusLabel(selectedPurchase.status),
+                },
+              ].map((item) => (
+                <article
+                  key={item.label}
                   style={{
-                    color: "var(--text-disabled)",
-                    fontSize: "var(--font-xs)",
+                    border: "1px solid var(--border-color)",
+                    borderRadius: "var(--radius-md)",
+                    padding: "10px",
+                    background: "var(--bg-surface-2)",
                   }}
                 >
-                  Nombre
-                </p>
-                <p style={{ fontWeight: 700 }}>
-                  {selectedPurchase.firstName} {selectedPurchase.lastName}
-                </p>
-              </article>
-
-              <article
-                style={{
-                  border: "1px solid var(--border-color)",
-                  borderRadius: "var(--radius-md)",
-                  padding: "10px",
-                  background: "var(--bg-surface-2)",
-                }}
-              >
-                <p
-                  style={{
-                    color: "var(--text-disabled)",
-                    fontSize: "var(--font-xs)",
-                  }}
-                >
-                  Email
-                </p>
-                <p style={{ fontWeight: 700 }}>{selectedPurchase.email}</p>
-              </article>
-
-              <article
-                style={{
-                  border: "1px solid var(--border-color)",
-                  borderRadius: "var(--radius-md)",
-                  padding: "10px",
-                  background: "var(--bg-surface-2)",
-                }}
-              >
-                <p
-                  style={{
-                    color: "var(--text-disabled)",
-                    fontSize: "var(--font-xs)",
-                  }}
-                >
-                  Documento
-                </p>
-                <p style={{ fontWeight: 700 }}>
-                  {selectedPurchase.dniType} {selectedPurchase.dniNumber}
-                </p>
-              </article>
+                  <p
+                    style={{
+                      color: "var(--text-disabled)",
+                      fontSize: "var(--font-xs)",
+                    }}
+                  >
+                    {item.label}
+                  </p>
+                  <p style={{ fontWeight: 700 }}>{item.value}</p>
+                </article>
+              ))}
             </div>
 
             <div
@@ -455,6 +415,18 @@ export default function OrganizerCompradoresPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {isPurchasesLoading && (
+        <p
+          style={{
+            marginTop: "0.875rem",
+            color: "var(--text-disabled)",
+            fontSize: "var(--font-sm)",
+          }}
+        >
+          Cargando compras reales...
+        </p>
       )}
 
       <style>{`

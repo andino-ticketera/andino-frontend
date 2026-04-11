@@ -9,9 +9,17 @@ import type { Event } from "@/data/events";
 export default function OrganizerEditEventPage() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
-  const { events, updateEvent, showToast } = useOrganizer();
+  const { events, updateEvent, showToast, isEventsLoading } = useOrganizer();
 
   const event = events.find((item) => item.id === params.id);
+
+  if (isEventsLoading) {
+    return (
+      <section>
+        <p style={{ color: "var(--text-disabled)" }}>Cargando evento...</p>
+      </section>
+    );
+  }
 
   if (!event) {
     return (

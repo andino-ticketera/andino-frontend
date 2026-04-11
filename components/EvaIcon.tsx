@@ -80,6 +80,30 @@ const icons: Record<string, React.ReactNode> = {
       fill="currentColor"
     />
   ),
+  checkmark: (
+    <path
+      d="M10.2 16.6a1 1 0 0 1-.71-.29l-3.3-3.3a1 1 0 1 1 1.42-1.42l2.59 2.6 6.19-6.2a1 1 0 0 1 1.42 1.42l-6.9 6.9a1 1 0 0 1-.71.29z"
+      fill="currentColor"
+    />
+  ),
+  "checkmark-circle": (
+    <>
+      <path
+        d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"
+        fill="currentColor"
+      />
+      <path
+        d="M10.2 16.1a1 1 0 0 1-.71-.29l-2.3-2.3a1 1 0 0 1 1.42-1.42l1.59 1.6 4.59-4.6a1 1 0 1 1 1.42 1.42l-5.3 5.3a1 1 0 0 1-.71.29z"
+        fill="currentColor"
+      />
+    </>
+  ),
+  download: (
+    <path
+      d="M12 3a1 1 0 0 1 1 1v7.59l2.3-2.29a1 1 0 0 1 1.4 1.41l-4 4a1 1 0 0 1-1.4 0l-4-4a1 1 0 1 1 1.4-1.41L11 11.59V4a1 1 0 0 1 1-1zm-7 14a1 1 0 0 1 1 1v1a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-1a1 1 0 1 1 2 0v1a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3v-1a1 1 0 0 1 1-1z"
+      fill="currentColor"
+    />
+  ),
   "credit-card": (
     <path
       d="M19 5H5a3 3 0 0 0-3 3v8a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3V8a3 3 0 0 0-3-3zM4 8a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v1H4zm16 8a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-5h16zm-5-2h4a1 1 0 0 0 0-2h-4a1 1 0 0 0 0 2z"
@@ -119,6 +143,12 @@ const icons: Record<string, React.ReactNode> = {
   trash: (
     <path
       d="M9 3a1 1 0 0 0-1 1v1H5a1 1 0 1 0 0 2h1v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7h1a1 1 0 1 0 0-2h-3V4a1 1 0 0 0-1-1zm1 2V5h4v0zM8 7h8v12H8zm2 2a1 1 0 0 0-1 1v7a1 1 0 1 0 2 0v-7a1 1 0 0 0-1-1m4 0a1 1 0 0 0-1 1v7a1 1 0 1 0 2 0v-7a1 1 0 0 0-1-1"
+      fill="currentColor"
+    />
+  ),
+  "trash-2-outline": (
+    <path
+      d="M9 3a1 1 0 0 0-1 1v1H5a1 1 0 1 0 0 2h1v11a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3V7h1a1 1 0 1 0 0-2h-3V4a1 1 0 0 0-1-1zm1 2V5h4v0zm-2 2h8v11a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1zm2 2a1 1 0 0 0-1 1v6a1 1 0 1 0 2 0v-6a1 1 0 0 0-1-1m4 0a1 1 0 0 0-1 1v6a1 1 0 1 0 2 0v-6a1 1 0 0 0-1-1"
       fill="currentColor"
     />
   ),

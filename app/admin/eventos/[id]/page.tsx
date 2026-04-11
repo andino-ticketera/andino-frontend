@@ -9,9 +9,17 @@ import { updateEventFromAdmin } from "@/lib/events-api";
 
 export default function AdminEditEventPage() {
   const params = useParams<{ id: string }>();
-  const { events, updateEvent, showToast } = useAdmin();
+  const { events, updateEvent, showToast, isEventsLoading } = useAdmin();
 
   const event = events.find((item) => item.id === params.id);
+
+  if (isEventsLoading) {
+    return (
+      <section>
+        <p style={{ color: "var(--text-disabled)" }}>Cargando evento...</p>
+      </section>
+    );
+  }
 
   if (!event) {
     return (
