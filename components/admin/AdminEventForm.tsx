@@ -175,7 +175,6 @@ function defaultEventValues(category: string): Omit<Event, "id"> {
     entradasVendidas: 0,
     mediosDePago: ["mercadopago"],
     mercadoPagoId: "",
-    cbuCvu: "",
   };
 }
 
@@ -239,14 +238,8 @@ export default function AdminEventForm({
     String(defaults.totalEntradas),
   );
   const mercadoPagoId = defaults.mercadoPagoId ?? "";
-  const [paymentMethod, setPaymentMethod] = useState<
-    "transferencia" | "mercadopago"
-  >(
-    defaults.mediosDePago.includes("transferencia")
-      ? "transferencia"
-      : "mercadopago",
-  );
-  const [cbuCvu, setCbuCvu] = useState(defaults.cbuCvu ?? "");
+  // Por el momento el unico medio de cobro es Mercado Pago.
+  const paymentMethod: "mercadopago" = "mercadopago";
   const [activeTab, setActiveTab] = useState<"info" | "media">("info");
   const [isImageDragOver, setIsImageDragOver] = useState(false);
   const [isFlyerDragOver, setIsFlyerDragOver] = useState(false);
@@ -296,11 +289,6 @@ export default function AdminEventForm({
       ? categoryOptions[0]
       : category;
 
-  const initialPaymentMethod: "transferencia" | "mercadopago" =
-    defaults.mediosDePago.includes("transferencia")
-      ? "transferencia"
-      : "mercadopago";
-
   const initialComparable = useMemo(
     () => ({
       title: defaults.title.trim(),
@@ -317,15 +305,7 @@ export default function AdminEventForm({
       flyer: defaults.flyer.trim(),
       price: Number(defaults.price) || 0,
       totalEntradas: Math.max(0, Number(defaults.totalEntradas) || 0),
-      paymentMethod: initialPaymentMethod,
-      mercadoPagoId:
-        initialPaymentMethod === "mercadopago"
-          ? (defaults.mercadoPagoId ?? "").trim()
-          : "",
-      cbuCvu:
-        initialPaymentMethod === "transferencia"
-          ? (defaults.cbuCvu ?? "").trim()
-          : "",
+      mercadoPagoId: (defaults.mercadoPagoId ?? "").trim(),
     }),
     [
       defaultDate,
@@ -333,7 +313,6 @@ export default function AdminEventForm({
       defaultProvincia,
       defaultTime,
       defaults,
-      initialPaymentMethod,
     ],
   );
 
@@ -353,10 +332,7 @@ export default function AdminEventForm({
       flyer: flyer.trim(),
       price: Number(price) || 0,
       totalEntradas: Math.max(0, Number(totalEntradas) || 0),
-      paymentMethod,
-      mercadoPagoId:
-        paymentMethod === "mercadopago" ? mercadoPagoId.trim() : "",
-      cbuCvu: paymentMethod === "transferencia" ? cbuCvu.trim() : "",
+      mercadoPagoId: mercadoPagoId.trim(),
     }),
     [
       title,
@@ -373,9 +349,7 @@ export default function AdminEventForm({
       flyer,
       price,
       totalEntradas,
-      paymentMethod,
       mercadoPagoId,
-      cbuCvu,
     ],
   );
 
@@ -432,7 +406,7 @@ export default function AdminEventForm({
 
     setSubmitAttempted(false);
 
-    const mediosDePago: ("transferencia" | "mercadopago")[] = [paymentMethod];
+    const mediosDePago: "mercadopago"[] = ["mercadopago"];
 
     const autoDescription =
       mode === "edit" && initialEvent
@@ -475,9 +449,7 @@ export default function AdminEventForm({
             )
           : 0,
       mediosDePago,
-      mercadoPagoId:
-        paymentMethod === "mercadopago" ? mercadoPagoId.trim() : "",
-      cbuCvu: paymentMethod === "transferencia" ? cbuCvu.trim() : "",
+      mercadoPagoId: mercadoPagoId.trim(),
     }, submitOptions);
   };
 
@@ -831,33 +803,12 @@ export default function AdminEventForm({
             <label style={labelStyle}>
               {renderFieldLabel("Medio de pago", { optional: true })}
             </label>
-            <select
-              value={paymentMethod}
-              onChange={(e) =>
-                setPaymentMethod(
-                  e.target.value as "transferencia" | "mercadopago",
-                )
-              }
+            <input
+              value="Mercado Pago"
+              disabled
               style={inputStyle}
-            >
-              <option value="mercadopago">Mercado Pago</option>
-              <option value="transferencia">Transferencia</option>
-            </select>
+            />
           </div>
-
-          {paymentMethod === "transferencia" && (
-            <div style={fieldBox}>
-              <label style={labelStyle}>
-                {renderFieldLabel("CBU / CVU", { optional: true })}
-              </label>
-              <input
-                value={cbuCvu}
-                onChange={(e) => setCbuCvu(e.target.value)}
-                style={inputStyle}
-                placeholder="Ej: 0000003100000001234567"
-              />
-            </div>
-          )}
         </div>
       )}
 

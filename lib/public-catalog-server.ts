@@ -84,19 +84,10 @@ function formatTimeLabel(isoDate: string): string {
 }
 
 function mapMediosPago(
-  medios: BackendEvento["medios_pago"],
-): Array<"transferencia" | "mercadopago"> {
-  const mapped = medios
-    .map((medio) => {
-      if (medio === "TRANSFERENCIA_CBU") return "transferencia";
-      if (medio === "MERCADO_PAGO") return "mercadopago";
-      return null;
-    })
-    .filter(
-      (medio): medio is "transferencia" | "mercadopago" => medio !== null,
-    );
-
-  return mapped.length > 0 ? mapped : ["transferencia"];
+  _medios: BackendEvento["medios_pago"],
+): Array<"mercadopago"> {
+  // Por el momento el unico medio de cobro es Mercado Pago.
+  return ["mercadopago"];
 }
 
 function mapEventoToFrontend(evento: BackendEvento): Event {
@@ -125,7 +116,6 @@ function mapEventoToFrontend(evento: BackendEvento): Event {
     entradasVendidas: evento.entradas_vendidas,
     mediosDePago,
     mercadoPagoId: "",
-    cbuCvu: "",
     creatorId: evento.creador_id,
     creatorRole: evento.creador_rol,
     status: evento.estado,

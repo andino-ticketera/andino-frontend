@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import type { Event } from "@/data/events";
@@ -165,8 +164,8 @@ export default function OrganizerEventForm({
     organizador: organizer.empresa,
     totalEntradas: 100,
     entradasVendidas: 0,
-    mediosDePago: ["mercadopago"] as ("transferencia" | "mercadopago")[],
-    cbuCvu: "",
+    mediosDePago: ["mercadopago"] as "mercadopago"[],
+    mercadoPagoId: "",
   };
   const defaultProvincia = matchProvinciaOption(defaults.provincia);
   const defaultLocalidad = matchLocalidadOption(
@@ -192,14 +191,9 @@ export default function OrganizerEventForm({
   const [totalEntradas, setTotalEntradas] = useState(
     String(defaults.totalEntradas),
   );
-  const [paymentMethod, setPaymentMethod] = useState<
-    "transferencia" | "mercadopago"
-  >(
-    defaults.mediosDePago.includes("transferencia")
-      ? "transferencia"
-      : "mercadopago",
-  );
-  const [cbuCvu, setCbuCvu] = useState(defaults.cbuCvu ?? "");
+  // Por el momento el unico medio de cobro es Mercado Pago.
+  // El tipo `mediosDePago` se mantiene como union para poder agregar otros
+  // medios (ej: transferencia) en el futuro sin romper el modelo de datos.
   const [isFlyerDragOver, setIsFlyerDragOver] = useState(false);
   const [submitAttempted, setSubmitAttempted] = useState(false);
   const flyerInputRef = useRef<HTMLInputElement>(null);
@@ -243,6 +237,7 @@ export default function OrganizerEventForm({
   const isMercadoPagoReady =
     mpStatus?.status === "CONECTADA" || mpStatus?.mode === "platform_test";
 
+  const isPriceValid = price.trim() !== "" && Number(price) >= 0 && !Number.isNaN(Number(price));
   const canSubmit =
     categoryOptions.length > 0 &&
     title.trim() &&
@@ -251,12 +246,13 @@ export default function OrganizerEventForm({
     date.trim() &&
     isCompleteEventTime(time) &&
     venue.trim() &&
+    direccion.trim() &&
     provincia.trim() &&
     localidad.trim() &&
     flyer.trim() &&
-    (paymentMethod === "mercadopago"
-      ? isMercadoPagoReady && !isMpStatusLoading
-      : cbuCvu.trim());
+    isPriceValid &&
+    isMercadoPagoReady &&
+    !isMpStatusLoading;
   const firstMissingField = useMemo(() => {
     if (!flyer.trim()) return "Flyer / Poster del evento";
     if (!title.trim()) return "Titulo";
@@ -265,27 +261,24 @@ export default function OrganizerEventForm({
     if (!date.trim()) return "Fecha";
     if (!isCompleteEventTime(time)) return "Hora";
     if (!venue.trim()) return "Locacion";
+    if (!direccion.trim()) return "Direccion";
     if (!provincia.trim()) return "Provincia";
     if (!localidad.trim()) return "Localidad";
-    if (paymentMethod === "mercadopago") {
-      if (isMpStatusLoading || !isMercadoPagoReady) {
-        return "Mercado Pago activo";
-      }
-    }
-    if (paymentMethod === "transferencia" && !cbuCvu.trim()) {
-      return "CBU / CVU";
+    if (!isPriceValid) return "Precio de la entrada";
+    if (isMpStatusLoading || !isMercadoPagoReady) {
+      return "Activa los cobros con Mercado Pago desde el panel";
     }
     return "";
   }, [
     categoryOptions.length,
-    cbuCvu,
     date,
+    direccion,
     flyer,
     isMercadoPagoReady,
     isMpStatusLoading,
+    isPriceValid,
     localidad,
     longDescription,
-    paymentMethod,
     provincia,
     selectedCategory,
     time,
@@ -302,7 +295,7 @@ export default function OrganizerEventForm({
 
     setSubmitAttempted(false);
 
-    const mediosDePago: ("transferencia" | "mercadopago")[] = [paymentMethod];
+    const mediosDePago: "mercadopago"[] = ["mercadopago"];
     const autoDescription =
       mode === "edit" && initialEvent
         ? initialEvent.description
@@ -340,7 +333,6 @@ export default function OrganizerEventForm({
           : 0,
       mediosDePago,
       mercadoPagoId: "",
-      cbuCvu: paymentMethod === "transferencia" ? cbuCvu.trim() : "",
     });
   };
 
@@ -578,7 +570,7 @@ export default function OrganizerEventForm({
 
         <div style={fieldBox}>
           <label style={labelStyle}>
-            {renderFieldLabel("Direccion", { optional: true })}
+            {renderFieldLabel("Direccion", { required: true })}
           </label>
           <input
             value={direccion}
@@ -635,7 +627,7 @@ export default function OrganizerEventForm({
 
         <div style={fieldBox}>
           <label style={labelStyle}>
-            {renderFieldLabel("Precio de la entrada", { optional: true })}
+            {renderFieldLabel("Precio de la entrada", { required: true })}
           </label>
           <input
             type="number"
@@ -643,8 +635,19 @@ export default function OrganizerEventForm({
             value={price}
             onChange={(e) => setPrice(e.target.value)}
             style={inputStyle}
-            placeholder="Ej: 12000"
+            placeholder="Ej: 12000 (0 = evento gratis)"
           />
+          {price.trim() !== "" && priceNum === 0 && (
+            <span
+              style={{
+                fontSize: "var(--font-xs)",
+                color: "var(--color-primary)",
+                fontWeight: 700,
+              }}
+            >
+              Evento gratis
+            </span>
+          )}
           {priceNum > 0 && (
             <span
               style={{
@@ -672,89 +675,6 @@ export default function OrganizerEventForm({
           />
         </div>
 
-        <div style={fieldBox}>
-          <label style={labelStyle}>
-            {renderFieldLabel("Medio de pago", { required: true })}
-          </label>
-          <select
-            value={paymentMethod}
-            onChange={(e) =>
-              setPaymentMethod(
-                e.target.value as "transferencia" | "mercadopago",
-              )
-            }
-            style={inputStyle}
-          >
-            <option value="mercadopago">Mercado Pago</option>
-            <option value="transferencia">Transferencia (CBU/CVU)</option>
-          </select>
-        </div>
-
-        {paymentMethod === "mercadopago" && (
-          <div
-            style={{
-              ...fieldBox,
-              gridColumn: "1 / -1",
-              border: "1px solid var(--border-color)",
-              borderRadius: "var(--radius-md)",
-              padding: "0.875rem",
-              background: "var(--bg-surface-2)",
-            }}
-          >
-            <label style={labelStyle}>
-              {renderFieldLabel("Cobros con Mercado Pago", { required: true })}
-            </label>
-            <strong style={{ fontSize: "var(--font-sm)", color: "#1f1f1f" }}>
-              {isMpStatusLoading
-                ? "Verificando estado de tu cuenta..."
-                : mpStatus?.status === "CONECTADA"
-                  ? "Tu cuenta ya está lista para cobrar con Mercado Pago."
-                  : mpStatus?.mode === "platform_test"
-                    ? "Estas en modo test: podes publicar ahora o conectar tu cuenta sandbox para probar el flujo real del organizador."
-                    : "Antes de publicar con Mercado Pago tenés que activar cobros una sola vez."}
-            </strong>
-            <span
-              style={{
-                fontSize: "var(--font-xs)",
-                color: "var(--text-disabled)",
-                lineHeight: 1.5,
-              }}
-            >
-              {mpStatus?.status === "CONECTADA"
-                ? mpStatus.mpEmail
-                  ? `Cuenta vinculada: ${mpStatus.mpEmail}`
-                  : "La cuenta conectada quedó habilitada para tus próximos eventos."
-                : "Desde tu panel podés conectar Mercado Pago, autorizar el acceso y volver para publicar el evento sin cargar datos manuales."}
-            </span>
-            {!isMercadoPagoReady && !isMpStatusLoading && (
-              <Link
-                href="/organizador/dashboard"
-                style={{
-                  color: "var(--color-primary)",
-                  fontSize: "var(--font-xs)",
-                  fontWeight: 800,
-                  textDecoration: "none",
-                }}
-              >
-                Ir al panel para activar cobros
-              </Link>
-            )}
-          </div>
-        )}
-
-        {paymentMethod === "transferencia" && (
-          <div style={fieldBox}>
-            <label style={labelStyle}>
-              {renderFieldLabel("CBU / CVU", { required: true })}
-            </label>
-            <input
-              value={cbuCvu}
-              onChange={(e) => setCbuCvu(e.target.value)}
-              style={inputStyle}
-              placeholder="Ej: 0000003100000001234567"
-            />
-          </div>
-        )}
       </div>
 
       <div
@@ -775,7 +695,9 @@ export default function OrganizerEventForm({
               textAlign: "right",
             }}
           >
-            {firstMissingField} es obligatorio.
+            {firstMissingField.startsWith("Activa")
+              ? firstMissingField + "."
+              : firstMissingField + " es obligatorio."}
           </span>
         ) : null}
         <button

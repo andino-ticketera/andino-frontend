@@ -19,9 +19,8 @@ export interface Event {
   organizador: string;
   totalEntradas: number;
   entradasVendidas: number;
-  mediosDePago: ("transferencia" | "mercadopago")[];
+  mediosDePago: "mercadopago"[];
   mercadoPagoId: string;
-  cbuCvu?: string;
   creatorId?: string;
   creatorRole?: "ORGANIZADOR" | "ADMIN";
   status?: "ACTIVO" | "AGOTADO" | "CANCELADO";

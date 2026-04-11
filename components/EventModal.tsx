@@ -84,9 +84,9 @@ export default function EventModal({ event, onClose }: EventModalProps) {
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [confirmEmail, setConfirmEmail] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState<
-    "transferencia" | "mercadopago"
-  >(event.mediosDePago[0] ?? "mercadopago");
+  const [paymentMethod, setPaymentMethod] = useState<"mercadopago">(
+    "mercadopago",
+  );
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [purchaseError, setPurchaseError] = useState<string | null>(null);
   const [isSubmittingPurchase, setIsSubmittingPurchase] = useState(false);
@@ -907,18 +907,11 @@ export default function EventModal({ event, onClose }: EventModalProps) {
               <select
                 value={paymentMethod}
                 onChange={(e) =>
-                  setPaymentMethod(
-                    e.target.value as "transferencia" | "mercadopago",
-                  )
+                  setPaymentMethod(e.target.value as "mercadopago")
                 }
                 style={selectStyle}
               >
-                {event.mediosDePago.includes("mercadopago") && (
-                  <option value="mercadopago">Mercado Pago</option>
-                )}
-                {event.mediosDePago.includes("transferencia") && (
-                  <option value="transferencia">Transferencia</option>
-                )}
+                <option value="mercadopago">Mercado Pago</option>
               </select>
             </div>
 

@@ -230,36 +230,25 @@ export default function OrganizerDashboardPage() {
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={handleConnectMercadoPago}
-          disabled={isConnectingMp}
-          style={{
-            border:
-              mpStatus?.status !== "CONECTADA"
-                ? "none"
-                : "1px solid var(--border-color)",
-            borderRadius: "var(--radius-full)",
-            background:
-              mpStatus?.status !== "CONECTADA"
-                ? "var(--color-primary)"
-                : "transparent",
-            color:
-              mpStatus?.status !== "CONECTADA" ? "#06130f" : "var(--text-secondary)",
-            fontWeight: mpStatus?.status !== "CONECTADA" ? 800 : 700,
-            padding:
-              mpStatus?.status !== "CONECTADA"
-                ? "0.75rem 1rem"
-                : "0.5rem 0.875rem",
-            fontSize:
-              mpStatus?.status !== "CONECTADA"
-                ? "var(--font-sm)"
-                : "var(--font-xs)",
-            cursor: isConnectingMp ? "not-allowed" : "pointer",
-          }}
-        >
-          {isConnectingMp ? "Conectando..." : mpActionLabel}
-        </button>
+        {mpStatus?.status !== "CONECTADA" && (
+          <button
+            type="button"
+            onClick={handleConnectMercadoPago}
+            disabled={isConnectingMp}
+            style={{
+              border: "none",
+              borderRadius: "var(--radius-full)",
+              background: "var(--color-primary)",
+              color: "#06130f",
+              fontWeight: 800,
+              padding: "0.75rem 1rem",
+              fontSize: "var(--font-sm)",
+              cursor: isConnectingMp ? "not-allowed" : "pointer",
+            }}
+          >
+            {isConnectingMp ? "Conectando..." : mpActionLabel}
+          </button>
+        )}
       </article>
 
       <div
