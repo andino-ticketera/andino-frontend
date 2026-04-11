@@ -85,7 +85,13 @@ export default function AdminCarruselPage() {
 
       <div
         className="admin-carrusel-grid"
-        style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: "1rem",
+          width: "100%",
+          minWidth: 0,
+        }}
       >
         <article
           style={{
@@ -93,6 +99,8 @@ export default function AdminCarruselPage() {
             border: "1px solid var(--border-color)",
             borderRadius: "var(--radius-lg)",
             padding: "0.875rem",
+            minWidth: 0,
+            overflow: "hidden",
           }}
         >
           <h2
@@ -130,6 +138,7 @@ export default function AdminCarruselPage() {
                   border: "1px solid var(--border-color)",
                   borderRadius: "var(--radius-md)",
                   padding: "0.5rem",
+                  minWidth: 0,
                 }}
               >
                 <div
@@ -218,6 +227,8 @@ export default function AdminCarruselPage() {
             border: "1px solid var(--border-color)",
             borderRadius: "var(--radius-lg)",
             padding: "0.875rem",
+            minWidth: 0,
+            overflow: "hidden",
           }}
         >
           <h2
@@ -364,7 +375,7 @@ export default function AdminCarruselPage() {
       </div>
 
       <style>{`
-        @media (max-width: 1000px) {
+        @media (max-width: 1100px) {
           .admin-carrusel-grid {
             grid-template-columns: 1fr !important;
           }

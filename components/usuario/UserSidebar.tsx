@@ -11,21 +11,22 @@ import { clearAuthSession } from "@/lib/auth-client";
 import { logoutAuth } from "@/lib/auth-api";
 
 const navItems = [
-  { href: "/admin", label: "Panel", icon: "grid" },
-  { href: "/admin/usuarios", label: "Usuarios", icon: "person" },
-  { href: "/admin/carrusel", label: "Carrusel", icon: "activity" },
-  { href: "/admin/categorias", label: "Categorias", icon: "star" },
-  { href: "/admin/eventos/nuevo", label: "Crear evento", icon: "plus" },
-  { href: "/admin/eventos", label: "Eventos", icon: "calendar" },
-  { href: "/admin/compradores", label: "Compradores", icon: "shopping-cart" },
+  { href: "/usuario/compras", label: "Mis compras", icon: "shopping-bag" },
 ];
 
-export default function AdminSidebar() {
+export default function UserSidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const { isOpen, setIsOpen } = useMenuToggle();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
+
+  const isItemActive = (href: string) => {
+    if (href === "/usuario/compras") {
+      return pathname.startsWith("/usuario/compras");
+    }
+    return pathname === href;
+  };
 
   const requestLogout = useCallback(() => {
     if (isLoggingOut) return;
@@ -52,23 +53,9 @@ export default function AdminSidebar() {
     }
   }, [isLoggingOut, router, setIsOpen]);
 
-  const isItemActive = (href: string) => {
-    if (href === "/admin") return pathname === "/admin";
-    if (href === "/admin/eventos/nuevo")
-      return pathname === "/admin/eventos/nuevo";
-    if (href === "/admin/eventos") {
-      return (
-        pathname === "/admin/eventos" ||
-        (/^\/admin\/eventos\/[^/]+$/.test(pathname) &&
-          pathname !== "/admin/eventos/nuevo")
-      );
-    }
-    return pathname === href;
-  };
-
   return (
     <>
-      {/* Header móvil con logo y hamburguesa */}
+      {/* Header movil con logo y hamburguesa */}
       <header
         className="mobile-header"
         style={{
@@ -112,7 +99,7 @@ export default function AdminSidebar() {
         </button>
       </header>
 
-      {/* Overlay (solo cuando el menú está abierto en móvil) */}
+      {/* Overlay */}
       {isOpen && (
         <div
           style={{
@@ -255,9 +242,7 @@ export default function AdminSidebar() {
         </div>
       </aside>
 
-      {/* Estilos responsivos */}
       <style>{`
-        /* Desktop: mostrar sidebar normal, header oculto */
         @media (min-width: 769px) {
           .mobile-header {
             display: none !important;
@@ -268,7 +253,6 @@ export default function AdminSidebar() {
           }
         }
 
-        /* Mobile: mostrar header y drawer */
         @media (max-width: 768px) {
           .mobile-header {
             display: flex !important;

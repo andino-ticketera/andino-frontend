@@ -4,8 +4,6 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import TicketQrModal from "@/components/usuario/TicketQrModal";
 import { readAuthSession } from "@/lib/auth-client";
 import {
@@ -53,15 +51,9 @@ export default function CompraDetallePage() {
 
   return (
     <div className="page-fade-in">
-      <Navbar />
-      <div style={{ height: "5rem" }} />
-
       <main
         style={{
           minHeight: "calc(100vh - 5rem)",
-          maxWidth: "80rem",
-          margin: "0 auto",
-          padding: "2rem 1.5rem 4rem",
           display: "grid",
           gap: "1.25rem",
         }}
@@ -337,8 +329,6 @@ export default function CompraDetallePage() {
         open={Boolean(selectedEntradaId)}
         onClose={() => setSelectedEntradaId(null)}
       />
-
-      <Footer />
     </div>
   );
 }

@@ -1,10 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useCallback, useState } from "react";
 import Logo from "@/components/Logo";
 import EvaIcon from "@/components/EvaIcon";
+import LogoutConfirmDialog from "@/components/LogoutConfirmDialog";
 import { useMenuToggle } from "@/hooks/useMenuToggle";
+import { clearAuthSession } from "@/lib/auth-client";
+import { logoutAuth } from "@/lib/auth-api";
 
 const navItems = [
   { href: "/organizador/dashboard", label: "Panel", icon: "grid" },
@@ -27,7 +31,35 @@ const navItems = [
 
 export default function OrganizerSidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const { isOpen, setIsOpen } = useMenuToggle();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
+
+  const requestLogout = useCallback(() => {
+    if (isLoggingOut) return;
+    setLogoutConfirmOpen(true);
+    setIsOpen(false);
+  }, [isLoggingOut, setIsOpen]);
+
+  const cancelLogout = useCallback(() => {
+    if (isLoggingOut) return;
+    setLogoutConfirmOpen(false);
+  }, [isLoggingOut]);
+
+  const handleLogout = useCallback(async () => {
+    if (isLoggingOut) return;
+    setIsLoggingOut(true);
+    try {
+      await logoutAuth();
+    } finally {
+      clearAuthSession();
+      setIsOpen(false);
+      setLogoutConfirmOpen(false);
+      setIsLoggingOut(false);
+      router.push("/");
+    }
+  }, [isLoggingOut, router, setIsOpen]);
 
   const isItemActive = (href: string) => {
     if (href === "/organizador/dashboard")
@@ -180,6 +212,9 @@ export default function OrganizerSidebar() {
           style={{
             padding: "1rem 0.75rem",
             borderTop: "1px solid var(--border-color)",
+            display: "flex",
+            flexDirection: "column",
+            gap: "0.375rem",
           }}
         >
           <Link
@@ -201,6 +236,32 @@ export default function OrganizerSidebar() {
             <EvaIcon name="arrow-back" size={18} />
             <span>Volver al sitio</span>
           </Link>
+          <button
+            type="button"
+            onClick={requestLogout}
+            disabled={isLoggingOut}
+            className="menu-link"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+              padding: "10px 12px",
+              borderRadius: "var(--radius-md)",
+              background: "transparent",
+              border: "1px solid transparent",
+              color: "var(--text-secondary)",
+              fontSize: "var(--font-sm)",
+              fontWeight: 600,
+              cursor: isLoggingOut ? "wait" : "pointer",
+              textAlign: "left",
+              width: "100%",
+              transition: "all 0.2s ease-out",
+              opacity: isLoggingOut ? 0.6 : 1,
+            }}
+          >
+            <EvaIcon name="log-out-outline" size={18} />
+            <span>{isLoggingOut ? "Cerrando sesion..." : "Cerrar sesion"}</span>
+          </button>
         </div>
       </aside>
 
@@ -243,6 +304,13 @@ export default function OrganizerSidebar() {
           }
         }
       `}</style>
+
+      <LogoutConfirmDialog
+        open={logoutConfirmOpen}
+        isLoggingOut={isLoggingOut}
+        onConfirm={handleLogout}
+        onCancel={cancelLogout}
+      />
     </>
   );
 }

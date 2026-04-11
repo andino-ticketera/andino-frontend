@@ -367,39 +367,33 @@ export default function Navbar() {
           <div
             style={{
               display: "grid",
-              gap: "0.75rem",
-              padding: session ? "0.875rem" : 0,
-              borderRadius: session ? "var(--radius-lg)" : 0,
-              border: session ? "1px solid var(--border-color)" : "none",
-              background: session ? "rgba(255, 255, 255, 0.03)" : "transparent",
+              gap: "1.125rem",
             }}
           >
-            <Link
-              href="/iniciar-sesion"
-              style={{
-                color: "var(--text-disabled)",
-                fontSize: "var(--font-base)",
-                textAlign: "left",
-                textDecoration: "none",
-                padding: session ? 0 : "0.125rem 0",
-              }}
-            >
-              {session ? "Cuenta" : "Iniciar Sesion"}
-            </Link>
+            {!session && (
+              <Link
+                href="/iniciar-sesion"
+                style={{
+                  color: "var(--text-disabled)",
+                  fontSize: "var(--font-base)",
+                  textAlign: "left",
+                  textDecoration: "none",
+                  padding: "0.125rem 0",
+                }}
+              >
+                Iniciar Sesion
+              </Link>
+            )}
             {session && panelHref && panelHref !== "/" && (
               <Link
                 href={panelHref}
                 style={{
-                  color: "var(--color-primary)",
+                  color: "var(--text-disabled)",
                   fontSize: "var(--font-base)",
+                  fontWeight: 500,
                   textAlign: "left",
                   textDecoration: "none",
-                  fontWeight: 700,
-                  padding: "0.9375rem 1rem",
-                  borderRadius: "var(--radius-md)",
-                  border: "1px solid var(--primary-25)",
-                  background: "var(--primary-10)",
-                  boxShadow: "0 0.5rem 1.5rem rgba(92, 255, 157, 0.08)",
+                  padding: "0.125rem 0",
                 }}
               >
                 Mi panel
@@ -411,13 +405,14 @@ export default function Navbar() {
                 onClick={requestLogoutConfirmation}
                 style={{
                   color: "var(--text-disabled)",
-                  fontSize: "var(--font-sm)",
+                  fontSize: "var(--font-base)",
                   textAlign: "left",
                   textDecoration: "none",
                   background: "transparent",
                   border: "none",
                   padding: "0.125rem 0",
                   cursor: "pointer",
+                  fontWeight: 500,
                 }}
               >
                 Cerrar sesion

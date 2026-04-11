@@ -4,8 +4,6 @@ import { useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import {
   fetchMisCompras,
   formatFechaCompra,
@@ -45,15 +43,9 @@ export default function MisComprasPage() {
 
   return (
     <div className="page-fade-in">
-      <Navbar />
-      <div style={{ height: "5rem" }} />
-
       <main
         style={{
           minHeight: "calc(100vh - 5rem)",
-          maxWidth: "80rem",
-          margin: "0 auto",
-          padding: "2rem 1.5rem 4rem",
         }}
       >
         <section
@@ -334,8 +326,6 @@ export default function MisComprasPage() {
           </section>
         ) : null}
       </main>
-
-      <Footer />
     </div>
   );
 }
