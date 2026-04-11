@@ -11,6 +11,7 @@ import {
   getManagedPaymentMethodLabel,
   getManagedPurchaseStatusColor,
   getManagedPurchaseStatusLabel,
+  isManagedPurchasePaid,
 } from "@/lib/managed-purchases-api";
 
 export default function OrganizerCompradoresPage() {
@@ -23,32 +24,30 @@ export default function OrganizerCompradoresPage() {
   const eventMap = useMemo(() => new Map(events.map((e) => [e.id, e])), [events]);
 
   const filteredPurchases = useMemo(() => {
-    if (!eventFilter) return purchases;
-    return purchases.filter((purchase) => purchase.eventId === eventFilter);
+    const paidPurchases = purchases.filter(isManagedPurchasePaid);
+    if (!eventFilter) return paidPurchases;
+    return paidPurchases.filter((purchase) => purchase.eventId === eventFilter);
   }, [purchases, eventFilter]);
 
-  const paidPurchases = useMemo(
-    () => filteredPurchases.filter((purchase) => purchase.status === "PAGADO"),
+  const revenue = useMemo(
+    () => filteredPurchases.reduce((acc, purchase) => acc + purchase.totalPrice, 0),
     [filteredPurchases],
   );
 
-  const revenue = useMemo(
-    () => paidPurchases.reduce((acc, purchase) => acc + purchase.totalPrice, 0),
-    [paidPurchases],
-  );
-
   const avgTicket = useMemo(() => {
-    const totalQty = paidPurchases.reduce(
+    const totalQty = filteredPurchases.reduce(
       (acc, purchase) => acc + purchase.quantity,
       0,
     );
     if (totalQty === 0) return 0;
     return revenue / totalQty;
-  }, [paidPurchases, revenue]);
+  }, [filteredPurchases, revenue]);
 
   const selectedPurchase = useMemo(
-    () => purchases.find((purchase) => purchase.id === selectedPurchaseId) ?? null,
-    [purchases, selectedPurchaseId],
+    () =>
+      filteredPurchases.find((purchase) => purchase.id === selectedPurchaseId) ??
+      null,
+    [filteredPurchases, selectedPurchaseId],
   );
 
   const handleDownloadCsv = () => {
@@ -87,7 +86,7 @@ export default function OrganizerCompradoresPage() {
         }}
       >
         {[
-          { label: "Total compras", value: filteredPurchases.length },
+          { label: "Compras pagadas", value: filteredPurchases.length },
           { label: "Recaudacion", value: `$${revenue.toFixed(2)}` },
           { label: "Ticket promedio", value: `$${avgTicket.toFixed(2)}` },
         ].map((item) => (

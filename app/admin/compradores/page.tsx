@@ -9,6 +9,7 @@ import {
   getManagedPaymentMethodLabel,
   getManagedPurchaseStatusColor,
   getManagedPurchaseStatusLabel,
+  isManagedPurchasePaid,
 } from "@/lib/managed-purchases-api";
 
 export default function AdminCompradoresPage() {
@@ -19,33 +20,30 @@ export default function AdminCompradoresPage() {
   );
 
   const filteredPurchases = useMemo(() => {
-    if (!eventFilter) return purchases;
-    return purchases.filter((purchase) => purchase.eventId === eventFilter);
+    const paidPurchases = purchases.filter(isManagedPurchasePaid);
+    if (!eventFilter) return paidPurchases;
+    return paidPurchases.filter((purchase) => purchase.eventId === eventFilter);
   }, [purchases, eventFilter]);
 
-  const paidPurchases = useMemo(
-    () => filteredPurchases.filter((purchase) => purchase.status === "PAGADO"),
+  const revenue = useMemo(
+    () => filteredPurchases.reduce((acc, purchase) => acc + purchase.totalPrice, 0),
     [filteredPurchases],
   );
 
-  const revenue = useMemo(
-    () => paidPurchases.reduce((acc, purchase) => acc + purchase.totalPrice, 0),
-    [paidPurchases],
-  );
-
   const avgTicket = useMemo(() => {
-    const totalQty = paidPurchases.reduce(
+    const totalQty = filteredPurchases.reduce(
       (acc, purchase) => acc + purchase.quantity,
       0,
     );
     if (totalQty === 0) return 0;
     return revenue / totalQty;
-  }, [paidPurchases, revenue]);
+  }, [filteredPurchases, revenue]);
 
   const selectedPurchase = useMemo(
     () =>
-      purchases.find((purchase) => purchase.id === selectedPurchaseId) ?? null,
-    [purchases, selectedPurchaseId],
+      filteredPurchases.find((purchase) => purchase.id === selectedPurchaseId) ??
+      null,
+    [filteredPurchases, selectedPurchaseId],
   );
 
   return (
@@ -91,7 +89,7 @@ export default function AdminCompradoresPage() {
               textTransform: "uppercase",
             }}
           >
-            Total compras
+            Compras pagadas
           </p>
           <p style={{ fontSize: "var(--font-xl)", fontWeight: 900 }}>
             {filteredPurchases.length}

@@ -21,13 +21,19 @@ interface DeleteCategoryDialogState {
   category: string;
 }
 
+interface CategoryVisibilityDialogState {
+  category: string;
+  nextVisibleInApp: boolean;
+}
+
 export default function AdminCategoriesPage() {
   const {
-    categories,
+    allCategories,
     events,
     addCategory,
     renameCategory,
     removeCategory,
+    setCategoryVisibility,
     updateEvent,
     showToast,
   } = useAdmin();
@@ -38,6 +44,8 @@ export default function AdminCategoriesPage() {
   const [editingValue, setEditingValue] = useState("");
   const [deleteCategoryDialog, setDeleteCategoryDialog] =
     useState<DeleteCategoryDialogState | null>(null);
+  const [categoryVisibilityDialog, setCategoryVisibilityDialog] =
+    useState<CategoryVisibilityDialogState | null>(null);
   const [removeEventDialog, setRemoveEventDialog] =
     useState<RemoveEventDialogState | null>(null);
   const [searchByCategory, setSearchByCategory] = useState<
@@ -45,13 +53,13 @@ export default function AdminCategoriesPage() {
   >({});
 
   const categoryEventCount = useMemo(() => {
-    return categories.reduce<Record<string, number>>((acc, category) => {
-      acc[category] = events.filter(
-        (event) => normalize(event.category) === normalize(category),
+    return allCategories.reduce<Record<string, number>>((acc, category) => {
+      acc[category.nombre] = events.filter(
+        (event) => normalize(event.category) === normalize(category.nombre),
       ).length;
       return acc;
     }, {});
-  }, [categories, events]);
+  }, [allCategories, events]);
 
   const handleAddCategory = async () => {
     if (!newCategory.trim()) {
@@ -73,6 +81,7 @@ export default function AdminCategoriesPage() {
     setEditingCategory(category);
     setEditingValue(category);
     setDeleteCategoryDialog(null);
+    setCategoryVisibilityDialog(null);
   };
 
   const handleCancelEdit = () => {
@@ -97,6 +106,7 @@ export default function AdminCategoriesPage() {
     setEditingCategory(null);
     setEditingValue("");
     setDeleteCategoryDialog(null);
+    setCategoryVisibilityDialog(null);
     showToast("Categoria actualizada correctamente", "success");
   };
 
@@ -109,6 +119,14 @@ export default function AdminCategoriesPage() {
     }
 
     setDeleteCategoryDialog({ category });
+  };
+
+  const handleCategoryVisibilityRequest = (
+    category: string,
+    nextVisibleInApp: boolean,
+  ) => {
+    setDeleteCategoryDialog(null);
+    setCategoryVisibilityDialog({ category, nextVisibleInApp });
   };
 
   const handleConfirmDeleteCategory = async () => {
@@ -131,6 +149,26 @@ export default function AdminCategoriesPage() {
     }
 
     showToast("Categoria eliminada correctamente", "success");
+  };
+
+  const handleConfirmCategoryVisibility = async () => {
+    if (!categoryVisibilityDialog) return;
+
+    const { category, nextVisibleInApp } = categoryVisibilityDialog;
+    setCategoryVisibilityDialog(null);
+
+    const wasUpdated = await setCategoryVisibility(category, nextVisibleInApp);
+    if (!wasUpdated) {
+      showToast("No pudimos actualizar la visibilidad", "danger");
+      return;
+    }
+
+    showToast(
+      nextVisibleInApp
+        ? "Categoria visible nuevamente en la app"
+        : "Categoria oculta correctamente",
+      "success",
+    );
   };
 
   const reassignEvent = async (
@@ -169,7 +207,7 @@ export default function AdminCategoriesPage() {
     eventId: string,
     currentCategory: string,
   ) => {
-    const alternatives = categories.filter(
+    const alternatives = allCategories.map((item) => item.nombre).filter(
       (category) => normalize(category) !== normalize(currentCategory),
     );
 
@@ -261,13 +299,14 @@ export default function AdminCategoriesPage() {
         </div>
       </div>
 
-      {categories.length === 0 ? (
+      {allCategories.length === 0 ? (
         <div className="surface-card empty-card">
           No hay categorias configuradas.
         </div>
       ) : (
         <div className="cards-stack">
-          {categories.map((category) => {
+          {allCategories.map((categoryRecord) => {
+            const category = categoryRecord.nombre;
             const isExpanded =
               expandedCategory !== null &&
               normalize(expandedCategory) === normalize(category);
@@ -278,6 +317,7 @@ export default function AdminCategoriesPage() {
             const assignedEvents = events.filter(
               (event) => normalize(event.category) === normalize(category),
             );
+            const isVisibleInApp = categoryRecord.visible_en_app !== false;
 
             const search = searchByCategory[category] || "";
             const normalizedSearch = normalize(search);
@@ -332,7 +372,7 @@ export default function AdminCategoriesPage() {
                   </div>
 
                   <span className="state-pill">
-                    {assignedEvents.length > 0 ? "Activa" : "Vacia"}
+                    {isVisibleInApp ? "Visible" : "Oculta"}
                   </span>
                 </button>
 
@@ -367,14 +407,31 @@ export default function AdminCategoriesPage() {
                       </button>
                       <button
                         type="button"
-                        className="danger-btn"
-                        disabled={assignedEvents.length > 0}
+                        className={isVisibleInApp ? "ghost-btn" : "soft-btn"}
                         onClick={() => {
-                          handleDeleteCategoryRequest(category);
+                          handleCategoryVisibilityRequest(
+                            category,
+                            !isVisibleInApp,
+                          );
                         }}
                       >
-                        <EvaIcon name="trash" size={14} /> Eliminar
+                        <EvaIcon
+                          name={isVisibleInApp ? "eye-off" : "eye"}
+                          size={14}
+                        />{" "}
+                        {isVisibleInApp ? "Ocultar" : "Mostrar"}
                       </button>
+                      {assignedEvents.length === 0 && (
+                        <button
+                          type="button"
+                          className="danger-btn"
+                          onClick={() => {
+                            handleDeleteCategoryRequest(category);
+                          }}
+                        >
+                          <EvaIcon name="trash" size={14} /> Eliminar
+                        </button>
+                      )}
                     </>
                   )}
                 </div>
@@ -474,6 +531,33 @@ export default function AdminCategoriesPage() {
             );
           })}
         </div>
+      )}
+
+      {categoryVisibilityDialog && (
+        <AdminConfirmDialog
+          title={
+            categoryVisibilityDialog.nextVisibleInApp
+              ? "Mostrar categoria"
+              : "Ocultar categoria"
+          }
+          description={
+            <p>
+              {categoryVisibilityDialog.nextVisibleInApp
+                ? "La categoria volvera a mostrarse en la app publica."
+                : "La categoria dejara de mostrarse en la app publica, pero seguira disponible en admin para editarla o volver a mostrarla."}{" "}
+              <strong>{categoryVisibilityDialog.category}</strong>.
+            </p>
+          }
+          confirmLabel={
+            categoryVisibilityDialog.nextVisibleInApp
+              ? "Si, mostrar"
+              : "Si, ocultar"
+          }
+          onClose={() => setCategoryVisibilityDialog(null)}
+          onConfirm={() => {
+            void handleConfirmCategoryVisibility();
+          }}
+        />
       )}
 
       {removeEventDialog && (

@@ -102,6 +102,7 @@ export default function AdminEventsPage() {
   return (
     <section>
       <div
+        className="section-mobile-header"
         style={{
           display: "flex",
           alignItems: "center",
@@ -110,7 +111,7 @@ export default function AdminEventsPage() {
           marginBottom: "0.875rem",
         }}
       >
-        <div>
+        <div className="section-mobile-copy">
           <h1
             className="section-mobile-title"
             style={{
@@ -132,18 +133,23 @@ export default function AdminEventsPage() {
 
         <Link
           href="/admin/eventos/nuevo"
-          className="btn-primary section-mobile-button"
+          className="btn-primary section-mobile-button section-mobile-cta"
           style={{
             background: "var(--color-accent)",
             color: "var(--text-primary)",
             borderRadius: "var(--radius-md)",
             textDecoration: "none",
-            padding: "10px 14px",
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "0.5rem",
+            padding: "12px 16px",
             fontWeight: 700,
             whiteSpace: "nowrap",
           }}
         >
-          Crear evento
+          <EvaIcon name="plus" size={16} />
+          <span>Crear evento</span>
         </Link>
       </div>
 

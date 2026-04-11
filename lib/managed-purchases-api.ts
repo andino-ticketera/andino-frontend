@@ -101,6 +101,10 @@ export async function fetchOrganizerPurchases(): Promise<Purchase[]> {
   return fetchManagedPurchases("/api/proxy/compras/organizador");
 }
 
+export function isManagedPurchasePaid(purchase: Purchase): boolean {
+  return purchase.status === "PAGADO";
+}
+
 export async function updateOrganizerPurchaseCheckIn(
   purchaseId: string,
   checkedIn: boolean,

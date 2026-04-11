@@ -227,16 +227,24 @@ export default function OrganizerEventForm({
     [provincia],
   );
   const timePeriod = getEventTimePeriod(time);
+  const categoryOptions = useMemo(() => {
+    const normalizedCurrent = category.trim().toLowerCase();
+    if (!normalizedCurrent) return categories;
+    if (categories.some((item) => item.toLowerCase() === normalizedCurrent)) {
+      return categories;
+    }
+    return [category, ...categories];
+  }, [categories, category]);
   const selectedCategory =
-    categories.length > 0 &&
-    !categories.some((item) => item.toLowerCase() === category.toLowerCase())
-      ? categories[0]
+    categoryOptions.length > 0 &&
+    !categoryOptions.some((item) => item.toLowerCase() === category.toLowerCase())
+      ? categoryOptions[0]
       : category;
   const isMercadoPagoReady =
     mpStatus?.status === "CONECTADA" || mpStatus?.mode === "platform_test";
 
   const canSubmit =
-    categories.length > 0 &&
+    categoryOptions.length > 0 &&
     title.trim() &&
     selectedCategory.trim() &&
     longDescription.trim() &&
@@ -252,7 +260,7 @@ export default function OrganizerEventForm({
   const firstMissingField = useMemo(() => {
     if (!flyer.trim()) return "Flyer / Poster del evento";
     if (!title.trim()) return "Titulo";
-    if (categories.length === 0 || !selectedCategory.trim()) return "Categoria";
+    if (categoryOptions.length === 0 || !selectedCategory.trim()) return "Categoria";
     if (!longDescription.trim()) return "Descripcion del evento";
     if (!date.trim()) return "Fecha";
     if (!isCompleteEventTime(time)) return "Hora";
@@ -269,7 +277,7 @@ export default function OrganizerEventForm({
     }
     return "";
   }, [
-    categories.length,
+    categoryOptions.length,
     cbuCvu,
     date,
     flyer,
@@ -469,18 +477,18 @@ export default function OrganizerEventForm({
             value={selectedCategory}
             onChange={(e) => setCategory(e.target.value)}
             style={inputStyle}
-            disabled={categories.length === 0}
+            disabled={categoryOptions.length === 0}
           >
-            {categories.length === 0 && (
+            {categoryOptions.length === 0 && (
               <option value="">No hay categorias disponibles</option>
             )}
-            {categories.map((item) => (
+            {categoryOptions.map((item) => (
               <option key={item} value={item}>
                 {item}
               </option>
             ))}
           </select>
-          {categories.length === 0 && (
+          {categoryOptions.length === 0 && (
             <span
               style={{
                 fontSize: "var(--font-xs)",

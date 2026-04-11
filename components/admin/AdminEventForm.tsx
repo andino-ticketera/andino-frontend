@@ -281,11 +281,19 @@ export default function AdminEventForm({
     [provincia],
   );
   const timePeriod = getEventTimePeriod(time);
+  const categoryOptions = useMemo(() => {
+    const normalizedCurrent = category.trim().toLowerCase();
+    if (!normalizedCurrent) return categories;
+    if (categories.some((item) => item.toLowerCase() === normalizedCurrent)) {
+      return categories;
+    }
+    return [category, ...categories];
+  }, [categories, category]);
 
   const selectedCategory =
-    categories.length > 0 &&
-    !categories.some((item) => item.toLowerCase() === category.toLowerCase())
-      ? categories[0]
+    categoryOptions.length > 0 &&
+    !categoryOptions.some((item) => item.toLowerCase() === category.toLowerCase())
+      ? categoryOptions[0]
       : category;
 
   const initialPaymentMethod: "transferencia" | "mercadopago" =
@@ -377,7 +385,7 @@ export default function AdminEventForm({
       : JSON.stringify(currentComparable) !== JSON.stringify(initialComparable);
 
   const baseCanSubmit =
-    categories.length > 0 &&
+    categoryOptions.length > 0 &&
     title.trim() &&
     selectedCategory.trim() &&
     longDescription.trim() &&
@@ -391,7 +399,7 @@ export default function AdminEventForm({
   const canSubmit = baseCanSubmit && hasChanges;
   const firstMissingField = useMemo(() => {
     if (!title.trim()) return "Titulo";
-    if (categories.length === 0 || !selectedCategory.trim()) {
+    if (categoryOptions.length === 0 || !selectedCategory.trim()) {
       return "Categoria";
     }
     if (!longDescription.trim()) return "Descripcion larga";
@@ -403,7 +411,7 @@ export default function AdminEventForm({
     if (!image.trim()) return "Imagen del evento";
     return "";
   }, [
-    categories.length,
+    categoryOptions.length,
     date,
     image,
     localidad,
@@ -621,18 +629,18 @@ export default function AdminEventForm({
               value={selectedCategory}
               onChange={(e) => setCategory(e.target.value)}
               style={inputStyle}
-              disabled={categories.length === 0}
+              disabled={categoryOptions.length === 0}
             >
-              {categories.length === 0 && (
+              {categoryOptions.length === 0 && (
                 <option value="">No hay categorias disponibles</option>
               )}
-              {categories.map((item) => (
+              {categoryOptions.map((item) => (
                 <option key={item} value={item}>
                   {item}
                 </option>
               ))}
             </select>
-            {categories.length === 0 && (
+            {categoryOptions.length === 0 && (
               <span
                 style={{
                   fontSize: "var(--font-xs)",

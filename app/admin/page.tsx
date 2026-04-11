@@ -8,6 +8,7 @@ import {
   getManagedPaymentMethodLabel,
   getManagedPurchaseStatusColor,
   getManagedPurchaseStatusLabel,
+  isManagedPurchasePaid,
 } from "@/lib/managed-purchases-api";
 
 export default function AdminDashboardPage() {
@@ -19,30 +20,33 @@ export default function AdminDashboardPage() {
     isPurchasesLoading,
   } = useAdmin();
 
+  const paidPurchases = useMemo(
+    () => purchases.filter(isManagedPurchasePaid),
+    [purchases],
+  );
+
   const totalRevenue = useMemo(
     () =>
-      purchases
-        .filter((purchase) => purchase.status === "PAGADO")
-        .reduce((acc, purchase) => acc + purchase.totalPrice, 0),
-    [purchases],
+      paidPurchases.reduce((acc, purchase) => acc + purchase.totalPrice, 0),
+    [paidPurchases],
   );
 
   const stats = [
     { label: "Total de eventos", value: String(events.length) },
-    { label: "Total de compras", value: String(purchases.length) },
+    { label: "Compras pagadas", value: String(paidPurchases.length) },
     { label: "Ingresos cobrados", value: `$${totalRevenue.toFixed(2)}` },
     { label: "Slides del carrusel", value: String(carouselEventIds.length) },
   ];
 
   const recentPurchases = useMemo(() => {
-    return [...purchases]
+    return [...paidPurchases]
       .sort(
         (a, b) =>
           new Date(b.purchaseDate).getTime() -
           new Date(a.purchaseDate).getTime(),
       )
       .slice(0, 5);
-  }, [purchases]);
+  }, [paidPurchases]);
 
   return (
     <section>

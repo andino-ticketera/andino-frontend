@@ -14,6 +14,7 @@ import {
   getManagedPaymentMethodLabel,
   getManagedPurchaseStatusColor,
   getManagedPurchaseStatusLabel,
+  isManagedPurchasePaid,
 } from "@/lib/managed-purchases-api";
 
 export default function OrganizerDashboardPage() {
@@ -42,7 +43,7 @@ export default function OrganizerDashboardPage() {
   });
 
   const paidPurchases = useMemo(
-    () => purchases.filter((purchase) => purchase.status === "PAGADO"),
+    () => purchases.filter(isManagedPurchasePaid),
     [purchases],
   );
 
@@ -62,14 +63,14 @@ export default function OrganizerDashboardPage() {
 
   const recentPurchases = useMemo(
     () =>
-      [...purchases]
+      [...paidPurchases]
         .sort(
           (a, b) =>
             new Date(b.purchaseDate).getTime() -
             new Date(a.purchaseDate).getTime(),
         )
         .slice(0, 5),
-    [purchases],
+    [paidPurchases],
   );
 
   const mpBannerMessage =

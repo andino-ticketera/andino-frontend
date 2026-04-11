@@ -3,12 +3,14 @@ import {
   formatManagedPurchaseDate,
   getManagedPaymentMethodLabel,
   getPurchaseCheckInLabel,
+  isManagedPurchasePaid,
 } from "@/lib/managed-purchases-api";
 
 export function downloadBuyersCsv(
   purchases: Purchase[],
   eventTitle: string,
 ): void {
+  const paidPurchases = purchases.filter(isManagedPurchasePaid);
   const headers = [
     "Nombre",
     "Apellido",
@@ -24,7 +26,7 @@ export function downloadBuyersCsv(
     "Check-in",
   ];
 
-  const rows = purchases.map((p) =>
+  const rows = paidPurchases.map((p) =>
     [
       p.firstName,
       p.lastName,

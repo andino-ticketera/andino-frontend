@@ -9,6 +9,7 @@ import ExpandableTableRow from "@/components/ExpandableTableRow";
 import {
   getManagedPaymentMethodLabel,
   getPurchaseCheckInLabel,
+  isManagedPurchasePaid,
 } from "@/lib/managed-purchases-api";
 
 export default function OrganizerCheckinPage() {
@@ -23,7 +24,11 @@ export default function OrganizerCheckinPage() {
   const event = events.find((item) => item.id === params.id);
 
   const eventPurchases = useMemo(
-    () => purchases.filter((purchase) => purchase.eventId === params.id),
+    () =>
+      purchases.filter(
+        (purchase) =>
+          purchase.eventId === params.id && isManagedPurchasePaid(purchase),
+      ),
     [purchases, params.id],
   );
 

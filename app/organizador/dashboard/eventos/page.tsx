@@ -25,6 +25,7 @@ export default function OrganizerEventsPage() {
   return (
     <section>
       <div
+        className="section-mobile-header"
         style={{
           display: "flex",
           alignItems: "center",
@@ -33,7 +34,7 @@ export default function OrganizerEventsPage() {
           marginBottom: "14px",
         }}
       >
-        <div>
+        <div className="section-mobile-copy">
           <h1
             className="section-mobile-title"
             style={{
@@ -54,18 +55,23 @@ export default function OrganizerEventsPage() {
 
         <Link
           href="/organizador/dashboard/eventos/nuevo"
-          className="btn-primary section-mobile-button"
+          className="btn-primary section-mobile-button section-mobile-cta"
           style={{
             background: "var(--color-accent)",
             color: "var(--text-primary)",
             borderRadius: "var(--radius-md)",
             textDecoration: "none",
-            padding: "10px 14px",
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "0.5rem",
+            padding: "12px 16px",
             fontWeight: 700,
             whiteSpace: "nowrap",
           }}
         >
-          Publicar evento
+          <EvaIcon name="plus" size={16} />
+          <span>Publicar evento</span>
         </Link>
       </div>
 

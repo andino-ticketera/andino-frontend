@@ -23,9 +23,11 @@ import { fetchCarouselEventIds } from "@/lib/carousel-api";
 import {
   type BackendCategoria,
   createCategory,
+  fetchAdminCategories,
   deleteCategory,
   fetchPublicCategories,
   updateCategory,
+  updateCategoryVisibility,
 } from "@/lib/categories-api";
 
 export type AdminToastType = "success" | "danger";
@@ -39,6 +41,7 @@ interface AdminContextValue {
   events: Event[];
   purchases: Purchase[];
   categories: string[];
+  allCategories: BackendCategoria[];
   carouselEventIds: string[];
   toast: AdminToast | null;
   isEventsLoading: boolean;
@@ -54,6 +57,10 @@ interface AdminContextValue {
     nextCategory: string,
   ) => Promise<boolean>;
   removeCategory: (category: string) => Promise<boolean>;
+  setCategoryVisibility: (
+    category: string,
+    visibleInApp: boolean,
+  ) => Promise<boolean>;
   setCarouselEventIds: (ids: string[]) => void;
   showToast: (message: string, type: AdminToastType) => void;
   clearToast: () => void;
@@ -65,6 +72,7 @@ const PUBLIC_EVENTS_QUERY_KEY = ["public-events"] as const;
 const ADMIN_EVENTS_QUERY_KEY = ["admin-events"] as const;
 const ADMIN_PURCHASES_QUERY_KEY = ["admin-purchases"] as const;
 const PUBLIC_CATEGORIES_QUERY_KEY = ["public-categories"] as const;
+const ADMIN_CATEGORIES_QUERY_KEY = ["admin-categories"] as const;
 const CAROUSEL_EVENTS_QUERY_KEY = ["carousel-events"] as const;
 
 function normalizeCategory(value: string): string {
@@ -77,14 +85,6 @@ function isEventPubliclyVisible(event: Event): boolean {
 
 function upsertEventList(events: Event[], nextEvent: Event): Event[] {
   const withoutCurrent = events.filter((event) => event.id !== nextEvent.id);
-  return [nextEvent, ...withoutCurrent];
-}
-
-function syncPublicEvents(events: Event[], nextEvent: Event): Event[] {
-  const withoutCurrent = events.filter((event) => event.id !== nextEvent.id);
-  if (!isEventPubliclyVisible(nextEvent)) {
-    return withoutCurrent;
-  }
   return [nextEvent, ...withoutCurrent];
 }
 
@@ -115,12 +115,14 @@ function normalizeCategories(
     .map((category) => ({
       ...category,
       nombre: normalizeCategory(category.nombre),
+      visible_en_app: category.visible_en_app !== false,
     }))
     .filter((category, index, arr) => {
       if (!category.nombre) return false;
       return (
         arr.findIndex(
           (value) =>
+            value.id === category.id ||
             value.nombre.toLowerCase() === category.nombre.toLowerCase(),
         ) === index
       );
@@ -136,7 +138,6 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   const isAdminRoute = pathname.startsWith("/admin");
   const shouldFetchPublicCatalog =
     pathname === "/" || pathname === "/cartelera" || pathname === "/explorar";
-  const shouldFetchCatalogData = shouldFetchPublicCatalog || isAdminRoute;
 
   const { data: publicEvents = [], isLoading: isPublicEventsLoading } = useQuery({
     queryKey: PUBLIC_EVENTS_QUERY_KEY,
@@ -168,17 +169,28 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     retry: 1,
   });
 
-  const { data: categoryRecords = [], isLoading: isCategoriesLoading } =
+  const { data: publicCategoryRecords = [], isLoading: isPublicCategoriesLoading } =
     useQuery({
       queryKey: PUBLIC_CATEGORIES_QUERY_KEY,
       queryFn: fetchPublicCategories,
       select: normalizeCategories,
-      enabled: shouldFetchCatalogData,
+      enabled: shouldFetchPublicCatalog,
       staleTime: Infinity,
       gcTime: 1000 * 60 * 60 * 24,
       refetchOnMount: false,
       refetchOnWindowFocus: false,
       refetchOnReconnect: false,
+      retry: 1,
+    });
+
+  const { data: adminCategoryRecords = [], isLoading: isAdminCategoriesLoading } =
+    useQuery({
+      queryKey: ADMIN_CATEGORIES_QUERY_KEY,
+      queryFn: fetchAdminCategories,
+      select: normalizeCategories,
+      enabled: isAdminRoute,
+      staleTime: 0,
+      refetchOnWindowFocus: false,
       retry: 1,
     });
 
@@ -196,9 +208,13 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     });
 
   const events = isAdminRoute ? adminEvents : publicEvents;
+  const allCategories = isAdminRoute ? adminCategoryRecords : publicCategoryRecords;
   const categories = useMemo(
-    () => categoryRecords.map((category) => category.nombre),
-    [categoryRecords],
+    () =>
+      allCategories
+        .filter((category) => category.visible_en_app !== false)
+        .map((category) => category.nombre),
+    [allCategories],
   );
   const carouselEventIds = useMemo(
     () => sanitizeCarouselIds(fetchedCarouselEventIds, events),
@@ -208,23 +224,51 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   const isEventsLoading =
     (isAdminRoute ? isAdminEventsLoading : isPublicEventsLoading) &&
     events.length === 0;
+  const isCategoriesLoading =
+    (isAdminRoute ? isAdminCategoriesLoading : isPublicCategoriesLoading) &&
+    allCategories.length === 0;
+
+  const isCategoryPubliclyVisible = useCallback(
+    (categoryName: string) => {
+      const normalizedCategory = categoryName.trim().toLowerCase();
+      if (!normalizedCategory) return true;
+
+      const knownCategories =
+        queryClient.getQueryData<BackendCategoria[]>(ADMIN_CATEGORIES_QUERY_KEY) ||
+        queryClient.getQueryData<BackendCategoria[]>(PUBLIC_CATEGORIES_QUERY_KEY) ||
+        [];
+
+      const match = knownCategories.find(
+        (category) => category.nombre.toLowerCase() === normalizedCategory,
+      );
+
+      return match ? match.visible_en_app !== false : true;
+    },
+    [queryClient],
+  );
 
   const applyEventToCaches = useCallback(
     (nextEvent: Event) => {
+      const categoryVisible = isCategoryPubliclyVisible(nextEvent.category);
+
       queryClient.setQueryData<Event[]>(ADMIN_EVENTS_QUERY_KEY, (prev = []) =>
         upsertEventList(prev, nextEvent),
       );
-      queryClient.setQueryData<Event[]>(PUBLIC_EVENTS_QUERY_KEY, (prev = []) =>
-        syncPublicEvents(prev, nextEvent),
-      );
+      queryClient.setQueryData<Event[]>(PUBLIC_EVENTS_QUERY_KEY, (prev = []) => {
+        const withoutCurrent = prev.filter((event) => event.id !== nextEvent.id);
+        if (!isEventPubliclyVisible(nextEvent) || !categoryVisible) {
+          return withoutCurrent;
+        }
+        return [nextEvent, ...withoutCurrent];
+      });
 
-      if (!isEventPubliclyVisible(nextEvent)) {
+      if (!isEventPubliclyVisible(nextEvent) || !categoryVisible) {
         queryClient.setQueryData<string[]>(CAROUSEL_EVENTS_QUERY_KEY, (prev = []) =>
           prev.filter((eventId) => eventId !== nextEvent.id),
         );
       }
     },
-    [queryClient],
+    [isCategoryPubliclyVisible, queryClient],
   );
 
   const addEvent = useCallback(
@@ -272,7 +316,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       const normalizedCategory = normalizeCategory(category);
       if (!normalizedCategory) return false;
 
-      const alreadyExists = categoryRecords.some(
+      const alreadyExists = allCategories.some(
         (existingCategory) =>
           existingCategory.nombre.toLowerCase() ===
           normalizedCategory.toLowerCase(),
@@ -281,6 +325,14 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
       try {
         const created = await createCategory(normalizedCategory);
+        queryClient.setQueryData<BackendCategoria[]>(
+          ADMIN_CATEGORIES_QUERY_KEY,
+          (prev = []) =>
+            normalizeCategories([
+              ...prev,
+              { ...created, nombre: normalizeCategory(created.nombre) },
+            ]),
+        );
         queryClient.setQueryData<BackendCategoria[]>(
           PUBLIC_CATEGORIES_QUERY_KEY,
           (prev = []) =>
@@ -294,7 +346,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         return false;
       }
     },
-    [categoryRecords, queryClient],
+    [allCategories, queryClient],
   );
 
   const renameCategory = useCallback(
@@ -304,13 +356,13 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
       if (!normalizedCurrent || !normalizedNext) return false;
 
-      const currentRecord = categoryRecords.find(
+      const currentRecord = allCategories.find(
         (category) =>
           category.nombre.toLowerCase() === normalizedCurrent.toLowerCase(),
       );
       if (!currentRecord) return false;
 
-      const alreadyExists = categoryRecords.some(
+      const alreadyExists = allCategories.some(
         (category) =>
           category.id !== currentRecord.id &&
           category.nombre.toLowerCase() === normalizedNext.toLowerCase(),
@@ -322,13 +374,23 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         const normalizedUpdated = {
           ...updated,
           nombre: normalizeCategory(updated.nombre),
+          visible_en_app: updated.visible_en_app !== false,
         };
 
         queryClient.setQueryData<BackendCategoria[]>(
-          PUBLIC_CATEGORIES_QUERY_KEY,
+          ADMIN_CATEGORIES_QUERY_KEY,
           (prev = []) =>
             prev.map((category) =>
               category.id === currentRecord.id ? normalizedUpdated : category,
+            ),
+        );
+        queryClient.setQueryData<BackendCategoria[]>(
+          PUBLIC_CATEGORIES_QUERY_KEY,
+          (prev = []) =>
+            normalizeCategories(
+              prev.map((category) =>
+                category.id === currentRecord.id ? normalizedUpdated : category,
+              ),
             ),
         );
 
@@ -351,7 +413,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         return false;
       }
     },
-    [categoryRecords, queryClient],
+    [allCategories, queryClient],
   );
 
   const removeCategory = useCallback(
@@ -359,7 +421,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       const normalizedCategory = normalizeCategory(category);
       if (!normalizedCategory) return false;
 
-      const categoryRecord = categoryRecords.find(
+      const categoryRecord = allCategories.find(
         (existingCategory) =>
           existingCategory.nombre.toLowerCase() ===
           normalizedCategory.toLowerCase(),
@@ -368,6 +430,13 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
       try {
         await deleteCategory(categoryRecord.id);
+        queryClient.setQueryData<BackendCategoria[]>(
+          ADMIN_CATEGORIES_QUERY_KEY,
+          (prev = []) =>
+            prev.filter(
+              (existingCategory) => existingCategory.id !== categoryRecord.id,
+            ),
+        );
         queryClient.setQueryData<BackendCategoria[]>(
           PUBLIC_CATEGORIES_QUERY_KEY,
           (prev = []) =>
@@ -380,7 +449,112 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         return false;
       }
     },
-    [categoryRecords, queryClient],
+    [allCategories, queryClient],
+  );
+
+  const setCategoryVisibility = useCallback(
+    async (category: string, visibleInApp: boolean) => {
+      const normalizedCategory = normalizeCategory(category);
+      if (!normalizedCategory) return false;
+
+      const categoryRecord = allCategories.find(
+        (existingCategory) =>
+          existingCategory.nombre.toLowerCase() ===
+          normalizedCategory.toLowerCase(),
+      );
+      if (!categoryRecord) return false;
+
+      try {
+        const updated = await updateCategoryVisibility(
+          categoryRecord.id,
+          visibleInApp,
+        );
+        const normalizedUpdated = {
+          ...updated,
+          nombre: normalizeCategory(updated.nombre),
+          visible_en_app: updated.visible_en_app !== false,
+        };
+
+        queryClient.setQueryData<BackendCategoria[]>(
+          ADMIN_CATEGORIES_QUERY_KEY,
+          (prev = []) =>
+            normalizeCategories(
+              prev.map((existingCategory) =>
+                existingCategory.id === categoryRecord.id
+                  ? normalizedUpdated
+                  : existingCategory,
+              ),
+            ),
+        );
+        queryClient.setQueryData<BackendCategoria[]>(
+          PUBLIC_CATEGORIES_QUERY_KEY,
+          (prev = []) => {
+            const nextVisibleCategories = prev.filter(
+              (existingCategory) => existingCategory.id !== categoryRecord.id,
+            );
+
+            if (!normalizedUpdated.visible_en_app) {
+              return normalizeCategories(nextVisibleCategories);
+            }
+
+            return normalizeCategories([
+              ...nextVisibleCategories,
+              normalizedUpdated,
+            ]);
+          },
+        );
+
+        const matchesCategory = (event: Event) =>
+          event.category.toLowerCase() === normalizedCategory.toLowerCase();
+
+        if (!normalizedUpdated.visible_en_app) {
+          queryClient.setQueryData<Event[]>(PUBLIC_EVENTS_QUERY_KEY, (prev = []) =>
+            prev.filter((event) => !matchesCategory(event)),
+          );
+          queryClient.setQueryData<string[]>(CAROUSEL_EVENTS_QUERY_KEY, (prev = []) => {
+            const adminEventsCache =
+              queryClient.getQueryData<Event[]>(ADMIN_EVENTS_QUERY_KEY) || [];
+            const hiddenEventIds = new Set(
+              adminEventsCache
+                .filter((event) => matchesCategory(event))
+                .map((event) => event.id),
+            );
+            return prev.filter((eventId) => !hiddenEventIds.has(eventId));
+          });
+          return true;
+        }
+
+        const adminEventsCache =
+          queryClient.getQueryData<Event[]>(ADMIN_EVENTS_QUERY_KEY) || [];
+        const visibleEventsToRestore = adminEventsCache.filter(
+          (event) => matchesCategory(event) && isEventPubliclyVisible(event),
+        );
+
+        if (visibleEventsToRestore.length > 0) {
+          queryClient.setQueryData<Event[]>(PUBLIC_EVENTS_QUERY_KEY, (prev = []) => {
+            const merged = [...prev];
+
+            for (const event of visibleEventsToRestore) {
+              const existingIndex = merged.findIndex(
+                (existingEvent) => existingEvent.id === event.id,
+              );
+              if (existingIndex >= 0) {
+                merged[existingIndex] = event;
+              } else {
+                merged.unshift(event);
+              }
+            }
+
+            return merged;
+          });
+        }
+
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    [allCategories, queryClient],
   );
 
   const setCarouselEventIds = useCallback(
@@ -426,12 +600,12 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       events,
       purchases,
       categories,
+      allCategories,
       carouselEventIds,
       toast,
       isEventsLoading,
       isPurchasesLoading,
-      isCategoriesLoading:
-        shouldFetchCatalogData && isCategoriesLoading && categoryRecords.length === 0,
+      isCategoriesLoading,
       isCarouselLoading:
         (pathname === "/" || isAdminRoute) &&
         isCarouselLoading &&
@@ -442,6 +616,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       addCategory,
       renameCategory,
       removeCategory,
+      setCategoryVisibility,
       setCarouselEventIds,
       showToast,
       clearToast,
@@ -451,22 +626,22 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       addEvent,
       carouselEventIds,
       categories,
-      categoryRecords.length,
+      allCategories,
       clearToast,
       deleteEvent,
       events,
       fetchedCarouselEventIds.length,
       isAdminRoute,
       isCarouselLoading,
-      isCategoriesLoading,
       isEventsLoading,
+      isCategoriesLoading,
       isPurchasesLoading,
       pathname,
       purchases,
       removeCategory,
       renameCategory,
+      setCategoryVisibility,
       setCarouselEventIds,
-      shouldFetchCatalogData,
       showToast,
       toast,
       updateEvent,
