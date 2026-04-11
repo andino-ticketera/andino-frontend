@@ -37,7 +37,9 @@ function getEventsEndpoint(): string {
 }
 
 function getAdminEventsEndpoint(): string {
-  return "/api/proxy/eventos/admin/todos";
+  // El admin siempre pide todos los eventos (incluidos finalizados) y filtra
+  // por fecha del lado del cliente via los tabs Proximos/Finalizados/Todos.
+  return "/api/proxy/eventos/admin/todos?finalizados=incluir";
 }
 
 function getEventsBaseEndpoint(): string {
@@ -151,6 +153,7 @@ function mapEventoToFrontend(evento: BackendEvento): Event {
     description: evento.descripcion,
     longDescription: evento.descripcion,
     date: formatDateLabel(evento.fecha_evento),
+    eventDateIso: evento.fecha_evento,
     time: formatTimeLabel(evento.fecha_evento),
     venue,
     provincia: evento.provincia,

@@ -7,6 +7,7 @@ import AdminConfirmDialog from "@/components/admin/AdminConfirmDialog";
 import { useAdmin } from "@/context/AdminContext";
 import EvaIcon from "@/components/EvaIcon";
 import ExpandableTableRow from "@/components/ExpandableTableRow";
+import { isEventFinished } from "@/data/events";
 import {
   deleteEventFromAdmin,
   updateEventVisibilityFromAdmin,
@@ -18,11 +19,13 @@ interface DeleteEventDialogState {
 }
 
 type VisibilityFilter = "all" | "visible" | "hidden";
+type TimeFilter = "proximos" | "finalizados" | "todos";
 
 export default function AdminEventsPage() {
   const { events, deleteEvent, updateEvent, showToast, isEventsLoading } =
     useAdmin();
   const [query, setQuery] = useState("");
+  const [timeFilter, setTimeFilter] = useState<TimeFilter>("proximos");
   const [visibilityFilter, setVisibilityFilter] =
     useState<VisibilityFilter>("all");
   const [deleteDialog, setDeleteDialog] =
@@ -31,10 +34,22 @@ export default function AdminEventsPage() {
     null,
   );
 
+  const proximosCount = useMemo(
+    () => events.filter((event) => !isEventFinished(event)).length,
+    [events],
+  );
+  const finalizadosCount = events.length - proximosCount;
+
+  const timeFilteredEvents = useMemo(() => {
+    if (timeFilter === "todos") return events;
+    const wantFinished = timeFilter === "finalizados";
+    return events.filter((event) => isEventFinished(event) === wantFinished);
+  }, [events, timeFilter]);
+
   const filteredEvents = useMemo(() => {
     const normalized = query.trim().toLowerCase();
 
-    return events.filter((event) => {
+    return timeFilteredEvents.filter((event) => {
       if (visibilityFilter === "visible" && event.visibleInApp === false) {
         return false;
       }
@@ -50,13 +65,15 @@ export default function AdminEventsPage() {
         event.category.toLowerCase().includes(normalized)
       );
     });
-  }, [events, query, visibilityFilter]);
+  }, [timeFilteredEvents, query, visibilityFilter]);
 
   const visibleCount = useMemo(
-    () => events.filter((event) => event.visibleInApp !== false).length,
-    [events],
+    () =>
+      timeFilteredEvents.filter((event) => event.visibleInApp !== false).length,
+    [timeFilteredEvents],
   );
-  const hiddenCount = events.length - visibleCount;
+  const hiddenCount = timeFilteredEvents.length - visibleCount;
+  const isFinalizadosView = timeFilter === "finalizados";
 
   const handleConfirmDeleteEvent = async () => {
     if (!deleteDialog) return;
@@ -154,6 +171,81 @@ export default function AdminEventsPage() {
       </div>
 
       <div
+        role="tablist"
+        aria-label="Filtro por fecha del evento"
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          gap: "0.5rem",
+          marginBottom: "0.75rem",
+        }}
+      >
+        {[
+          {
+            key: "proximos" as const,
+            label: "Proximos",
+            count: proximosCount,
+          },
+          {
+            key: "finalizados" as const,
+            label: "Finalizados",
+            count: finalizadosCount,
+          },
+          {
+            key: "todos" as const,
+            label: "Todos",
+            count: events.length,
+          },
+        ].map((item) => {
+          const isActive = timeFilter === item.key;
+          return (
+            <button
+              key={item.key}
+              type="button"
+              role="tab"
+              aria-selected={isActive}
+              onClick={() => setTimeFilter(item.key)}
+              style={{
+                flex: "1 1 7rem",
+                minWidth: "7rem",
+                border: isActive
+                  ? "1px solid rgba(92, 255, 157, 0.55)"
+                  : "1px solid var(--border-color)",
+                background: isActive
+                  ? "rgba(92, 255, 157, 0.16)"
+                  : "var(--bg-surface-1)",
+                color: isActive
+                  ? "var(--color-primary)"
+                  : "var(--text-secondary)",
+                borderRadius: "var(--radius-md)",
+                padding: "0.625rem 0.875rem",
+                fontWeight: 800,
+                fontSize: "var(--font-sm)",
+                cursor: "pointer",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "0.375rem",
+              }}
+            >
+              <span>{item.label}</span>
+              <span
+                style={{
+                  fontSize: "var(--font-xs)",
+                  fontWeight: 700,
+                  color: isActive
+                    ? "var(--color-primary)"
+                    : "var(--text-disabled)",
+                }}
+              >
+                ({item.count})
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      <div
         style={{
           display: "flex",
           flexWrap: "wrap",
@@ -162,7 +254,10 @@ export default function AdminEventsPage() {
         }}
       >
         {[
-          { key: "all" as const, label: `Todos (${events.length})` },
+          {
+            key: "all" as const,
+            label: `Todos (${timeFilteredEvents.length})`,
+          },
           { key: "visible" as const, label: `Visibles (${visibleCount})` },
           { key: "hidden" as const, label: `Ocultos (${hiddenCount})` },
         ].map((item) => {
@@ -233,6 +328,95 @@ export default function AdminEventsPage() {
           filteredEvents.map((event) => {
             const isVisible = event.visibleInApp !== false;
             const isPending = pendingVisibilityId === event.id;
+
+            if (isFinalizadosView) {
+              return (
+                <article
+                  key={event.id}
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "3rem 1fr auto",
+                    gap: "0.75rem",
+                    alignItems: "center",
+                    padding: "0.625rem 0.75rem",
+                    border: "1px solid var(--border-color)",
+                    borderRadius: "var(--radius-md)",
+                    background: "var(--bg-surface-1)",
+                    opacity: 0.92,
+                  }}
+                >
+                  <div
+                    style={{
+                      position: "relative",
+                      width: "3rem",
+                      height: "3rem",
+                      borderRadius: "0.5rem",
+                      overflow: "hidden",
+                      flexShrink: 0,
+                    }}
+                  >
+                    <Image
+                      src={event.image}
+                      alt={event.title}
+                      fill
+                      sizes="3rem"
+                      style={{ objectFit: "cover" }}
+                    />
+                  </div>
+
+                  <div style={{ minWidth: 0 }}>
+                    <h2
+                      style={{
+                        fontSize: "var(--font-sm)",
+                        fontWeight: 800,
+                        color: "var(--text-primary)",
+                        margin: 0,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {event.title}
+                    </h2>
+                    <p
+                      style={{
+                        fontSize: "var(--font-xs)",
+                        color: "var(--text-disabled)",
+                        margin: "0.125rem 0 0",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {event.date} · {event.entradasVendidas}/
+                      {event.totalEntradas} vendidas
+                    </p>
+                  </div>
+
+                  <Link
+                    href={`/admin/eventos/${event.id}`}
+                    aria-label={`Ver detalle de ${event.title}`}
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "0.25rem",
+                      color: "var(--text-secondary)",
+                      background: "var(--bg-surface-2)",
+                      border: "1px solid var(--border-color)",
+                      borderRadius: "var(--radius-sm)",
+                      textDecoration: "none",
+                      padding: "0.375rem 0.625rem",
+                      fontSize: "var(--font-xs)",
+                      fontWeight: 700,
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    <EvaIcon name="eye" size={14} />
+                    <span>Ver</span>
+                  </Link>
+                </article>
+              );
+            }
 
             return (
               <ExpandableTableRow

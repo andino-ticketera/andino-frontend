@@ -19,17 +19,17 @@ function formatPrice(value: number): string {
 }
 
 function getStatusTitle(status?: PublicCheckoutStatus["estado"]): string {
-  if (status === "PAGADO") return "Pago acreditado";
+  if (status === "PAGADO") return "Pago acreditado exitosamente";
   if (status === "CANCELADO") return "Pago cancelado o rechazado";
   return "Pago en proceso";
 }
 
 function getStatusCopy(status?: PublicCheckoutStatus["estado"]): string {
   if (status === "PAGADO") {
-    return "Tu compra fue registrada correctamente. Si usaste un medio inmediato, las entradas ya deberian quedar emitidas. Revisa tu email y acordate de mirar spam, promociones y las demas bandejas por si el mensaje llega filtrado.";
+    return "Tu compra fue registrada correctamente. Si usaste un medio inmediato, las entradas ya deberían quedar emitidas. Revisá tu email y acordate de mirar spam, promociones y las demás bandejas por si el mensaje llega filtrado.";
   }
   if (status === "CANCELADO") {
-    return "Mercado Pago informo que el pago no se acreditó. Podés volver al evento e intentarlo otra vez.";
+    return "Mercado Pago informó que el pago no se acreditó. Podés volver al evento e intentarlo otra vez.";
   }
   return "Todavía estamos esperando la confirmación final del pago. Si acabás de pagar, refrescá esta pantalla en unos segundos.";
 }
@@ -120,7 +120,7 @@ function CheckoutEstadoContent() {
                 fontSize: "var(--font-sm)",
               }}
             >
-              Tus entradas se envian por email. Si no las ves enseguida, revisa
+              Tus entradas se envían por email. Si no las ves enseguida, revisá
               spam, promociones, social y el resto de tus bandejas.
             </div>
           ) : null}
@@ -152,12 +152,14 @@ function CheckoutEstadoContent() {
                 }}
               >
                 {[
-                  ["Compra", data.compraId],
+                  // Nota: omitimos compraId (UUID crudo) y mpStatus (detalle
+                  // interno de Mercado Pago) para no exponer ruido técnico al
+                  // comprador. Si se necesita para soporte, sigue disponible
+                  // en el backend (GET /api/pagos/public/:compraId).
                   ["Evento", data.eventoTitulo],
                   ["Cantidad", String(data.cantidad)],
                   ["Total", formatPrice(data.total)],
                   ["Email", data.compradorEmail],
-                  ["Estado interno", data.mpStatus || "sin detalle"],
                 ].map(([label, value]) => (
                   <div
                     key={label}

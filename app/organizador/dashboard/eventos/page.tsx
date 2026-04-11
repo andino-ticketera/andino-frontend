@@ -6,21 +6,41 @@ import { useMemo, useState } from "react";
 import { useOrganizer } from "@/context/OrganizerContext";
 import EvaIcon from "@/components/EvaIcon";
 import ExpandableTableRow from "@/components/ExpandableTableRow";
+import { isEventFinished } from "@/data/events";
+
+// Mismo patron que admin: filtra por estado temporal del evento derivado de la fecha.
+type TimeFilter = "proximos" | "finalizados" | "todos";
 
 export default function OrganizerEventsPage() {
   const { events } = useOrganizer();
   const [query, setQuery] = useState("");
+  const [timeFilter, setTimeFilter] = useState<TimeFilter>("proximos");
 
+  // Contadores por estado temporal para los tabs.
+  const proximosCount = useMemo(
+    () => events.filter((event) => !isEventFinished(event)).length,
+    [events],
+  );
+  const finalizadosCount = events.length - proximosCount;
+
+  // Paso 1: aplico filtro temporal (proximos/finalizados/todos).
+  const timeFilteredEvents = useMemo(() => {
+    if (timeFilter === "todos") return events;
+    const wantFinished = timeFilter === "finalizados";
+    return events.filter((event) => isEventFinished(event) === wantFinished);
+  }, [events, timeFilter]);
+
+  // Paso 2: aplico busqueda por texto sobre el subconjunto ya filtrado.
   const filteredEvents = useMemo(() => {
     const normalized = query.trim().toLowerCase();
-    if (!normalized) return events;
-    return events.filter(
+    if (!normalized) return timeFilteredEvents;
+    return timeFilteredEvents.filter(
       (event) =>
         event.title.toLowerCase().includes(normalized) ||
         event.venue.toLowerCase().includes(normalized) ||
         event.category.toLowerCase().includes(normalized),
     );
-  }, [events, query]);
+  }, [timeFilteredEvents, query]);
 
   return (
     <section>
@@ -73,6 +93,81 @@ export default function OrganizerEventsPage() {
           <EvaIcon name="plus" size={16} />
           <span>Publicar evento</span>
         </Link>
+      </div>
+
+      <div
+        role="tablist"
+        aria-label="Filtro por fecha del evento"
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          gap: "0.5rem",
+          marginBottom: "0.75rem",
+        }}
+      >
+        {[
+          {
+            key: "proximos" as const,
+            label: "Proximos",
+            count: proximosCount,
+          },
+          {
+            key: "finalizados" as const,
+            label: "Finalizados",
+            count: finalizadosCount,
+          },
+          {
+            key: "todos" as const,
+            label: "Todos",
+            count: events.length,
+          },
+        ].map((item) => {
+          const isActive = timeFilter === item.key;
+          return (
+            <button
+              key={item.key}
+              type="button"
+              role="tab"
+              aria-selected={isActive}
+              onClick={() => setTimeFilter(item.key)}
+              style={{
+                flex: "1 1 7rem",
+                minWidth: "7rem",
+                border: isActive
+                  ? "1px solid rgba(92, 255, 157, 0.55)"
+                  : "1px solid var(--border-color)",
+                background: isActive
+                  ? "rgba(92, 255, 157, 0.16)"
+                  : "var(--bg-surface-1)",
+                color: isActive
+                  ? "var(--color-primary)"
+                  : "var(--text-secondary)",
+                borderRadius: "var(--radius-md)",
+                padding: "8px 12px",
+                fontSize: "var(--font-sm)",
+                fontWeight: 700,
+                cursor: "pointer",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "0.4rem",
+              }}
+            >
+              <span>{item.label}</span>
+              <span
+                style={{
+                  fontSize: "var(--font-xs)",
+                  fontWeight: 700,
+                  color: isActive
+                    ? "var(--color-primary)"
+                    : "var(--text-disabled)",
+                }}
+              >
+                ({item.count})
+              </span>
+            </button>
+          );
+        })}
       </div>
 
       <input
