@@ -337,6 +337,8 @@ export default function FlyerCatalogPageClient() {
                   fontWeight: 600,
                   border: "none",
                   cursor: "pointer",
+                  outline: "none",
+                  WebkitTapHighlightColor: "transparent",
                   transition:
                     "background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease",
                   background: isActive
@@ -347,6 +349,7 @@ export default function FlyerCatalogPageClient() {
                     ? "0 0 12px rgba(92, 255, 157, 0.3)"
                     : "none",
                 }}
+                onPointerUp={(e) => e.currentTarget.blur()}
               >
                 {cat}
               </button>
