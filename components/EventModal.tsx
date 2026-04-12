@@ -105,7 +105,7 @@ export default function EventModal({ event, onClose }: EventModalProps) {
     }).format(rounded)}`;
   }, []);
 
-  const organizerName = event.organizador || event.venue.split(",")[0].trim();
+  const organizerName = event.organizador || "Andino Tickets";
 
   const isFormValid = useMemo(
     () =>

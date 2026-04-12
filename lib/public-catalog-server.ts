@@ -24,6 +24,7 @@ interface BackendEvento {
   visible_en_app: boolean;
   creador_id: string;
   creador_rol: "ORGANIZADOR" | "ADMIN";
+  nombre_organizador?: string;
 }
 
 interface EventosResponse {
@@ -111,7 +112,7 @@ function mapEventoToFrontend(evento: BackendEvento): Event {
     featured: false,
     tags: [evento.categoria.toUpperCase()],
     direccion: evento.direccion,
-    organizador: evento.locacion,
+    organizador: evento.nombre_organizador || "",
     totalEntradas: evento.cantidad_entradas,
     entradasVendidas: evento.entradas_vendidas,
     mediosDePago,
