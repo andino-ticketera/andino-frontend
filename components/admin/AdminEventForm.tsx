@@ -196,6 +196,19 @@ export default function AdminEventForm({
     return organizers.find((item) => item.id === assignedOrganizerId) ?? null;
   }, [assignedOrganizerId, organizers]);
 
+  const handleAssignedOrganizerChange = (nextOrganizerId: string) => {
+    setAssignedOrganizerId(nextOrganizerId);
+    if (mode !== "create" || organizador.trim() || !organizers) {
+      return;
+    }
+
+    const matchedOrganizer = organizers.find((item) => item.id === nextOrganizerId);
+    const matchedName = matchedOrganizer?.nombreCompleto?.trim();
+    if (matchedName) {
+      setOrganizador(matchedName);
+    }
+  };
+
   const handleCopyPanelLink = async () => {
     if (!organizerPanelUrl) return;
     try {
@@ -230,7 +243,7 @@ export default function AdminEventForm({
   const [direccion, setDireccion] = useState(defaults.direccion);
   const [provincia, setProvincia] = useState(defaultProvincia);
   const [localidad, setLocalidad] = useState(defaultLocalidad);
-  const organizador = defaults.organizador;
+  const [organizador, setOrganizador] = useState(defaults.organizador);
   const [image, setImage] = useState(defaults.image);
   const [flyer, setFlyer] = useState(defaults.flyer);
   const [price, setPrice] = useState(String(defaults.price));
@@ -286,10 +299,6 @@ export default function AdminEventForm({
     !categoryOptions.some((item) => item.toLowerCase() === category.toLowerCase())
       ? categoryOptions[0]
       : category;
-  const organizerDisplayName = selectedOrganizer?.nombreCompleto?.trim()
-    ? selectedOrganizer.nombreCompleto.trim()
-    : organizador.trim();
-
   const initialComparable = useMemo(
     () => ({
       title: defaults.title.trim(),
@@ -301,6 +310,7 @@ export default function AdminEventForm({
       direccion: defaults.direccion.trim(),
       provincia: defaultProvincia,
       localidad: defaultLocalidad,
+      organizador: defaults.organizador.trim(),
       image: defaults.image.trim(),
       flyer: defaults.flyer.trim(),
       price: Number(defaults.price) || 0,
@@ -327,6 +337,7 @@ export default function AdminEventForm({
       direccion: direccion.trim(),
       provincia,
       localidad,
+      organizador: organizador.trim(),
       image: image.trim(),
       flyer: flyer.trim(),
       price: Number(price) || 0,
@@ -343,6 +354,7 @@ export default function AdminEventForm({
       direccion,
       provincia,
       localidad,
+      organizador,
       image,
       flyer,
       price,
@@ -361,9 +373,11 @@ export default function AdminEventForm({
     title.trim() &&
     selectedCategory.trim() &&
     longDescription.trim() &&
+    organizador.trim() &&
     date.trim() &&
     isCompleteEventTime(time) &&
     venue.trim() &&
+    direccion.trim() &&
     provincia.trim() &&
     localidad.trim() &&
     image.trim();
@@ -375,9 +389,11 @@ export default function AdminEventForm({
       return "Categoría";
     }
     if (!longDescription.trim()) return "Descripción larga";
+    if (!organizador.trim()) return "Nombre del organizador";
     if (!date.trim()) return "Fecha";
     if (!isCompleteEventTime(time)) return "Hora";
     if (!venue.trim()) return "Locación";
+    if (!direccion.trim()) return "Dirección";
     if (!provincia.trim()) return "Provincia";
     if (!localidad.trim()) return "Localidad";
     if (!image.trim()) return "Imagen del evento";
@@ -385,9 +401,11 @@ export default function AdminEventForm({
   }, [
     categoryOptions.length,
     date,
+    direccion,
     image,
     localidad,
     longDescription,
+    organizador,
     provincia,
     selectedCategory,
     time,
@@ -433,7 +451,7 @@ export default function AdminEventForm({
       direccion: direccion.trim(),
       provincia,
       localidad,
-      organizador: organizerDisplayName,
+      organizador: organizador.trim(),
       image: image.trim(),
       flyer: flyer.trim(),
       price: Number(price) || 0,
@@ -506,7 +524,7 @@ export default function AdminEventForm({
               </label>
               <select
                 value={assignedOrganizerId}
-                onChange={(e) => setAssignedOrganizerId(e.target.value)}
+                onChange={(e) => handleAssignedOrganizerChange(e.target.value)}
                 style={inputStyle}
                 disabled={organizersLoading}
               >
@@ -637,20 +655,15 @@ export default function AdminEventForm({
 
           <div style={fieldBox}>
             <label style={labelStyle}>
-              {renderFieldLabel("Organizador asignado", { optional: true })}
+              {renderFieldLabel("Nombre visible del organizador", {
+                required: true,
+              })}
             </label>
             <input
-              value={organizerDisplayName}
-              readOnly
-              style={{
-                ...inputStyle,
-                color: organizerDisplayName
-                  ? "#1f1f1f"
-                  : "var(--text-disabled)",
-                background: "#eef1f7",
-                cursor: "not-allowed",
-              }}
-              placeholder="Se toma del usuario dueño del evento"
+              value={organizador}
+              onChange={(e) => setOrganizador(e.target.value)}
+              style={inputStyle}
+              placeholder="Ej: Polka Produce"
             />
             <span
               style={{
@@ -658,9 +671,8 @@ export default function AdminEventForm({
                 color: "var(--text-disabled)",
               }}
             >
-              El nombre visible en la app se toma del usuario dueño del evento.
-              Para cambiarlo, reasigna el evento o edita el perfil del
-              organizador.
+              Este nombre se muestra en la app, tickets y compras. Puede ser
+              distinto del usuario dueño del evento.
             </span>
           </div>
 
@@ -731,7 +743,7 @@ export default function AdminEventForm({
 
           <div style={fieldBox}>
             <label style={labelStyle}>
-              {renderFieldLabel("Dirección", { optional: true })}
+              {renderFieldLabel("Dirección", { required: true })}
             </label>
             <input
               value={direccion}

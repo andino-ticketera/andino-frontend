@@ -6,7 +6,6 @@ import { useQuery } from "@tanstack/react-query";
 import type { Event } from "@/data/events";
 import { localidades, provincias } from "@/data/locations";
 import EvaIcon from "@/components/EvaIcon";
-import { useOrganizer } from "@/context/OrganizerContext";
 import { fetchPublicCategories } from "@/lib/categories-api";
 import { fetchOrganizerMercadoPagoStatus } from "@/lib/mercadopago-api";
 import {
@@ -144,7 +143,6 @@ export default function OrganizerEventForm({
     refetchOnWindowFocus: false,
   });
 
-  const { organizer } = useOrganizer();
   const defaults = initialEvent ?? {
     title: "",
     description: "",
@@ -161,7 +159,7 @@ export default function OrganizerEventForm({
     featured: false,
     tags: [],
     direccion: "",
-    organizador: organizer.empresa,
+    organizador: "",
     totalEntradas: 100,
     entradasVendidas: 0,
     mediosDePago: ["mercadopago"] as "mercadopago"[],
@@ -186,6 +184,7 @@ export default function OrganizerEventForm({
   const [direccion, setDireccion] = useState(defaults.direccion);
   const [provincia, setProvincia] = useState(defaultProvincia);
   const [localidad, setLocalidad] = useState(defaultLocalidad);
+  const [organizador, setOrganizador] = useState(defaults.organizador);
   const [flyer, setFlyer] = useState(defaults.flyer);
   const [price, setPrice] = useState(String(defaults.price));
   const [totalEntradas, setTotalEntradas] = useState(
@@ -243,6 +242,7 @@ export default function OrganizerEventForm({
     title.trim() &&
     selectedCategory.trim() &&
     longDescription.trim() &&
+    organizador.trim() &&
     date.trim() &&
     isCompleteEventTime(time) &&
     venue.trim() &&
@@ -258,6 +258,7 @@ export default function OrganizerEventForm({
     if (!title.trim()) return "Título";
     if (categoryOptions.length === 0 || !selectedCategory.trim()) return "Categoría";
     if (!longDescription.trim()) return "Descripción del evento";
+    if (!organizador.trim()) return "Nombre del organizador";
     if (!date.trim()) return "Fecha";
     if (!isCompleteEventTime(time)) return "Hora";
     if (!venue.trim()) return "Locación";
@@ -279,6 +280,7 @@ export default function OrganizerEventForm({
     isPriceValid,
     localidad,
     longDescription,
+    organizador,
     provincia,
     selectedCategory,
     time,
@@ -318,7 +320,7 @@ export default function OrganizerEventForm({
       direccion: direccion.trim(),
       provincia,
       localidad,
-      organizador: organizer.empresa,
+      organizador: organizador.trim(),
       image: flyer.trim(),
       flyer: flyer.trim(),
       price: Number(price) || 0,
@@ -459,6 +461,28 @@ export default function OrganizerEventForm({
             style={inputStyle}
             placeholder="Ej: Noche Andina en Vivo"
           />
+        </div>
+
+        <div style={fieldBox}>
+          <label style={labelStyle}>
+            {renderFieldLabel("Nombre visible del organizador", {
+              required: true,
+            })}
+          </label>
+          <input
+            value={organizador}
+            onChange={(e) => setOrganizador(e.target.value)}
+            style={inputStyle}
+            placeholder="Ej: Polka Produce"
+          />
+          <span
+            style={{
+              fontSize: "var(--font-xs)",
+              color: "var(--text-disabled)",
+            }}
+          >
+            Este nombre se muestra en la app, tickets y compras.
+          </span>
         </div>
 
         <div style={fieldBox}>

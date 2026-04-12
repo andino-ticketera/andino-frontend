@@ -268,6 +268,7 @@ function buildEventUpdatePayload(
   const nextValues = {
     titulo: event.title.trim(),
     descripcion: (event.longDescription || event.description).trim(),
+    nombre_organizador: event.organizador.trim(),
     locacion: buildLocacionFromVenue(event.venue),
     direccion: event.direccion.trim(),
     provincia: event.provincia.trim(),
@@ -292,6 +293,7 @@ function buildEventUpdatePayload(
     descripcion: (
       previousEvent.longDescription || previousEvent.description
     ).trim(),
+    nombre_organizador: previousEvent.organizador.trim(),
     locacion: buildLocacionFromVenue(previousEvent.venue),
     direccion: previousEvent.direccion.trim(),
     provincia: previousEvent.provincia.trim(),
@@ -570,6 +572,9 @@ export async function createEventFromAdmin(
     String(Math.max(1, Number(event.totalEntradas) || 1)),
   );
   formData.append("categoria", event.category);
+  if (event.organizador.trim()) {
+    formData.append("nombre_organizador", event.organizador.trim());
+  }
   formData.append(
     "medios_pago",
     JSON.stringify(mapFrontendPaymentMethods(event.mediosDePago)),
