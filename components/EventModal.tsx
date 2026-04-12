@@ -275,13 +275,30 @@ export default function EventModal({ event, onClose }: EventModalProps) {
               overflow: "hidden",
             }}
           >
+            {/* Desktop: fill mode (absolute positioning) */}
             <Image
               src={modalFlyerSrc}
               alt={event.title}
               fill
               sizes="(max-width: 1024px) 100vw, 380px"
-              className="modal-flyer-image"
+              className="modal-flyer-image modal-flyer-desktop"
               style={{ objectFit: "contain", objectPosition: "center" }}
+              priority
+            />
+            {/* Mobile: natural dimensions, no cropping */}
+            <Image
+              src={modalFlyerSrc}
+              alt={event.title}
+              width={600}
+              height={900}
+              sizes="100vw"
+              className="modal-flyer-mobile"
+              style={{
+                width: "100%",
+                height: "auto",
+                objectFit: "contain",
+                display: "none",
+              }}
               priority
             />
           </div>

@@ -20,6 +20,7 @@ interface BackendEvento {
   visible_en_app: boolean;
   creador_id: string;
   creador_rol: "ORGANIZADOR" | "ADMIN";
+  nombre_organizador?: string;
 }
 
 interface EventosResponse {
@@ -115,13 +116,24 @@ const FALLBACK_IMAGE =
 const FALLBACK_FLYER =
   "https://images.unsplash.com/photo-1506157786151-b8491531f063?w=700&h=1200&fit=crop";
 
+const ARG_TIMEZONE = "America/Argentina/Buenos_Aires";
+
 function formatDateLabel(isoDate: string): string {
   const date = new Date(isoDate);
   if (isNaN(date.getTime())) return "";
 
-  const day = date.getDate();
-  const month = MONTHS[date.getMonth()] ?? "";
-  const year = date.getFullYear();
+  const parts = new Intl.DateTimeFormat("es-AR", {
+    timeZone: ARG_TIMEZONE,
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).formatToParts(date);
+
+  const day = parts.find((p) => p.type === "day")?.value ?? "";
+  const rawMonth = parts.find((p) => p.type === "month")?.value ?? "";
+  const year = parts.find((p) => p.type === "year")?.value ?? "";
+  const month = rawMonth.charAt(0).toUpperCase() + rawMonth.slice(1);
+
   return `${day} ${month}, ${year}`;
 }
 
@@ -130,6 +142,7 @@ function formatTimeLabel(isoDate: string): string {
   if (isNaN(date.getTime())) return "00:00";
 
   return date.toLocaleTimeString("es-AR", {
+    timeZone: ARG_TIMEZONE,
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
@@ -165,7 +178,7 @@ function mapEventoToFrontend(evento: BackendEvento): Event {
     featured: false,
     tags: [evento.categoria.toUpperCase()],
     direccion: evento.direccion,
-    organizador: evento.locacion,
+    organizador: evento.nombre_organizador || "",
     totalEntradas: evento.cantidad_entradas,
     entradasVendidas: evento.entradas_vendidas,
     mediosDePago,
@@ -210,7 +223,10 @@ function parseDateAndTimeToIso(
     const year = parseInt(match[3], 10);
 
     if (month !== undefined) {
-      const date = new Date(year, month, day, hour, minute, 0, 0);
+      // Build ISO string interpreting the time as Argentina (UTC-3)
+      const pad = (n: number) => String(n).padStart(2, "0");
+      const isoArg = `${year}-${pad(month + 1)}-${pad(day)}T${pad(hour)}:${pad(minute)}:00-03:00`;
+      const date = new Date(isoArg);
       if (!Number.isNaN(date.getTime())) {
         return date.toISOString();
       }
@@ -220,8 +236,15 @@ function parseDateAndTimeToIso(
   const fallbackDate = new Date(dateLabel);
   if (Number.isNaN(fallbackDate.getTime())) return null;
 
-  fallbackDate.setHours(hour, minute, 0, 0);
-  return fallbackDate.toISOString();
+  // Interpret as Argentina time via offset
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const y = fallbackDate.getFullYear();
+  const m = fallbackDate.getMonth() + 1;
+  const d = fallbackDate.getDate();
+  const isoArg = `${y}-${pad(m)}-${pad(d)}T${pad(hour)}:${pad(minute)}:00-03:00`;
+  const parsed = new Date(isoArg);
+  if (Number.isNaN(parsed.getTime())) return null;
+  return parsed.toISOString();
 }
 
 function mapFrontendPaymentMethods(

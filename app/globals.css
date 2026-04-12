@@ -351,6 +351,78 @@ body {
   }
 }
 
+/* ─── Modal responsive ─── */
+.modal-flyer-mobile {
+  display: none !important;
+}
+
+@media (max-width: 1024px) {
+  .modal-flyer-desktop {
+    display: none !important;
+  }
+
+  .modal-flyer-mobile {
+    display: block !important;
+  }
+  .modal-layout {
+    flex-direction: column !important;
+  }
+
+  .modal-flyer {
+    width: 100% !important;
+    height: auto !important;
+    aspect-ratio: auto !important;
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0 !important;
+  }
+
+  .modal-flyer-image {
+    position: relative !important;
+    width: 100% !important;
+    height: auto !important;
+    object-fit: contain !important;
+  }
+
+  .modal-info-col {
+    padding: 1.25rem !important;
+  }
+
+  .modal-form-col {
+    width: 100% !important;
+    padding: 0 1.25rem 1.25rem !important;
+  }
+
+  .modal-content {
+    max-height: 95vh !important;
+    overflow-y: auto !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .modal-content {
+    width: 100% !important;
+    max-width: 100% !important;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0 !important;
+    max-height: 100vh !important;
+    height: 100vh !important;
+  }
+
+  .modal-overlay {
+    align-items: flex-end !important;
+  }
+
+  .modal-info-col {
+    padding: 1rem !important;
+  }
+
+  .modal-form-col {
+    padding: 0 1rem 1rem !important;
+  }
+
+  .modal-pricing-block {
+    margin-bottom: 0.5rem !important;
+  }
+}
+
 /* ─── Buttons ─── */
 .btn-primary {
   transition:
