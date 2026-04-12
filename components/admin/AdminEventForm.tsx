@@ -230,7 +230,7 @@ export default function AdminEventForm({
   const [direccion, setDireccion] = useState(defaults.direccion);
   const [provincia, setProvincia] = useState(defaultProvincia);
   const [localidad, setLocalidad] = useState(defaultLocalidad);
-  const [organizador, setOrganizador] = useState(defaults.organizador);
+  const organizador = defaults.organizador;
   const [image, setImage] = useState(defaults.image);
   const [flyer, setFlyer] = useState(defaults.flyer);
   const [price, setPrice] = useState(String(defaults.price));
@@ -286,6 +286,9 @@ export default function AdminEventForm({
     !categoryOptions.some((item) => item.toLowerCase() === category.toLowerCase())
       ? categoryOptions[0]
       : category;
+  const organizerDisplayName = selectedOrganizer?.nombreCompleto?.trim()
+    ? selectedOrganizer.nombreCompleto.trim()
+    : organizador.trim();
 
   const initialComparable = useMemo(
     () => ({
@@ -298,7 +301,6 @@ export default function AdminEventForm({
       direccion: defaults.direccion.trim(),
       provincia: defaultProvincia,
       localidad: defaultLocalidad,
-      organizador: defaults.organizador.trim(),
       image: defaults.image.trim(),
       flyer: defaults.flyer.trim(),
       price: Number(defaults.price) || 0,
@@ -325,7 +327,6 @@ export default function AdminEventForm({
       direccion: direccion.trim(),
       provincia,
       localidad,
-      organizador: organizador.trim(),
       image: image.trim(),
       flyer: flyer.trim(),
       price: Number(price) || 0,
@@ -342,7 +343,6 @@ export default function AdminEventForm({
       direccion,
       provincia,
       localidad,
-      organizador,
       image,
       flyer,
       price,
@@ -433,7 +433,7 @@ export default function AdminEventForm({
       direccion: direccion.trim(),
       provincia,
       localidad,
-      organizador: organizador.trim(),
+      organizador: organizerDisplayName,
       image: image.trim(),
       flyer: flyer.trim(),
       price: Number(price) || 0,
@@ -637,14 +637,31 @@ export default function AdminEventForm({
 
           <div style={fieldBox}>
             <label style={labelStyle}>
-              {renderFieldLabel("Organizador", { optional: true })}
+              {renderFieldLabel("Organizador asignado", { optional: true })}
             </label>
             <input
-              value={organizador}
-              onChange={(e) => setOrganizador(e.target.value)}
-              style={inputStyle}
-              placeholder="Ej: Andino Producciones"
+              value={organizerDisplayName}
+              readOnly
+              style={{
+                ...inputStyle,
+                color: organizerDisplayName
+                  ? "#1f1f1f"
+                  : "var(--text-disabled)",
+                background: "#eef1f7",
+                cursor: "not-allowed",
+              }}
+              placeholder="Se toma del usuario dueño del evento"
             />
+            <span
+              style={{
+                fontSize: "var(--font-xs)",
+                color: "var(--text-disabled)",
+              }}
+            >
+              El nombre visible en la app se toma del usuario dueño del evento.
+              Para cambiarlo, reasigna el evento o edita el perfil del
+              organizador.
+            </span>
           </div>
 
           <div style={fieldBox}>
