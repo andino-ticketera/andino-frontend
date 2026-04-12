@@ -1108,8 +1108,15 @@ export default function EventModal({ event, onClose }: EventModalProps) {
             }
             .modal-flyer {
               width: 100% !important;
-              height: min(24rem, 56vh) !important;
+              height: auto !important;
+              max-height: none !important;
               border-radius: var(--radius-xl) var(--radius-xl) 0 0 !important;
+            }
+            .modal-flyer-mobile {
+              display: block !important;
+              width: 100% !important;
+              height: auto !important;
+              object-fit: contain !important;
             }
             .modal-form-col {
               width: 100% !important;
@@ -1125,13 +1132,12 @@ export default function EventModal({ event, onClose }: EventModalProps) {
               border-radius: var(--radius-lg) !important;
             }
             .modal-flyer {
-              height: min(19rem, 46vh) !important;
               background: var(--bg-base) !important;
               border-radius: var(--radius-lg) var(--radius-lg) 0 0 !important;
             }
             .modal-flyer-image {
-              object-fit: cover !important;
-              object-position: center 20% !important;
+              object-fit: contain !important;
+              object-position: center !important;
               border-radius: inherit;
             }
             .modal-info-col {
@@ -1161,7 +1167,6 @@ export default function EventModal({ event, onClose }: EventModalProps) {
               min-height: 100vh;
             }
             .modal-flyer {
-              height: min(16rem, 40vh) !important;
               border-radius: var(--radius-md) var(--radius-md) 0 0 !important;
             }
             .modal-info-col {
