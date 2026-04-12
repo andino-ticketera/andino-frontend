@@ -238,8 +238,6 @@ export default function AdminEventForm({
     String(defaults.totalEntradas),
   );
   const mercadoPagoId = defaults.mercadoPagoId ?? "";
-  // Por el momento el único medio de cobro es Mercado Pago.
-  const paymentMethod: "mercadopago" = "mercadopago";
   const [activeTab, setActiveTab] = useState<"info" | "media">("info");
   const [isImageDragOver, setIsImageDragOver] = useState(false);
   const [isFlyerDragOver, setIsFlyerDragOver] = useState(false);

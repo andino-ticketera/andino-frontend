@@ -89,6 +89,20 @@ function upsertEventList(events: Event[], nextEvent: Event): Event[] {
   return [nextEvent, ...withoutCurrent];
 }
 
+function setQueryDataIfPresent<T>(
+  queryClient: ReturnType<typeof useQueryClient>,
+  queryKey: readonly unknown[],
+  updater: (current: T) => T,
+): void {
+  const state = queryClient.getQueryState<T>(queryKey);
+  if (state?.data === undefined) return;
+
+  queryClient.setQueryData<T>(queryKey, (current) => {
+    if (current === undefined) return current;
+    return updater(current);
+  });
+}
+
 function sanitizeCarouselIds(ids: string[], events: Event[]): string[] {
   const validEventIds = new Set(
     events
@@ -255,17 +269,25 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       queryClient.setQueryData<Event[]>(ADMIN_EVENTS_QUERY_KEY, (prev = []) =>
         upsertEventList(prev, nextEvent),
       );
-      queryClient.setQueryData<Event[]>(PUBLIC_EVENTS_QUERY_KEY, (prev = []) => {
-        const withoutCurrent = prev.filter((event) => event.id !== nextEvent.id);
-        if (!isEventPubliclyVisible(nextEvent) || !categoryVisible) {
-          return withoutCurrent;
-        }
-        return [nextEvent, ...withoutCurrent];
-      });
+      setQueryDataIfPresent<Event[]>(
+        queryClient,
+        PUBLIC_EVENTS_QUERY_KEY,
+        (prev) => {
+          const withoutCurrent = prev.filter(
+            (event) => event.id !== nextEvent.id,
+          );
+          if (!isEventPubliclyVisible(nextEvent) || !categoryVisible) {
+            return withoutCurrent;
+          }
+          return [nextEvent, ...withoutCurrent];
+        },
+      );
 
       if (!isEventPubliclyVisible(nextEvent) || !categoryVisible) {
-        queryClient.setQueryData<string[]>(CAROUSEL_EVENTS_QUERY_KEY, (prev = []) =>
-          prev.filter((eventId) => eventId !== nextEvent.id),
+        setQueryDataIfPresent<string[]>(
+          queryClient,
+          CAROUSEL_EVENTS_QUERY_KEY,
+          (prev) => prev.filter((eventId) => eventId !== nextEvent.id),
         );
       }
     },
@@ -276,8 +298,11 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     (event: Event | Omit<Event, "id">) => {
       if (!("id" in event)) return;
       applyEventToCaches(event);
+      void queryClient.invalidateQueries({ queryKey: ADMIN_EVENTS_QUERY_KEY });
+      void queryClient.invalidateQueries({ queryKey: PUBLIC_EVENTS_QUERY_KEY });
+      void queryClient.invalidateQueries({ queryKey: CAROUSEL_EVENTS_QUERY_KEY });
     },
-    [applyEventToCaches],
+    [applyEventToCaches, queryClient],
   );
 
   const updateEvent = useCallback(
@@ -293,6 +318,9 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       if (!currentEvent) return;
 
       applyEventToCaches({ ...currentEvent, ...updates, id });
+      void queryClient.invalidateQueries({ queryKey: ADMIN_EVENTS_QUERY_KEY });
+      void queryClient.invalidateQueries({ queryKey: PUBLIC_EVENTS_QUERY_KEY });
+      void queryClient.invalidateQueries({ queryKey: CAROUSEL_EVENTS_QUERY_KEY });
     },
     [applyEventToCaches, queryClient],
   );
@@ -302,12 +330,17 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       queryClient.setQueryData<Event[]>(ADMIN_EVENTS_QUERY_KEY, (prev = []) =>
         prev.filter((event) => event.id !== id),
       );
-      queryClient.setQueryData<Event[]>(PUBLIC_EVENTS_QUERY_KEY, (prev = []) =>
+      setQueryDataIfPresent<Event[]>(queryClient, PUBLIC_EVENTS_QUERY_KEY, (prev) =>
         prev.filter((event) => event.id !== id),
       );
-      queryClient.setQueryData<string[]>(CAROUSEL_EVENTS_QUERY_KEY, (prev = []) =>
-        prev.filter((eventId) => eventId !== id),
+      setQueryDataIfPresent<string[]>(
+        queryClient,
+        CAROUSEL_EVENTS_QUERY_KEY,
+        (prev) => prev.filter((eventId) => eventId !== id),
       );
+      void queryClient.invalidateQueries({ queryKey: ADMIN_EVENTS_QUERY_KEY });
+      void queryClient.invalidateQueries({ queryKey: PUBLIC_EVENTS_QUERY_KEY });
+      void queryClient.invalidateQueries({ queryKey: CAROUSEL_EVENTS_QUERY_KEY });
     },
     [queryClient],
   );

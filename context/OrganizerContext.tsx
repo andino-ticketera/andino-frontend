@@ -72,6 +72,20 @@ function syncPublicEvents(events: Event[], nextEvent: Event): Event[] {
   return [nextEvent, ...withoutCurrent];
 }
 
+function setQueryDataIfPresent<T>(
+  queryClient: ReturnType<typeof useQueryClient>,
+  queryKey: readonly unknown[],
+  updater: (current: T) => T,
+): void {
+  const state = queryClient.getQueryState<T>(queryKey);
+  if (state?.data === undefined) return;
+
+  queryClient.setQueryData<T>(queryKey, (current) => {
+    if (current === undefined) return current;
+    return updater(current);
+  });
+}
+
 function buildOrganizerFromSession(): Organizer {
   const session = readAuthSession();
   const nombreCompleto = session?.user.nombreCompleto?.trim() || "";
@@ -178,9 +192,15 @@ export function OrganizerProvider({ children }: { children: ReactNode }) {
         ORGANIZER_EVENTS_QUERY_KEY(session?.user.id),
         (current = []) => [createdEvent, ...current],
       );
-      queryClient.setQueryData<Event[]>(PUBLIC_EVENTS_QUERY_KEY, (current = []) =>
-        syncPublicEvents(current, createdEvent),
+      setQueryDataIfPresent<Event[]>(
+        queryClient,
+        PUBLIC_EVENTS_QUERY_KEY,
+        (current) => syncPublicEvents(current, createdEvent),
       );
+      void queryClient.invalidateQueries({
+        queryKey: ORGANIZER_EVENTS_QUERY_KEY(session?.user.id),
+      });
+      void queryClient.invalidateQueries({ queryKey: PUBLIC_EVENTS_QUERY_KEY });
 
       return createdEvent;
     },
@@ -201,9 +221,15 @@ export function OrganizerProvider({ children }: { children: ReactNode }) {
         (current = []) =>
           current.map((item) => (item.id === updatedEvent.id ? updatedEvent : item)),
       );
-      queryClient.setQueryData<Event[]>(PUBLIC_EVENTS_QUERY_KEY, (current = []) =>
-        syncPublicEvents(current, updatedEvent),
+      setQueryDataIfPresent<Event[]>(
+        queryClient,
+        PUBLIC_EVENTS_QUERY_KEY,
+        (current) => syncPublicEvents(current, updatedEvent),
       );
+      void queryClient.invalidateQueries({
+        queryKey: ORGANIZER_EVENTS_QUERY_KEY(session?.user.id),
+      });
+      void queryClient.invalidateQueries({ queryKey: PUBLIC_EVENTS_QUERY_KEY });
 
       return updatedEvent;
     },
