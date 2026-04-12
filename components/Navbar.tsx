@@ -330,7 +330,7 @@ export default function Navbar() {
           style={{
             padding: "1.25rem 1.25rem 1.5rem",
             display: "flex",
-            flexeirection: "column",
+            flexDirection: "column",
             gap: "1.125rem",
             borderTop: "1px solid var(--border-color-50)",
             background: "var(--bg-base-98)",
