@@ -43,33 +43,28 @@ interface CarruselResponse {
   data: BackendCarruselItem[];
 }
 
-const MONTHS = [
-  "Enero",
-  "Febrero",
-  "Marzo",
-  "Abril",
-  "Mayo",
-  "Junio",
-  "Julio",
-  "Agosto",
-  "Septiembre",
-  "Octubre",
-  "Noviembre",
-  "Diciembre",
-] as const;
-
 const FALLBACK_IMAGE =
   "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=1200&h=700&fit=crop";
 const FALLBACK_FLYER =
   "https://images.unsplash.com/photo-1506157786151-b8491531f063?w=700&h=1200&fit=crop";
+const ARG_TIMEZONE = "America/Argentina/Buenos_Aires";
 
 function formatDateLabel(isoDate: string): string {
   const date = new Date(isoDate);
   if (Number.isNaN(date.getTime())) return "";
 
-  const day = date.getDate();
-  const month = MONTHS[date.getMonth()] ?? "";
-  const year = date.getFullYear();
+  const parts = new Intl.DateTimeFormat("es-AR", {
+    timeZone: ARG_TIMEZONE,
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).formatToParts(date);
+
+  const day = parts.find((part) => part.type === "day")?.value ?? "";
+  const rawMonth = parts.find((part) => part.type === "month")?.value ?? "";
+  const year = parts.find((part) => part.type === "year")?.value ?? "";
+  const month = rawMonth.charAt(0).toUpperCase() + rawMonth.slice(1);
+
   return `${day} ${month}, ${year}`;
 }
 
@@ -78,6 +73,7 @@ function formatTimeLabel(isoDate: string): string {
   if (Number.isNaN(date.getTime())) return "00:00";
 
   return date.toLocaleTimeString("es-AR", {
+    timeZone: ARG_TIMEZONE,
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
@@ -85,8 +81,9 @@ function formatTimeLabel(isoDate: string): string {
 }
 
 function mapMediosPago(
-  _medios: BackendEvento["medios_pago"],
+  medios?: BackendEvento["medios_pago"],
 ): Array<"mercadopago"> {
+  void medios;
   // Por el momento el unico medio de cobro es Mercado Pago.
   return ["mercadopago"];
 }
@@ -101,6 +98,7 @@ function mapEventoToFrontend(evento: BackendEvento): Event {
     description: evento.descripcion,
     longDescription: evento.descripcion,
     date: formatDateLabel(evento.fecha_evento),
+    eventDateIso: evento.fecha_evento,
     time: formatTimeLabel(evento.fecha_evento),
     venue,
     provincia: evento.provincia,

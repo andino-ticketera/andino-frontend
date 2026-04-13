@@ -96,21 +96,6 @@ function buildAdminMultipartHeaders(): HeadersInit {
   return headers;
 }
 
-const MONTHS = [
-  "Enero",
-  "Febrero",
-  "Marzo",
-  "Abril",
-  "Mayo",
-  "Junio",
-  "Julio",
-  "Agosto",
-  "Septiembre",
-  "Octubre",
-  "Noviembre",
-  "Diciembre",
-] as const;
-
 const FALLBACK_IMAGE =
   "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=1200&h=700&fit=crop";
 const FALLBACK_FLYER =
@@ -150,8 +135,9 @@ function formatTimeLabel(isoDate: string): string {
 }
 
 function mapMediosPago(
-  _medios: BackendEvento["medios_pago"],
+  medios?: BackendEvento["medios_pago"],
 ): Array<"mercadopago"> {
+  void medios;
   // Por el momento el unico medio de cobro es Mercado Pago.
   return ["mercadopago"];
 }
@@ -248,8 +234,9 @@ function parseDateAndTimeToIso(
 }
 
 function mapFrontendPaymentMethods(
-  _medios: Array<"mercadopago">,
+  medios?: Array<"mercadopago">,
 ): Array<"MERCADO_PAGO"> {
+  void medios;
   // Por el momento el unico medio de cobro es Mercado Pago.
   return ["MERCADO_PAGO"];
 }

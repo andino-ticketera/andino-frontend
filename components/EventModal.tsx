@@ -106,6 +106,18 @@ export default function EventModal({ event, onClose }: EventModalProps) {
   }, []);
 
   const organizerName = event.organizador || "Andino Tickets";
+  const organizerInitial = organizerName.trim().charAt(0).toUpperCase() || "A";
+  const venueName = useMemo(() => {
+    const [firstPart] = event.venue.split(",");
+    return firstPart?.trim() || event.venue;
+  }, [event.venue]);
+  const locationSummary = useMemo(
+    () =>
+      [event.direccion.trim(), event.localidad.trim(), event.provincia.trim()]
+        .filter(Boolean)
+        .join(" · "),
+    [event.direccion, event.localidad, event.provincia],
+  );
 
   const isFormValid = useMemo(
     () =>
@@ -192,8 +204,14 @@ export default function EventModal({ event, onClose }: EventModalProps) {
   }, []);
 
   const mapsQuery = useMemo(
-    () => encodeURIComponent(event.venue),
-    [event.venue],
+    () =>
+      encodeURIComponent(
+        [event.direccion, event.localidad, event.provincia]
+          .map((value) => value.trim())
+          .filter(Boolean)
+          .join(", ") || event.venue,
+      ),
+    [event.direccion, event.localidad, event.provincia, event.venue],
   );
 
   const modalFlyerSrc = useMemo(() => {
@@ -367,80 +385,173 @@ export default function EventModal({ event, onClose }: EventModalProps) {
 
             {/* ── Section: Date, Time & Location ── */}
             <div style={{ marginBottom: "1.25rem" }}>
-              {/* Date & Time */}
               <div
+                className="modal-event-keyfacts"
                 style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "0.5rem",
-                  marginBottom: "0.625rem",
+                  display: "grid",
+                  gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+                  gap: "0.75rem",
+                  marginBottom: "0.875rem",
                 }}
               >
-                <span style={{ color: "var(--color-primary)", flexShrink: 0 }}>
-                  <EvaIcon name="calendar" size={16} />
-                </span>
-                <span
+                <div
                   style={{
-                    fontSize: "var(--font-sm)",
-                    color: "var(--text-primary)",
-                    fontWeight: 600,
+                    padding: "0.9rem 1rem",
+                    borderRadius: "var(--radius-lg)",
+                    border: "1px solid var(--border-color)",
+                    background: "rgba(255,255,255,0.04)",
+                    display: "flex",
+                    alignItems: "flex-start",
+                    gap: "0.75rem",
                   }}
                 >
-                  {event.date}
-                </span>
-                <span style={{ color: "var(--border-color)", margin: "0 2px" }}>
-                  |
-                </span>
-                <span style={{ color: "var(--color-primary)", flexShrink: 0 }}>
-                  <EvaIcon name="clock" size={16} />
-                </span>
-                <span
+                  <span
+                    style={{
+                      color: "var(--color-primary)",
+                      flexShrink: 0,
+                      marginTop: "0.125rem",
+                    }}
+                  >
+                    <EvaIcon name="calendar" size={20} />
+                  </span>
+                  <div>
+                    <p
+                      style={{
+                        fontSize: "0.72rem",
+                        color: "var(--text-disabled)",
+                        letterSpacing: "0.08em",
+                        textTransform: "uppercase",
+                        fontWeight: 700,
+                        marginBottom: "0.3rem",
+                      }}
+                    >
+                      Fecha
+                    </p>
+                    <p
+                      style={{
+                        fontSize: "1.08rem",
+                        color: "var(--text-primary)",
+                        fontWeight: 800,
+                        lineHeight: 1.25,
+                      }}
+                    >
+                      {event.date}
+                    </p>
+                  </div>
+                </div>
+                <div
                   style={{
-                    fontSize: "var(--font-sm)",
-                    color: "var(--text-primary)",
-                    fontWeight: 600,
+                    padding: "0.9rem 1rem",
+                    borderRadius: "var(--radius-lg)",
+                    border: "1px solid var(--border-color)",
+                    background: "rgba(255,255,255,0.04)",
+                    display: "flex",
+                    alignItems: "flex-start",
+                    gap: "0.75rem",
                   }}
                 >
-                  {event.time} hs
-                </span>
+                  <span
+                    style={{
+                      color: "var(--color-primary)",
+                      flexShrink: 0,
+                      marginTop: "0.125rem",
+                    }}
+                  >
+                    <EvaIcon name="clock" size={20} />
+                  </span>
+                  <div>
+                    <p
+                      style={{
+                        fontSize: "0.72rem",
+                        color: "var(--text-disabled)",
+                        letterSpacing: "0.08em",
+                        textTransform: "uppercase",
+                        fontWeight: 700,
+                        marginBottom: "0.3rem",
+                      }}
+                    >
+                      Horario
+                    </p>
+                    <p
+                      style={{
+                        fontSize: "1.08rem",
+                        color: "var(--text-primary)",
+                        fontWeight: 800,
+                        lineHeight: 1.25,
+                      }}
+                    >
+                      {event.time} hs
+                    </p>
+                  </div>
+                </div>
               </div>
 
-              {/* Location */}
               <div
                 style={{
                   display: "flex",
                   alignItems: "flex-start",
-                  gap: "0.5rem",
-                  paddingTop: "0.5rem",
+                  gap: "0.75rem",
+                  padding: "1rem 1rem 1.05rem",
+                  borderRadius: "var(--radius-lg)",
+                  border: "1px solid var(--border-color)",
+                  background: "rgba(255,255,255,0.04)",
                 }}
               >
                 <span
                   style={{
                     color: "var(--color-primary)",
                     flexShrink: 0,
-                    marginTop: "1px",
+                    marginTop: "0.15rem",
                   }}
                 >
-                  <EvaIcon name="pin" size={16} />
+                  <EvaIcon name="pin" size={20} />
                 </span>
-                <div>
+                <div style={{ minWidth: 0 }}>
                   <p
                     style={{
-                      fontSize: "var(--font-sm)",
-                      color: "var(--text-primary)",
+                      fontSize: "0.72rem",
+                      color: "var(--text-disabled)",
+                      letterSpacing: "0.08em",
+                      textTransform: "uppercase",
                       fontWeight: 700,
+                      marginBottom: "0.35rem",
                     }}
                   >
-                    {event.venue.split(",")[0]}
+                    Locacion
                   </p>
                   <p
                     style={{
-                      fontSize: "var(--font-xs)",
-                      color: "var(--text-disabled)",
+                      fontSize: "1.12rem",
+                      color: "var(--text-primary)",
+                      fontWeight: 800,
+                      lineHeight: 1.25,
+                      marginBottom: "0.25rem",
+                    }}
+                  >
+                    {venueName}
+                  </p>
+                  <p
+                    style={{
+                      fontSize: "0.96rem",
+                      color: "var(--text-secondary)",
+                      fontWeight: 600,
+                      lineHeight: 1.45,
+                      marginBottom: locationSummary ? "0.375rem" : 0,
                     }}
                   >
                     {event.venue}
                   </p>
+                  {locationSummary ? (
+                    <p
+                      style={{
+                        fontSize: "0.92rem",
+                        color: "var(--text-disabled)",
+                        lineHeight: 1.5,
+                      }}
+                    >
+                      {locationSummary}
+                    </p>
+                  ) : null}
                 </div>
               </div>
             </div>
@@ -478,59 +589,112 @@ export default function EventModal({ event, onClose }: EventModalProps) {
 
             {/* ── Section: Organizer (bottom) ── */}
             <div
+              className="modal-organizer-card"
               style={{
                 display: "flex",
                 alignItems: "center",
                 gap: "0.75rem",
+                justifyContent: "space-between",
                 marginTop: "auto",
-                padding: "0.75rem 1rem",
+                padding: "0.95rem 1rem",
                 borderRadius: "var(--radius-lg)",
                 background: "rgba(245, 245, 245, 0.08)",
                 border: "1px solid rgba(255, 255, 255, 0.1)",
               }}
             >
-              {/* Name */}
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <p
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.85rem",
+                  minWidth: 0,
+                  flex: 1,
+                }}
+              >
+                <div
                   style={{
-                    fontSize: "var(--font-sm)",
-                    fontWeight: 700,
-                    color: "var(--text-primary)",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
+                    width: "3rem",
+                    height: "3rem",
+                    borderRadius: "999px",
+                    background:
+                      "linear-gradient(135deg, rgba(92, 255, 157, 0.3), rgba(92, 255, 157, 0.12))",
+                    border: "1px solid rgba(92, 255, 157, 0.35)",
+                    color: "var(--color-primary)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: "1rem",
+                    fontWeight: 900,
+                    flexShrink: 0,
                   }}
                 >
-                  {organizerName}
-                </p>
+                  {organizerInitial}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p
+                    style={{
+                      fontSize: "0.72rem",
+                      color: "var(--text-disabled)",
+                      letterSpacing: "0.08em",
+                      textTransform: "uppercase",
+                      fontWeight: 700,
+                      marginBottom: "0.25rem",
+                    }}
+                  >
+                    Organizador
+                  </p>
+                  <p
+                    style={{
+                      fontSize: "1rem",
+                      fontWeight: 800,
+                      color: "var(--text-primary)",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {organizerName}
+                  </p>
+                </div>
+              </div>
+              <div
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "0.55rem",
+                  padding: "0.45rem 0.75rem",
+                  borderRadius: "999px",
+                  background: "rgba(29, 161, 242, 0.14)",
+                  border: "1px solid rgba(29, 161, 242, 0.28)",
+                  flexShrink: 0,
+                }}
+              >
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  style={{ flexShrink: 0 }}
+                >
+                  <circle cx="12" cy="12" r="12" fill="#1DA1F2" />
+                  <path
+                    d="M7.5 12.5l3 3 6-6"
+                    stroke="#fff"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
                 <p
                   style={{
-                    fontSize: "var(--font-xs)",
-                    color: "var(--text-secondary)",
-                    marginTop: "0.125rem",
+                    fontSize: "0.82rem",
+                    color: "#9cd8ff",
+                    fontWeight: 800,
                   }}
                 >
                   Organizador verificado
                 </p>
               </div>
-
-              {/* Verified badge */}
-              <svg
-                width="28"
-                height="28"
-                viewBox="0 0 24 24"
-                fill="none"
-                style={{ flexShrink: 0 }}
-              >
-                <circle cx="12" cy="12" r="12" fill="#1DA1F2" />
-                <path
-                  d="M7.5 12.5l3 3 6-6"
-                  stroke="#fff"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
             </div>
           </div>
 
@@ -1145,6 +1309,13 @@ export default function EventModal({ event, onClose }: EventModalProps) {
             }
             .modal-form-col {
               padding: 0 16px 24px !important;
+            }
+            .modal-event-keyfacts {
+              grid-template-columns: 1fr !important;
+            }
+            .modal-organizer-card {
+              flex-direction: column !important;
+              align-items: flex-start !important;
             }
             .modal-pricing-divider {
               margin-top: 0.75rem !important;

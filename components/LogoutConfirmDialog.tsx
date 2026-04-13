@@ -17,11 +17,7 @@ export default function LogoutConfirmDialog({
   onConfirm,
   onCancel,
 }: LogoutConfirmDialogProps) {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const [mounted] = useState(() => typeof window !== "undefined");
 
   useEffect(() => {
     if (!open) return;
