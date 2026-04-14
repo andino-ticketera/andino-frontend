@@ -239,6 +239,32 @@ function drawMetricCard(
   }
 }
 
+function drawBrandLogo(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+): void {
+  fillRoundedRect(ctx, x, y, 420, 118, 36, PALETTE.surface2);
+  strokeRoundedRect(ctx, x, y, 420, 118, 36, PALETTE.border, 2);
+
+  ctx.textBaseline = "top";
+  ctx.font = "italic 900 56px Arial";
+
+  ctx.fillStyle = PALETTE.accent;
+  ctx.fillText("Andino", x + 39, y + 19);
+
+  ctx.fillStyle = "rgba(0,0,0,0.28)";
+  ctx.fillText("Andino", x + 37, y + 17);
+
+  ctx.fillStyle = PALETTE.primary;
+  ctx.fillText("Andino", x + 34, y + 14);
+
+  ctx.fillStyle = PALETTE.text;
+  ctx.font = "700 22px Arial";
+  ctx.fillText("Eventos culturales", x + 38, y + 79);
+  ctx.textBaseline = "alphabetic";
+}
+
 function drawDetailRow(
   ctx: CanvasRenderingContext2D,
   input: {
@@ -300,7 +326,7 @@ function drawDetailRow(
 function buildConfirmationCanvas(data: PublicCheckoutStatus): HTMLCanvasElement {
   const canvas = document.createElement("canvas");
   canvas.width = 1800;
-  canvas.height = 2546;
+  canvas.height = 2280;
 
   const ctx = canvas.getContext("2d");
   if (!ctx) {
@@ -374,20 +400,7 @@ function buildConfirmationCanvas(data: PublicCheckoutStatus): HTMLCanvasElement 
 
   fillRoundedRect(ctx, 136, 136, canvas.width - 272, 10, 5, PALETTE.accent);
 
-  fillRoundedRect(ctx, 156, 174, 304, 74, 37, "rgba(92,255,157,0.14)");
-  strokeRoundedRect(
-    ctx,
-    156,
-    174,
-    304,
-    74,
-    37,
-    "rgba(92,255,157,0.34)",
-    2,
-  );
-  ctx.fillStyle = PALETTE.primary;
-  ctx.font = "800 28px Arial";
-  ctx.fillText("Andino Tickets", 192, 221);
+  drawBrandLogo(ctx, 156, 162);
 
   fillRoundedRect(ctx, 1284, 170, 360, 116, 34, PALETTE.surface2);
   strokeRoundedRect(ctx, 1284, 170, 360, 116, 34, PALETTE.border, 2);
@@ -405,47 +418,21 @@ function buildConfirmationCanvas(data: PublicCheckoutStatus): HTMLCanvasElement 
   ctx.fillStyle = PALETTE.textSecondary;
   ctx.font = "600 30px Arial";
   ctx.fillText(
-    "Comprobante digital generado desde Andino Tickets",
+    "Comprobante digital generado para tu compra",
     156,
     428,
   );
 
-  fillRoundedRect(
-    ctx,
-    156,
-    462,
-    canvas.width - 312,
-    118,
-    32,
-    "rgba(92,255,157,0.12)",
-  );
-  strokeRoundedRect(
-    ctx,
-    156,
-    462,
-    canvas.width - 312,
-    118,
-    32,
-    "rgba(92,255,157,0.26)",
-    2,
-  );
-  ctx.fillStyle = PALETTE.primary;
-  ctx.font = "800 24px Arial";
-  ctx.fillText("Fecha y hora del evento", 190, 508);
-  ctx.fillStyle = PALETTE.text;
-  ctx.font = "800 40px Arial";
-  ctx.fillText(formatEventDateTime(data.eventDate), 190, 555);
-
   ctx.fillStyle = PALETTE.text;
   ctx.font = "800 58px Arial";
   const titleLines = wrapText(ctx, data.eventoTitulo, 1200);
-  let titleY = 670;
+  let titleY = 536;
   for (const line of titleLines.slice(0, 3)) {
     ctx.fillText(line, 156, titleY);
     titleY += 68;
   }
 
-  const metricY = 854;
+  const metricY = 700;
   drawMetricCard(ctx, {
     x: 156,
     y: metricY,
@@ -476,18 +463,18 @@ function buildConfirmationCanvas(data: PublicCheckoutStatus): HTMLCanvasElement 
   fillRoundedRect(
     ctx,
     156,
-    1112,
+    958,
     canvas.width - 312,
-    1166,
+    1100,
     40,
     PALETTE.base,
   );
   strokeRoundedRect(
     ctx,
     156,
-    1112,
+    958,
     canvas.width - 312,
-    1166,
+    1100,
     40,
     PALETTE.border,
     2,
@@ -495,17 +482,17 @@ function buildConfirmationCanvas(data: PublicCheckoutStatus): HTMLCanvasElement 
 
   ctx.fillStyle = PALETTE.primary;
   ctx.font = "800 30px Arial";
-  ctx.fillText("Detalle de la compra", 198, 1180);
+  ctx.fillText("Detalle de la compra", 198, 1026);
 
   ctx.fillStyle = PALETTE.textSecondary;
   ctx.font = "600 24px Arial";
   ctx.fillText(
     "Incluye los datos principales de la operación para guardarlo o compartirlo.",
     198,
-    1228,
+    1074,
   );
 
-  let currentY = 1282;
+  let currentY = 1128;
   details.forEach((detail, index) => {
     currentY =
       drawDetailRow(ctx, {
@@ -517,36 +504,6 @@ function buildConfirmationCanvas(data: PublicCheckoutStatus): HTMLCanvasElement 
         fill: index % 2 === 0 ? PALETTE.surface2 : PALETTE.surface3,
       }) + 22;
   });
-
-  fillRoundedRect(
-    ctx,
-    198,
-    2108,
-    canvas.width - 396,
-    96,
-    28,
-    "rgba(92,255,157,0.12)",
-  );
-  strokeRoundedRect(
-    ctx,
-    198,
-    2108,
-    canvas.width - 396,
-    96,
-    28,
-    "rgba(92,255,157,0.26)",
-    2,
-  );
-  ctx.fillStyle = PALETTE.primary;
-  ctx.font = "700 24px Arial";
-  ctx.fillText("Andino Tickets", 234, 2165);
-  ctx.fillStyle = PALETTE.textSecondary;
-  ctx.font = "600 24px Arial";
-  ctx.fillText(
-    "Comprobante listo para guardar en tu celular o compartirlo cuando lo necesites.",
-    454,
-    2165,
-  );
 
   return canvas;
 }
