@@ -153,6 +153,14 @@ function renderFieldLabel(
   );
 }
 
+function normalizeBannerValue(image: string, flyer: string): string {
+  const trimmedImage = image.trim();
+  const trimmedFlyer = flyer.trim();
+  if (!trimmedImage) return "";
+  if (trimmedFlyer && trimmedImage === trimmedFlyer) return "";
+  return trimmedImage;
+}
+
 function defaultEventValues(category: string): Omit<Event, "id"> {
   return {
     title: "",
@@ -231,6 +239,7 @@ export default function AdminEventForm({
   );
   const defaultDate = eventDateLabelToInputValue(defaults.date);
   const defaultTime = normalizeEventTimeInput(defaults.time);
+  const initialBanner = normalizeBannerValue(defaults.image, defaults.flyer);
 
   const [title, setTitle] = useState(defaults.title);
   const [longDescription, setLongDescription] = useState(
@@ -244,7 +253,7 @@ export default function AdminEventForm({
   const [provincia, setProvincia] = useState(defaultProvincia);
   const [localidad, setLocalidad] = useState(defaultLocalidad);
   const [organizador, setOrganizador] = useState(defaults.organizador);
-  const [image, setImage] = useState(defaults.image);
+  const [image, setImage] = useState(initialBanner);
   const [flyer, setFlyer] = useState(defaults.flyer);
   const [price, setPrice] = useState(String(defaults.price));
   const [totalEntradas, setTotalEntradas] = useState(
@@ -311,7 +320,7 @@ export default function AdminEventForm({
       provincia: defaultProvincia,
       localidad: defaultLocalidad,
       organizador: defaults.organizador.trim(),
-      image: defaults.image.trim(),
+      image: initialBanner,
       flyer: defaults.flyer.trim(),
       price: Number(defaults.price) || 0,
       totalEntradas: Math.max(0, Number(defaults.totalEntradas) || 0),
@@ -323,6 +332,7 @@ export default function AdminEventForm({
       defaultProvincia,
       defaultTime,
       defaults,
+      initialBanner,
     ],
   );
 
@@ -380,7 +390,7 @@ export default function AdminEventForm({
     direccion.trim() &&
     provincia.trim() &&
     localidad.trim() &&
-    image.trim();
+    flyer.trim();
 
   const canSubmit = baseCanSubmit && hasChanges;
   const firstMissingField = useMemo(() => {
@@ -396,13 +406,13 @@ export default function AdminEventForm({
     if (!direccion.trim()) return "Dirección";
     if (!provincia.trim()) return "Provincia";
     if (!localidad.trim()) return "Localidad";
-    if (!image.trim()) return "Imagen del evento";
+    if (!flyer.trim()) return "Flyer / Poster del evento";
     return "";
   }, [
     categoryOptions.length,
     date,
     direccion,
-    image,
+    flyer,
     localidad,
     longDescription,
     organizador,
@@ -452,7 +462,7 @@ export default function AdminEventForm({
       provincia,
       localidad,
       organizador: organizador.trim(),
-      image: image.trim(),
+      image: image.trim() || flyer.trim(),
       flyer: flyer.trim(),
       price: Number(price) || 0,
       featured: preservedFeatured,
@@ -856,51 +866,6 @@ export default function AdminEventForm({
                   : "Archivos seleccionados"}
               </span>
               <div style={previewGridStyle}>
-                {image.trim() && (
-                  <div style={previewThumbWrap}>
-                    <div
-                      style={{
-                        ...previewThumbFrame,
-                        width: "64px",
-                        height: "40px",
-                      }}
-                    >
-                      <Image
-                        src={image}
-                        alt="Preview imagen"
-                        fill
-                        sizes="64px"
-                        style={{ objectFit: "cover" }}
-                      />
-                    </div>
-                    <span
-                      style={{
-                        fontSize: "var(--font-xs)",
-                        color: "#1f1f1f",
-                        flex: 1,
-                        minWidth: 0,
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      Imagen principal
-                    </span>
-                    <button
-                      type="button"
-                      style={previewRemoveBtn}
-                      title="Eliminar imagen"
-                      onClick={() => {
-                        setImage("");
-                        if (imageInputRef.current)
-                          imageInputRef.current.value = "";
-                      }}
-                    >
-                      <EvaIcon name="close-circle-outline" size={18} />
-                    </button>
-                  </div>
-                )}
-
                 {flyer.trim() && (
                   <div style={previewThumbWrap}>
                     <div
@@ -929,7 +894,7 @@ export default function AdminEventForm({
                         whiteSpace: "nowrap",
                       }}
                     >
-                      Flyer del evento
+                      Flyer / Poster del evento
                     </span>
                     <button
                       type="button"
@@ -939,6 +904,51 @@ export default function AdminEventForm({
                         setFlyer("");
                         if (flyerInputRef.current)
                           flyerInputRef.current.value = "";
+                      }}
+                    >
+                      <EvaIcon name="close-circle-outline" size={18} />
+                    </button>
+                  </div>
+                )}
+
+                {image.trim() && (
+                  <div style={previewThumbWrap}>
+                    <div
+                      style={{
+                        ...previewThumbFrame,
+                        width: "64px",
+                        height: "40px",
+                      }}
+                    >
+                      <Image
+                        src={image}
+                        alt="Preview banner"
+                        fill
+                        sizes="64px"
+                        style={{ objectFit: "cover" }}
+                      />
+                    </div>
+                    <span
+                      style={{
+                        fontSize: "var(--font-xs)",
+                        color: "#1f1f1f",
+                        flex: 1,
+                        minWidth: 0,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      Banner para carrusel
+                    </span>
+                    <button
+                      type="button"
+                      style={previewRemoveBtn}
+                      title="Eliminar banner"
+                      onClick={() => {
+                        setImage("");
+                        if (imageInputRef.current)
+                          imageInputRef.current.value = "";
                       }}
                     >
                       <EvaIcon name="close-circle-outline" size={18} />
@@ -959,78 +969,7 @@ export default function AdminEventForm({
               }}
             >
               <EvaIcon name="image" size={14} />
-              {renderFieldLabel("Imagen del evento", {
-                required: mode === "create",
-                optional: mode === "edit",
-              })}
-            </label>
-
-            <input
-              ref={imageInputRef}
-              type="file"
-              accept="image/*"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (!file) return;
-                handleAssetFile(file, "image");
-              }}
-              style={{ display: "none" }}
-            />
-
-            <div
-              onDragOver={(e) => {
-                e.preventDefault();
-                setIsImageDragOver(true);
-              }}
-              onDragLeave={() => setIsImageDragOver(false)}
-              onDrop={(e) => {
-                e.preventDefault();
-                setIsImageDragOver(false);
-                const file = e.dataTransfer.files?.[0];
-                if (!file) return;
-                handleAssetFile(file, "image");
-              }}
-              onClick={() => imageInputRef.current?.click()}
-              style={{
-                border: "1px dashed var(--border-color)",
-                borderRadius: "var(--radius-md)",
-                background: isImageDragOver ? "#eceff8" : "#f5f6fa",
-                padding: "1rem",
-                minHeight: "9.5rem",
-                cursor: "pointer",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                textAlign: "center",
-                gap: "0.625rem",
-              }}
-            >
-              <EvaIcon name="upload" size={20} />
-              <strong style={{ fontSize: "var(--font-sm)", color: "#1f1f1f" }}>
-                Arrastra o busca la imagen
-              </strong>
-              <span style={{ fontSize: "var(--font-xs)", color: "#5b5b66" }}>
-                {image.trim()
-                  ? "Imagen cargada correctamente"
-                  : mode === "create"
-                    ? "Obligatoria para crear el evento. Formato recomendado: JPG o PNG"
-                    : "Opcional al editar. Formato recomendado: JPG o PNG"}
-              </span>
-            </div>
-          </div>
-
-          <div style={fieldBox}>
-            <label
-              style={{
-                ...labelStyle,
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "0.375rem",
-              }}
-            >
-              <EvaIcon name="image" size={14} />
-              {renderFieldLabel("Flyer del evento", { optional: true })}
+              {renderFieldLabel("Flyer / Poster del evento", { required: true })}
             </label>
 
             <input
@@ -1081,7 +1020,73 @@ export default function AdminEventForm({
               <span style={{ fontSize: "var(--font-xs)", color: "#5b5b66" }}>
                 {flyer.trim()
                   ? "Flyer cargado correctamente"
-                  : "Formato recomendado: JPG o PNG"}
+                  : "Obligatorio para publicar. Formato recomendado: JPG o PNG"}
+              </span>
+            </div>
+          </div>
+
+          <div style={fieldBox}>
+            <label
+              style={{
+                ...labelStyle,
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "0.375rem",
+              }}
+            >
+              <EvaIcon name="image" size={14} />
+              {renderFieldLabel("Banner del evento", { optional: true })}
+            </label>
+
+            <input
+              ref={imageInputRef}
+              type="file"
+              accept="image/*"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                handleAssetFile(file, "image");
+              }}
+              style={{ display: "none" }}
+            />
+
+            <div
+              onDragOver={(e) => {
+                e.preventDefault();
+                setIsImageDragOver(true);
+              }}
+              onDragLeave={() => setIsImageDragOver(false)}
+              onDrop={(e) => {
+                e.preventDefault();
+                setIsImageDragOver(false);
+                const file = e.dataTransfer.files?.[0];
+                if (!file) return;
+                handleAssetFile(file, "image");
+              }}
+              onClick={() => imageInputRef.current?.click()}
+              style={{
+                border: "1px dashed var(--border-color)",
+                borderRadius: "var(--radius-md)",
+                background: isImageDragOver ? "#eceff8" : "#f5f6fa",
+                padding: "1rem",
+                minHeight: "9.5rem",
+                cursor: "pointer",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                textAlign: "center",
+                gap: "0.625rem",
+              }}
+            >
+              <EvaIcon name="upload" size={20} />
+              <strong style={{ fontSize: "var(--font-sm)", color: "#1f1f1f" }}>
+                Arrastra o busca el banner
+              </strong>
+              <span style={{ fontSize: "var(--font-xs)", color: "#5b5b66" }}>
+                {image.trim()
+                  ? "Banner cargado correctamente"
+                  : "Opcional. Se usa en el carrusel principal. Formato recomendado: JPG o PNG"}
               </span>
             </div>
           </div>

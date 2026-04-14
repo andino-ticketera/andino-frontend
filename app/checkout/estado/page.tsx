@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useMemo } from "react";
+import { Suspense, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
@@ -10,6 +10,7 @@ import {
   fetchPublicCheckoutStatus,
   type PublicCheckoutStatus,
 } from "@/lib/mercadopago-api";
+import { downloadPurchaseConfirmation } from "@/lib/purchase-confirmation-export";
 
 function formatPrice(value: number): string {
   return `$${new Intl.NumberFormat("es-AR", {
@@ -36,6 +37,9 @@ function getStatusCopy(status?: PublicCheckoutStatus["estado"]): string {
 
 function CheckoutEstadoContent() {
   const searchParams = useSearchParams();
+  const [downloadingFormat, setDownloadingFormat] = useState<
+    "jpg" | "png" | "pdf" | null
+  >(null);
   const compraId = useMemo(
     () => (searchParams.get("compra") || "").trim(),
     [searchParams],
@@ -51,6 +55,16 @@ function CheckoutEstadoContent() {
 
   const title = useMemo(() => getStatusTitle(data?.estado), [data?.estado]);
   const copy = useMemo(() => getStatusCopy(data?.estado), [data?.estado]);
+
+  const handleDownload = async (format: "jpg" | "png" | "pdf") => {
+    if (!data) return;
+    setDownloadingFormat(format);
+    try {
+      await downloadPurchaseConfirmation(data, format);
+    } finally {
+      setDownloadingFormat(null);
+    }
+  };
 
   return (
     <div>
@@ -183,6 +197,74 @@ function CheckoutEstadoContent() {
               </p>
             )}
           </div>
+
+          {data?.estado === "PAGADO" ? (
+            <div
+              style={{
+                marginTop: "1rem",
+                padding: "1rem",
+                borderRadius: "var(--radius-md)",
+                border: "1px solid var(--border-color)",
+                background: "var(--bg-surface-2)",
+                display: "grid",
+                gap: "0.875rem",
+              }}
+            >
+              <div style={{ display: "grid", gap: "0.35rem" }}>
+                <strong style={{ fontSize: "var(--font-md)" }}>
+                  Descargar confirmación
+                </strong>
+                <p
+                  style={{
+                    margin: 0,
+                    color: "var(--text-secondary)",
+                    lineHeight: 1.55,
+                  }}
+                >
+                  Podés guardar este comprobante en `JPG`, `PNG` o `PDF` desde
+                  el celu o la compu.
+                </p>
+              </div>
+
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(10rem, 1fr))",
+                  gap: "0.75rem",
+                }}
+              >
+                {(["jpg", "png", "pdf"] as const).map((format) => {
+                  const isBusy = downloadingFormat === format;
+
+                  return (
+                    <button
+                      key={format}
+                      type="button"
+                      onClick={() => void handleDownload(format)}
+                      disabled={Boolean(downloadingFormat)}
+                      style={{
+                        minHeight: "3rem",
+                        padding: "0.75rem 1rem",
+                        borderRadius: "var(--radius-full)",
+                        border: "1px solid var(--border-color)",
+                        background: isBusy
+                          ? "rgba(92,255,157,0.12)"
+                          : "var(--bg-surface-1)",
+                        color: "var(--text-primary)",
+                        fontWeight: 800,
+                        cursor: downloadingFormat ? "wait" : "pointer",
+                        width: "100%",
+                      }}
+                    >
+                      {isBusy
+                        ? `Generando ${format.toUpperCase()}...`
+                        : `Descargar ${format.toUpperCase()}`}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ) : null}
 
           <div
             style={{

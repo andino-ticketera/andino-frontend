@@ -105,7 +105,7 @@ function mapEventoToFrontend(evento: BackendEvento): Event {
     localidad: evento.localidad,
     price: Number(evento.precio),
     category: evento.categoria,
-    image: evento.imagen_url || FALLBACK_IMAGE,
+    image: evento.imagen_url || evento.flyer_url || FALLBACK_IMAGE,
     flyer: evento.flyer_url || evento.imagen_url || FALLBACK_FLYER,
     featured: false,
     tags: [evento.categoria.toUpperCase()],

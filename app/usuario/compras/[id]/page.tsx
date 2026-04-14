@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import TicketQrModal from "@/components/usuario/TicketQrModal";
 import { readAuthSession } from "@/lib/auth-client";
 import {
   fetchCompraDetalle,
@@ -19,9 +18,6 @@ import {
 export default function CompraDetallePage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
-  const [selectedEntradaId, setSelectedEntradaId] = useState<string | null>(
-    null,
-  );
 
   const compraId = String(params?.id || "").trim();
 
@@ -252,8 +248,7 @@ export default function CompraDetallePage() {
                     marginTop: "0.35rem",
                   }}
                 >
-                  Cada entrada tiene su propio QR y puede descargarse por
-                  separado.
+                  Tus entradas quedaron registradas dentro de esta compra.
                 </p>
               </div>
 
@@ -286,7 +281,7 @@ export default function CompraDetallePage() {
                           fontSize: "var(--font-sm)",
                         }}
                       >
-                        {entrada.qr_token ? `Token: ${entrada.qr_token}` : `Entrada #${entrada.numero_entrada}`}
+                        Comprobante asociado a esta compra
                       </span>
                       {entrada.fecha_uso ? (
                         <span
@@ -299,23 +294,6 @@ export default function CompraDetallePage() {
                         </span>
                       ) : null}
                     </div>
-
-                    <button
-                      type="button"
-                      onClick={() => setSelectedEntradaId(entrada.id)}
-                      style={{
-                        minHeight: "3rem",
-                        padding: "0 1.15rem",
-                        borderRadius: "var(--radius-full)",
-                        border: "0.0625rem solid var(--primary-25)",
-                        background: "var(--primary-10)",
-                        color: "var(--color-primary)",
-                        fontWeight: 800,
-                        cursor: "pointer",
-                      }}
-                    >
-                      {'Ver QR y descargar "ticket"'}
-                    </button>
                   </article>
                 ))}
               </div>
@@ -323,12 +301,6 @@ export default function CompraDetallePage() {
           </>
         ) : null}
       </main>
-
-      <TicketQrModal
-        entradaId={selectedEntradaId}
-        open={Boolean(selectedEntradaId)}
-        onClose={() => setSelectedEntradaId(null)}
-      />
     </div>
   );
 }

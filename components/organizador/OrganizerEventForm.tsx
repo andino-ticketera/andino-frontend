@@ -73,7 +73,7 @@ const previewThumbWrap: React.CSSProperties = {
   border: "1px solid var(--border-color)",
   borderRadius: "var(--radius-md)",
   background: "#ffffff",
-  maxWidth: "320px",
+  maxWidth: "360px",
 };
 
 const previewThumbFrame: React.CSSProperties = {
@@ -115,6 +115,14 @@ function renderFieldLabel(
       ) : null}
     </>
   );
+}
+
+function normalizeBannerValue(image: string, flyer: string): string {
+  const trimmedImage = image.trim();
+  const trimmedFlyer = flyer.trim();
+  if (!trimmedImage) return "";
+  if (trimmedFlyer && trimmedImage === trimmedFlyer) return "";
+  return trimmedImage;
 }
 
 export default function OrganizerEventForm({
@@ -172,6 +180,7 @@ export default function OrganizerEventForm({
   );
   const defaultDate = eventDateLabelToInputValue(defaults.date);
   const defaultTime = normalizeEventTimeInput(defaults.time);
+  const initialBanner = normalizeBannerValue(defaults.image, defaults.flyer);
 
   const [title, setTitle] = useState(defaults.title);
   const [longDescription, setLongDescription] = useState(
@@ -185,6 +194,7 @@ export default function OrganizerEventForm({
   const [provincia, setProvincia] = useState(defaultProvincia);
   const [localidad, setLocalidad] = useState(defaultLocalidad);
   const [organizador, setOrganizador] = useState(defaults.organizador);
+  const [image, setImage] = useState(initialBanner);
   const [flyer, setFlyer] = useState(defaults.flyer);
   const [price, setPrice] = useState(String(defaults.price));
   const [totalEntradas, setTotalEntradas] = useState(
@@ -193,8 +203,10 @@ export default function OrganizerEventForm({
   // Por el momento el único medio de cobro es Mercado Pago.
   // El tipo `mediosDePago` se mantiene como union para poder agregar otros
   // medios (ej: transferencia) en el futuro sin romper el modelo de datos.
+  const [isImageDragOver, setIsImageDragOver] = useState(false);
   const [isFlyerDragOver, setIsFlyerDragOver] = useState(false);
   const [submitAttempted, setSubmitAttempted] = useState(false);
+  const imageInputRef = useRef<HTMLInputElement>(null);
   const flyerInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileToDataUrl = (
@@ -210,8 +222,12 @@ export default function OrganizerEventForm({
     reader.readAsDataURL(file);
   };
 
-  const handleFlyerFile = (file: File) => {
+  const handleAssetFile = (file: File, target: "image" | "flyer") => {
     if (!file.type.startsWith("image/")) return;
+    if (target === "image") {
+      handleFileToDataUrl(file, setImage);
+      return;
+    }
     handleFileToDataUrl(file, setFlyer);
   };
 
@@ -321,7 +337,7 @@ export default function OrganizerEventForm({
       provincia,
       localidad,
       organizador: organizador.trim(),
-      image: flyer.trim(),
+      image: image.trim() || flyer.trim(),
       flyer: flyer.trim(),
       price: Number(price) || 0,
       featured: preservedFeatured,
@@ -343,103 +359,235 @@ export default function OrganizerEventForm({
 
   return (
     <form onSubmit={handleSubmit}>
-      <div style={{ ...fieldBox, marginBottom: "18px" }}>
-        {flyer.trim() && (
-          <div style={previewThumbWrap}>
-            <div style={previewThumbFrame}>
-              <Image
-                src={flyer}
-                alt="Preview del flyer"
-                fill
-                sizes="48px"
-                style={{ objectFit: "cover" }}
-              />
-            </div>
-            <span style={{ fontSize: "var(--font-xs)", color: "#1f1f1f", flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-              Flyer cargado
-            </span>
-            <button
-              type="button"
-              style={previewRemoveBtn}
-              title="Quitar flyer cargado"
-              onClick={(e) => {
-                // Evita que el click burbujee al dropzone padre y vuelva a abrir
-                // el selector de archivos justo despues de quitar el flyer.
-                e.preventDefault();
-                e.stopPropagation();
-                setFlyer("");
-                if (flyerInputRef.current) flyerInputRef.current.value = "";
-              }}
-            >
-              <EvaIcon name="trash-2-outline" size={16} />
-              Quitar
-            </button>
-          </div>
-        )}
-
-        <label
-          style={{
-            ...labelStyle,
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "6px",
-          }}
-        >
-          <EvaIcon name="image" size={14} />
-          {renderFieldLabel("Flyer / Poster del evento", { required: true })}
-        </label>
-
-        <input
-          ref={flyerInputRef}
-          type="file"
-          accept="image/*"
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (!file) return;
-            handleFlyerFile(file);
-          }}
-          style={{ display: "none" }}
-        />
-
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr",
+          gap: "14px",
+          marginBottom: "18px",
+        }}
+        className="org-form-grid"
+      >
         <div
-          onDragOver={(e) => {
-            e.preventDefault();
-            setIsFlyerDragOver(true);
-          }}
-          onDragLeave={() => setIsFlyerDragOver(false)}
-          onDrop={(e) => {
-            e.preventDefault();
-            setIsFlyerDragOver(false);
-            const file = e.dataTransfer.files?.[0];
-            if (!file) return;
-            handleFlyerFile(file);
-          }}
-          onClick={() => flyerInputRef.current?.click()}
-          style={{
-            border: "1px dashed var(--border-color)",
-            borderRadius: "var(--radius-md)",
-            background: isFlyerDragOver ? "#eceff8" : "#f5f6fa",
-            padding: "16px",
-            minHeight: "152px",
-            cursor: "pointer",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            textAlign: "center",
-            gap: "10px",
-            maxWidth: "400px",
-          }}
+          style={fieldBox}
         >
-          <EvaIcon name="upload" size={20} />
-          <strong style={{ fontSize: "var(--font-sm)", color: "#1f1f1f" }}>
-            Arrastra o busca el flyer
-          </strong>
-          <span style={{ fontSize: "var(--font-xs)", color: "#5b5b66" }}>
-            {flyer.trim()
-              ? "Flyer cargado correctamente"
-              : "Obligatorio para publicar. Formato recomendado: JPG o PNG"}
-          </span>
+          {flyer.trim() && (
+            <div style={previewThumbWrap}>
+              <div style={previewThumbFrame}>
+                <Image
+                  src={flyer}
+                  alt="Preview del flyer"
+                  fill
+                  sizes="48px"
+                  style={{ objectFit: "cover" }}
+                />
+              </div>
+              <span
+                style={{
+                  fontSize: "var(--font-xs)",
+                  color: "#1f1f1f",
+                  flex: 1,
+                  minWidth: 0,
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Flyer / Poster del evento
+              </span>
+              <button
+                type="button"
+                style={previewRemoveBtn}
+                title="Quitar flyer cargado"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setFlyer("");
+                  if (flyerInputRef.current) flyerInputRef.current.value = "";
+                }}
+              >
+                <EvaIcon name="trash-2-outline" size={16} />
+                Quitar
+              </button>
+            </div>
+          )}
+
+          <label
+            style={{
+              ...labelStyle,
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "6px",
+            }}
+          >
+            <EvaIcon name="image" size={14} />
+            {renderFieldLabel("Flyer / Poster del evento", { required: true })}
+          </label>
+
+          <input
+            ref={flyerInputRef}
+            type="file"
+            accept="image/*"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              handleAssetFile(file, "flyer");
+            }}
+            style={{ display: "none" }}
+          />
+
+          <div
+            onDragOver={(e) => {
+              e.preventDefault();
+              setIsFlyerDragOver(true);
+            }}
+            onDragLeave={() => setIsFlyerDragOver(false)}
+            onDrop={(e) => {
+              e.preventDefault();
+              setIsFlyerDragOver(false);
+              const file = e.dataTransfer.files?.[0];
+              if (!file) return;
+              handleAssetFile(file, "flyer");
+            }}
+            onClick={() => flyerInputRef.current?.click()}
+            style={{
+              border: "1px dashed var(--border-color)",
+              borderRadius: "var(--radius-md)",
+              background: isFlyerDragOver ? "#eceff8" : "#f5f6fa",
+              padding: "16px",
+              minHeight: "152px",
+              cursor: "pointer",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              textAlign: "center",
+              gap: "10px",
+            }}
+          >
+            <EvaIcon name="upload" size={20} />
+            <strong style={{ fontSize: "var(--font-sm)", color: "#1f1f1f" }}>
+              Arrastra o busca el flyer
+            </strong>
+            <span style={{ fontSize: "var(--font-xs)", color: "#5b5b66" }}>
+              {flyer.trim()
+                ? "Flyer cargado correctamente"
+                : "Obligatorio para publicar. Formato recomendado: JPG o PNG"}
+            </span>
+          </div>
+        </div>
+
+        <div style={fieldBox}>
+          {image.trim() && (
+            <div style={previewThumbWrap}>
+              <div
+                style={{
+                  ...previewThumbFrame,
+                  width: "64px",
+                  height: "40px",
+                }}
+              >
+                <Image
+                  src={image}
+                  alt="Preview del banner"
+                  fill
+                  sizes="64px"
+                  style={{ objectFit: "cover" }}
+                />
+              </div>
+              <span
+                style={{
+                  fontSize: "var(--font-xs)",
+                  color: "#1f1f1f",
+                  flex: 1,
+                  minWidth: 0,
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Banner para carrusel
+              </span>
+              <button
+                type="button"
+                style={previewRemoveBtn}
+                title="Quitar banner cargado"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setImage("");
+                  if (imageInputRef.current) imageInputRef.current.value = "";
+                }}
+              >
+                <EvaIcon name="trash-2-outline" size={16} />
+                Quitar
+              </button>
+            </div>
+          )}
+
+          <label
+            style={{
+              ...labelStyle,
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "6px",
+            }}
+          >
+            <EvaIcon name="image" size={14} />
+            {renderFieldLabel("Banner del evento", { optional: true })}
+          </label>
+
+          <input
+            ref={imageInputRef}
+            type="file"
+            accept="image/*"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              handleAssetFile(file, "image");
+            }}
+            style={{ display: "none" }}
+          />
+
+          <div
+            onDragOver={(e) => {
+              e.preventDefault();
+              setIsImageDragOver(true);
+            }}
+            onDragLeave={() => setIsImageDragOver(false)}
+            onDrop={(e) => {
+              e.preventDefault();
+              setIsImageDragOver(false);
+              const file = e.dataTransfer.files?.[0];
+              if (!file) return;
+              handleAssetFile(file, "image");
+            }}
+            onClick={() => imageInputRef.current?.click()}
+            style={{
+              border: "1px dashed var(--border-color)",
+              borderRadius: "var(--radius-md)",
+              background: isImageDragOver ? "#eceff8" : "#f5f6fa",
+              padding: "16px",
+              minHeight: "152px",
+              cursor: "pointer",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              textAlign: "center",
+              gap: "10px",
+            }}
+          >
+            <EvaIcon name="upload" size={20} />
+            <strong style={{ fontSize: "var(--font-sm)", color: "#1f1f1f" }}>
+              Arrastra o busca el banner
+            </strong>
+            <span style={{ fontSize: "var(--font-xs)", color: "#5b5b66" }}>
+              {image.trim()
+                ? "Banner cargado correctamente"
+                : "Opcional. Se usa en el carrusel principal. Formato recomendado: JPG o PNG"}
+            </span>
+          </div>
         </div>
       </div>
 
