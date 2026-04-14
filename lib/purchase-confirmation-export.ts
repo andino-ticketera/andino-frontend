@@ -1,9 +1,31 @@
 "use client";
 
 import { jsPDF } from "jspdf";
+import {
+  formatEventDateTime,
+  formatPurchaseDateTime,
+} from "@/lib/date-format";
 import type { PublicCheckoutStatus } from "@/lib/mercadopago-api";
 
-type ExportFormat = "png" | "jpg" | "pdf";
+type ExportFormat = "jpg" | "pdf";
+
+const PALETTE = {
+  base: "#2a1342",
+  footer: "#1e0d33",
+  surface1: "#331a52",
+  surface2: "#3b2161",
+  surface3: "#432872",
+  border: "#3a2a5a",
+  primary: "#5cff9d",
+  accent: "#ff4fdc",
+  text: "#ffffff",
+  textSecondary: "#e2dcf0",
+  textMuted: "#b0a3c7",
+  success: "#5cff9d",
+  danger: "#ff8ba7",
+  warning: "#ffd166",
+  darkInk: "#04110d",
+};
 
 function formatPrice(value: number): string {
   return `$${new Intl.NumberFormat("es-AR", {
@@ -12,26 +34,38 @@ function formatPrice(value: number): string {
   }).format(Math.round(value))}`;
 }
 
-function formatDate(value: string): string {
+function formatDateStamp(value: string): string {
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
+  if (Number.isNaN(date.getTime())) return "";
 
-  return new Intl.DateTimeFormat("es-AR", {
-    dateStyle: "full",
-    timeStyle: "short",
-  }).format(date);
+  const year = String(date.getFullYear());
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}${month}${day}`;
 }
 
-function getStatusLabel(status: PublicCheckoutStatus["estado"]): string {
-  if (status === "PAGADO") return "Pagado";
-  if (status === "CANCELADO") return "Cancelado";
-  return "Pendiente";
-}
+function getStatusMeta(status: PublicCheckoutStatus["estado"]): {
+  label: string;
+  color: string;
+} {
+  if (status === "PAGADO") {
+    return {
+      label: "Pago acreditado",
+      color: PALETTE.success,
+    };
+  }
 
-function getStatusColor(status: PublicCheckoutStatus["estado"]): string {
-  if (status === "PAGADO") return "#0f9f6e";
-  if (status === "CANCELADO") return "#dc2626";
-  return "#c27a12";
+  if (status === "CANCELADO") {
+    return {
+      label: "Pago cancelado",
+      color: PALETTE.danger,
+    };
+  }
+
+  return {
+    label: "Pago pendiente",
+    color: PALETTE.warning,
+  };
 }
 
 function sanitizeFilename(value: string): string {
@@ -46,7 +80,9 @@ function sanitizeFilename(value: string): string {
 
 function buildFilename(data: PublicCheckoutStatus, format: ExportFormat): string {
   const eventSlug = sanitizeFilename(data.eventoTitulo) || "compra";
-  return `confirmacion-${eventSlug}-${data.compraId}.${format}`;
+  const dateStamp = formatDateStamp(data.createdAt);
+  const suffix = dateStamp ? `-${dateStamp}` : "";
+  return `confirmacion-${eventSlug}${suffix}.${format}`;
 }
 
 function triggerDownload(blob: Blob, filename: string): void {
@@ -71,6 +107,7 @@ function canvasToBlob(
         reject(new Error("No se pudo generar la descarga"));
         return;
       }
+
       resolve(blob);
     }, mimeType, quality);
   });
@@ -85,6 +122,7 @@ function roundedRectPath(
   radius: number,
 ): void {
   const r = Math.min(radius, width / 2, height / 2);
+
   ctx.beginPath();
   ctx.moveTo(x + r, y);
   ctx.lineTo(x + width - r, y);
@@ -120,8 +158,10 @@ function strokeRoundedRect(
   height: number,
   radius: number,
   color: string,
+  lineWidth = 1,
 ): void {
   roundedRectPath(ctx, x, y, width, height, radius);
+  ctx.lineWidth = lineWidth;
   ctx.strokeStyle = color;
   ctx.stroke();
 }
@@ -143,6 +183,7 @@ function wrapText(
       currentLine = candidate;
       continue;
     }
+
     lines.push(currentLine);
     currentLine = word;
   }
@@ -151,118 +192,360 @@ function wrapText(
   return lines;
 }
 
-function drawValueBlock(
+function drawMetricCard(
   ctx: CanvasRenderingContext2D,
-  label: string,
-  value: string,
-  x: number,
-  y: number,
-  width: number,
+  input: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    label: string;
+    value: string;
+    valueColor?: string;
+  },
 ): void {
-  ctx.fillStyle = "#5b6573";
-  ctx.font = "600 26px Arial";
-  ctx.fillText(label, x, y);
+  fillRoundedRect(
+    ctx,
+    input.x,
+    input.y,
+    input.width,
+    input.height,
+    32,
+    PALETTE.surface2,
+  );
+  strokeRoundedRect(
+    ctx,
+    input.x,
+    input.y,
+    input.width,
+    input.height,
+    32,
+    PALETTE.border,
+    2,
+  );
 
-  ctx.fillStyle = "#102033";
-  ctx.font = "700 30px Arial";
+  ctx.fillStyle = PALETTE.textMuted;
+  ctx.font = "700 24px Arial";
+  ctx.fillText(input.label, input.x + 34, input.y + 52);
 
-  const lines = wrapText(ctx, value, width);
-  let lineY = y + 46;
-  for (const line of lines) {
-    ctx.fillText(line, x, lineY);
-    lineY += 38;
+  ctx.fillStyle = input.valueColor || PALETTE.text;
+  ctx.font = "800 46px Arial";
+
+  const lines = wrapText(ctx, input.value, input.width - 68);
+  let currentY = input.y + 112;
+  for (const line of lines.slice(0, 2)) {
+    ctx.fillText(line, input.x + 34, currentY);
+    currentY += 54;
   }
+}
+
+function drawDetailRow(
+  ctx: CanvasRenderingContext2D,
+  input: {
+    x: number;
+    y: number;
+    width: number;
+    label: string;
+    value: string;
+    fill: string;
+  },
+): number {
+  const paddingX = 34;
+  const paddingTop = 30;
+  const labelWidth = 300;
+  const valueWidth = input.width - paddingX * 2 - labelWidth;
+
+  ctx.font = "700 34px Arial";
+  const valueLines = wrapText(ctx, input.value, valueWidth);
+  const lineHeight = 42;
+  const valueHeight = valueLines.length * lineHeight;
+  const rowHeight = Math.max(108, paddingTop * 2 + valueHeight);
+
+  fillRoundedRect(
+    ctx,
+    input.x,
+    input.y,
+    input.width,
+    rowHeight,
+    28,
+    input.fill,
+  );
+  strokeRoundedRect(
+    ctx,
+    input.x,
+    input.y,
+    input.width,
+    rowHeight,
+    28,
+    PALETTE.border,
+    2,
+  );
+
+  ctx.fillStyle = PALETTE.textMuted;
+  ctx.font = "700 24px Arial";
+  ctx.fillText(input.label, input.x + paddingX, input.y + 46);
+
+  ctx.fillStyle = PALETTE.text;
+  ctx.font = "700 34px Arial";
+
+  let textY = input.y + 52;
+  for (const line of valueLines) {
+    ctx.fillText(line, input.x + paddingX + labelWidth, textY);
+    textY += lineHeight;
+  }
+
+  return input.y + rowHeight;
 }
 
 function buildConfirmationCanvas(data: PublicCheckoutStatus): HTMLCanvasElement {
   const canvas = document.createElement("canvas");
-  canvas.width = 1600;
-  canvas.height = 1200;
+  canvas.width = 1800;
+  canvas.height = 2546;
 
   const ctx = canvas.getContext("2d");
   if (!ctx) {
     throw new Error("No se pudo preparar la confirmación");
   }
 
-  ctx.fillStyle = "#eef3f8";
+  const statusMeta = getStatusMeta(data.estado);
+  const details = [
+    { label: "Evento", value: data.eventoTitulo },
+    { label: "Fecha del evento", value: formatEventDateTime(data.eventDate) },
+    { label: "Estado", value: statusMeta.label },
+    { label: "Compra realizada", value: formatPurchaseDateTime(data.createdAt) },
+    { label: "Comprador", value: data.compradorEmail },
+    {
+      label: "Entradas",
+      value: `${data.cantidad} ${data.cantidad === 1 ? "entrada" : "entradas"}`,
+    },
+    { label: "Total", value: formatPrice(data.total) },
+  ];
+
+  const background = ctx.createLinearGradient(0, 0, 0, canvas.height);
+  background.addColorStop(0, PALETTE.base);
+  background.addColorStop(1, PALETTE.footer);
+  ctx.fillStyle = background;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  const glow = ctx.createRadialGradient(240, 120, 60, 240, 120, 520);
-  glow.addColorStop(0, "rgba(16,185,129,0.22)");
-  glow.addColorStop(1, "rgba(16,185,129,0)");
-  ctx.fillStyle = glow;
+  const greenGlow = ctx.createRadialGradient(320, 220, 60, 320, 220, 760);
+  greenGlow.addColorStop(0, "rgba(92,255,157,0.22)");
+  greenGlow.addColorStop(1, "rgba(92,255,157,0)");
+  ctx.fillStyle = greenGlow;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  const topBand = ctx.createLinearGradient(0, 0, canvas.width, 0);
-  topBand.addColorStop(0, "#0f9f6e");
-  topBand.addColorStop(1, "#56d5a6");
-  ctx.fillStyle = topBand;
-  ctx.fillRect(0, 0, canvas.width, 176);
+  const pinkGlow = ctx.createRadialGradient(
+    canvas.width - 240,
+    canvas.height - 240,
+    80,
+    canvas.width - 240,
+    canvas.height - 240,
+    720,
+  );
+  pinkGlow.addColorStop(0, "rgba(255,79,220,0.18)");
+  pinkGlow.addColorStop(1, "rgba(255,79,220,0)");
+  ctx.fillStyle = pinkGlow;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  ctx.shadowColor = "rgba(15,23,42,0.10)";
-  ctx.shadowBlur = 32;
-  ctx.shadowOffsetY = 14;
-  fillRoundedRect(ctx, 110, 104, 1380, 988, 40, "#ffffff");
+  ctx.shadowColor = "rgba(0,0,0,0.22)";
+  ctx.shadowBlur = 44;
+  ctx.shadowOffsetY = 18;
+  fillRoundedRect(
+    ctx,
+    92,
+    92,
+    canvas.width - 184,
+    canvas.height - 184,
+    48,
+    PALETTE.surface1,
+  );
   ctx.shadowColor = "transparent";
   ctx.shadowBlur = 0;
   ctx.shadowOffsetY = 0;
+  strokeRoundedRect(
+    ctx,
+    92,
+    92,
+    canvas.width - 184,
+    canvas.height - 184,
+    48,
+    PALETTE.border,
+    2,
+  );
 
-  fillRoundedRect(ctx, 170, 170, 270, 58, 29, "#e9fff5");
-  ctx.fillStyle = "#0f9f6e";
-  ctx.font = "700 24px Arial";
-  ctx.fillText("Andino Tickets", 214, 208);
+  fillRoundedRect(ctx, 136, 136, canvas.width - 272, 10, 5, PALETTE.accent);
 
-  ctx.fillStyle = "#102033";
-  ctx.font = "800 60px Arial";
-  ctx.fillText("Confirmación de compra", 170, 308);
+  fillRoundedRect(ctx, 156, 174, 304, 74, 37, "rgba(92,255,157,0.14)");
+  strokeRoundedRect(
+    ctx,
+    156,
+    174,
+    304,
+    74,
+    37,
+    "rgba(92,255,157,0.34)",
+    2,
+  );
+  ctx.fillStyle = PALETTE.primary;
+  ctx.font = "800 28px Arial";
+  ctx.fillText("Andino Tickets", 192, 221);
 
-  ctx.fillStyle = "#203247";
-  ctx.font = "700 34px Arial";
-  const titleLines = wrapText(ctx, data.eventoTitulo, 900);
-  let currentTitleY = 382;
+  fillRoundedRect(ctx, 1284, 170, 360, 116, 34, PALETTE.surface2);
+  strokeRoundedRect(ctx, 1284, 170, 360, 116, 34, PALETTE.border, 2);
+  ctx.fillStyle = PALETTE.textMuted;
+  ctx.font = "700 22px Arial";
+  ctx.fillText("Estado actual", 1318, 214);
+  ctx.fillStyle = statusMeta.color;
+  ctx.font = "800 38px Arial";
+  ctx.fillText(statusMeta.label, 1318, 264);
+
+  ctx.fillStyle = PALETTE.text;
+  ctx.font = "800 86px Arial";
+  ctx.fillText("Confirmación de compra", 156, 368);
+
+  ctx.fillStyle = PALETTE.textSecondary;
+  ctx.font = "600 30px Arial";
+  ctx.fillText(
+    "Comprobante digital generado desde Andino Tickets",
+    156,
+    428,
+  );
+
+  fillRoundedRect(
+    ctx,
+    156,
+    462,
+    canvas.width - 312,
+    118,
+    32,
+    "rgba(92,255,157,0.12)",
+  );
+  strokeRoundedRect(
+    ctx,
+    156,
+    462,
+    canvas.width - 312,
+    118,
+    32,
+    "rgba(92,255,157,0.26)",
+    2,
+  );
+  ctx.fillStyle = PALETTE.primary;
+  ctx.font = "800 24px Arial";
+  ctx.fillText("Fecha y hora del evento", 190, 508);
+  ctx.fillStyle = PALETTE.text;
+  ctx.font = "800 40px Arial";
+  ctx.fillText(formatEventDateTime(data.eventDate), 190, 555);
+
+  ctx.fillStyle = PALETTE.text;
+  ctx.font = "800 58px Arial";
+  const titleLines = wrapText(ctx, data.eventoTitulo, 1200);
+  let titleY = 670;
   for (const line of titleLines.slice(0, 3)) {
-    ctx.fillText(line, 170, currentTitleY);
-    currentTitleY += 44;
+    ctx.fillText(line, 156, titleY);
+    titleY += 68;
   }
 
-  fillRoundedRect(ctx, 1160, 232, 230, 92, 24, "#f8fafc");
-  strokeRoundedRect(ctx, 1160, 232, 230, 92, 24, "#d9e2ec");
-  ctx.fillStyle = "#6a7482";
-  ctx.font = "600 20px Arial";
-  ctx.fillText("Estado", 1192, 268);
-  ctx.fillStyle = getStatusColor(data.estado);
-  ctx.font = "800 32px Arial";
-  ctx.fillText(getStatusLabel(data.estado), 1192, 308);
+  const metricY = 854;
+  drawMetricCard(ctx, {
+    x: 156,
+    y: metricY,
+    width: 440,
+    height: 190,
+    label: "Estado",
+    value: statusMeta.label,
+    valueColor: statusMeta.color,
+  });
+  drawMetricCard(ctx, {
+    x: 680,
+    y: metricY,
+    width: 440,
+    height: 190,
+    label: "Entradas",
+    value: `${data.cantidad}`,
+  });
+  drawMetricCard(ctx, {
+    x: 1204,
+    y: metricY,
+    width: 440,
+    height: 190,
+    label: "Total",
+    value: formatPrice(data.total),
+    valueColor: PALETTE.primary,
+  });
 
-  fillRoundedRect(ctx, 170, 482, 1260, 1, 0, "#e6ebf1");
-
-  drawValueBlock(ctx, "Fecha", formatDate(data.createdAt), 170, 572, 520);
-  drawValueBlock(
+  fillRoundedRect(
     ctx,
-    "Cantidad",
-    `${data.cantidad} ${data.cantidad === 1 ? "entrada" : "entradas"}`,
-    860,
-    572,
-    430,
+    156,
+    1112,
+    canvas.width - 312,
+    1166,
+    40,
+    PALETTE.base,
   );
-  drawValueBlock(ctx, "Total", formatPrice(data.total), 170, 768, 520);
-  drawValueBlock(ctx, "Email", data.compradorEmail, 860, 768, 430);
+  strokeRoundedRect(
+    ctx,
+    156,
+    1112,
+    canvas.width - 312,
+    1166,
+    40,
+    PALETTE.border,
+    2,
+  );
 
-  fillRoundedRect(ctx, 170, 934, 1260, 122, 28, "#f8fafc");
-  strokeRoundedRect(ctx, 170, 934, 1260, 122, 28, "#d9e2ec");
-  ctx.fillStyle = "#5b6573";
-  ctx.font = "600 22px Arial";
-  ctx.fillText("ID de compra", 214, 985);
-  ctx.fillStyle = "#102033";
-  ctx.font = "700 24px Arial";
-  ctx.fillText(data.compraId, 214, 1028);
+  ctx.fillStyle = PALETTE.primary;
+  ctx.font = "800 30px Arial";
+  ctx.fillText("Detalle de la compra", 198, 1180);
 
-  ctx.fillStyle = "#5b6573";
-  ctx.font = "500 20px Arial";
+  ctx.fillStyle = PALETTE.textSecondary;
+  ctx.font = "600 24px Arial";
   ctx.fillText(
-    "Este archivo resume el estado actual de tu compra en Andino Tickets.",
-    170,
-    1128,
+    "Incluye los datos principales de la operación para guardarlo o compartirlo.",
+    198,
+    1228,
+  );
+
+  let currentY = 1282;
+  details.forEach((detail, index) => {
+    currentY =
+      drawDetailRow(ctx, {
+        x: 198,
+        y: currentY,
+        width: canvas.width - 396,
+        label: detail.label,
+        value: detail.value,
+        fill: index % 2 === 0 ? PALETTE.surface2 : PALETTE.surface3,
+      }) + 22;
+  });
+
+  fillRoundedRect(
+    ctx,
+    198,
+    2108,
+    canvas.width - 396,
+    96,
+    28,
+    "rgba(92,255,157,0.12)",
+  );
+  strokeRoundedRect(
+    ctx,
+    198,
+    2108,
+    canvas.width - 396,
+    96,
+    28,
+    "rgba(92,255,157,0.26)",
+    2,
+  );
+  ctx.fillStyle = PALETTE.primary;
+  ctx.font = "700 24px Arial";
+  ctx.fillText("Andino Tickets", 234, 2165);
+  ctx.fillStyle = PALETTE.textSecondary;
+  ctx.font = "600 24px Arial";
+  ctx.fillText(
+    "Comprobante listo para guardar en tu celular o compartirlo cuando lo necesites.",
+    454,
+    2165,
   );
 
   return canvas;
@@ -275,14 +558,8 @@ export async function downloadPurchaseConfirmation(
   const canvas = buildConfirmationCanvas(data);
   const filename = buildFilename(data, format);
 
-  if (format === "png") {
-    const blob = await canvasToBlob(canvas, "image/png");
-    triggerDownload(blob, filename);
-    return;
-  }
-
   if (format === "jpg") {
-    const blob = await canvasToBlob(canvas, "image/jpeg", 0.92);
+    const blob = await canvasToBlob(canvas, "image/jpeg", 0.94);
     triggerDownload(blob, filename);
     return;
   }
@@ -291,17 +568,17 @@ export async function downloadPurchaseConfirmation(
     orientation: "portrait",
     unit: "pt",
     format: "a4",
+    compress: true,
   });
 
   const image = canvas.toDataURL("image/png");
   const pageWidth = pdf.internal.pageSize.getWidth();
   const pageHeight = pdf.internal.pageSize.getHeight();
-  const margin = 24;
+  const margin = 18;
   const renderWidth = pageWidth - margin * 2;
   const renderHeight = (canvas.height / canvas.width) * renderWidth;
-  const fittedHeight = Math.min(renderHeight, pageHeight - margin * 2);
-  const offsetY = (pageHeight - fittedHeight) / 2;
+  const offsetY = (pageHeight - renderHeight) / 2;
 
-  pdf.addImage(image, "PNG", margin, offsetY, renderWidth, fittedHeight);
+  pdf.addImage(image, "PNG", margin, offsetY, renderWidth, renderHeight);
   pdf.save(filename);
 }

@@ -234,6 +234,7 @@ export function buildPurchaseConfirmationStatus(
     estado: purchase.status,
     mpStatus: null,
     eventoTitulo: purchase.eventTitle,
+    eventDate: purchase.eventDate,
     cantidad: purchase.quantity,
     total: purchase.totalPrice,
     compradorEmail: purchase.email,

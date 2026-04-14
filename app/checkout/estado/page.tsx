@@ -7,6 +7,10 @@ import { useQuery } from "@tanstack/react-query";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import {
+  formatEventDateTime,
+  formatPurchaseDateTime,
+} from "@/lib/date-format";
+import {
   fetchPublicCheckoutStatus,
   type PublicCheckoutStatus,
 } from "@/lib/mercadopago-api";
@@ -27,7 +31,7 @@ function getStatusTitle(status?: PublicCheckoutStatus["estado"]): string {
 
 function getStatusCopy(status?: PublicCheckoutStatus["estado"]): string {
   if (status === "PAGADO") {
-    return "Tu compra fue registrada correctamente. Si usaste un medio inmediato, las entradas ya deberían quedar emitidas. Revisá tu email y acordate de mirar spam, promociones y las demás bandejas por si el mensaje llega filtrado.";
+    return "Tu compra fue registrada correctamente. Si usaste un medio inmediato, las entradas ya deberían quedar emitidas.";
   }
   if (status === "CANCELADO") {
     return "Mercado Pago informó que el pago no se acreditó. Podés volver al evento e intentarlo otra vez.";
@@ -35,10 +39,29 @@ function getStatusCopy(status?: PublicCheckoutStatus["estado"]): string {
   return "Todavía estamos esperando la confirmación final del pago. Si acabás de pagar, refrescá esta pantalla en unos segundos.";
 }
 
+const DOWNLOAD_OPTIONS = [
+  {
+    format: "jpg" as const,
+    idleLabel: "Descargar JPG",
+    busyLabel: "Generando JPG...",
+    background: "linear-gradient(135deg, #ff4fdc 0%, #ff8cf0 100%)",
+    color: "#ffffff",
+    border: "1px solid rgba(255,79,220,0.36)",
+  },
+  {
+    format: "pdf" as const,
+    idleLabel: "Descargar PDF",
+    busyLabel: "Generando PDF...",
+    background: "linear-gradient(135deg, #5cff9d 0%, #a8ffca 100%)",
+    color: "#04110d",
+    border: "1px solid rgba(92,255,157,0.38)",
+  },
+];
+
 function CheckoutEstadoContent() {
   const searchParams = useSearchParams();
   const [downloadingFormat, setDownloadingFormat] = useState<
-    "jpg" | "png" | "pdf" | null
+    "jpg" | "pdf" | null
   >(null);
   const compraId = useMemo(
     () => (searchParams.get("compra") || "").trim(),
@@ -56,7 +79,7 @@ function CheckoutEstadoContent() {
   const title = useMemo(() => getStatusTitle(data?.estado), [data?.estado]);
   const copy = useMemo(() => getStatusCopy(data?.estado), [data?.estado]);
 
-  const handleDownload = async (format: "jpg" | "png" | "pdf") => {
+  const handleDownload = async (format: "jpg" | "pdf") => {
     if (!data) return;
     setDownloadingFormat(format);
     try {
@@ -121,24 +144,6 @@ function CheckoutEstadoContent() {
             {copy}
           </p>
 
-          {data?.estado === "PAGADO" ? (
-            <div
-              style={{
-                marginTop: "1rem",
-                padding: "0.9375rem 1rem",
-                borderRadius: "var(--radius-md)",
-                border: "1px solid rgba(92,255,157,0.2)",
-                background: "rgba(92,255,157,0.08)",
-                color: "var(--text-primary)",
-                lineHeight: 1.55,
-                fontSize: "var(--font-sm)",
-              }}
-            >
-              Tus entradas se envían por email. Si no las ves enseguida, revisá
-              spam, promociones, social y el resto de tus bandejas.
-            </div>
-          ) : null}
-
           <div
             style={{
               marginTop: "1.25rem",
@@ -171,6 +176,8 @@ function CheckoutEstadoContent() {
                   // comprador. Si se necesita para soporte, sigue disponible
                   // en el backend (GET /api/pagos/public/:compraId).
                   ["Evento", data.eventoTitulo],
+                  ["Fecha del evento", formatEventDateTime(data.eventDate)],
+                  ["Compra realizada", formatPurchaseDateTime(data.createdAt)],
                   ["Cantidad", String(data.cantidad)],
                   ["Total", formatPrice(data.total)],
                   ["Email", data.compradorEmail],
@@ -178,16 +185,14 @@ function CheckoutEstadoContent() {
                   <div
                     key={label}
                     style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      gap: "1rem",
-                      flexWrap: "wrap",
+                      display: "grid",
+                      gap: "0.25rem",
                     }}
                   >
                     <span style={{ color: "var(--text-disabled)" }}>
                       {label}
                     </span>
-                    <strong style={{ textAlign: "right" }}>{value}</strong>
+                    <strong style={{ lineHeight: 1.5 }}>{value}</strong>
                   </div>
                 ))}
               </div>
@@ -202,67 +207,41 @@ function CheckoutEstadoContent() {
             <div
               style={{
                 marginTop: "1rem",
-                padding: "1rem",
-                borderRadius: "var(--radius-md)",
-                border: "1px solid var(--border-color)",
-                background: "var(--bg-surface-2)",
                 display: "grid",
-                gap: "0.875rem",
+                gridTemplateColumns: "repeat(auto-fit, minmax(10rem, 1fr))",
+                gap: "0.75rem",
               }}
             >
-              <div style={{ display: "grid", gap: "0.35rem" }}>
-                <strong style={{ fontSize: "var(--font-md)" }}>
-                  Descargar confirmación
-                </strong>
-                <p
-                  style={{
-                    margin: 0,
-                    color: "var(--text-secondary)",
-                    lineHeight: 1.55,
-                  }}
-                >
-                  Podés guardar este comprobante en `JPG`, `PNG` o `PDF` desde
-                  el celu o la compu.
-                </p>
-              </div>
+              {DOWNLOAD_OPTIONS.map((option) => {
+                const isBusy = downloadingFormat === option.format;
 
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(auto-fit, minmax(10rem, 1fr))",
-                  gap: "0.75rem",
-                }}
-              >
-                {(["jpg", "png", "pdf"] as const).map((format) => {
-                  const isBusy = downloadingFormat === format;
-
-                  return (
-                    <button
-                      key={format}
-                      type="button"
-                      onClick={() => void handleDownload(format)}
-                      disabled={Boolean(downloadingFormat)}
-                      style={{
-                        minHeight: "3rem",
-                        padding: "0.75rem 1rem",
-                        borderRadius: "var(--radius-full)",
-                        border: "1px solid var(--border-color)",
-                        background: isBusy
-                          ? "rgba(92,255,157,0.12)"
-                          : "var(--bg-surface-1)",
-                        color: "var(--text-primary)",
-                        fontWeight: 800,
-                        cursor: downloadingFormat ? "wait" : "pointer",
-                        width: "100%",
-                      }}
-                    >
-                      {isBusy
-                        ? `Generando ${format.toUpperCase()}...`
-                        : `Descargar ${format.toUpperCase()}`}
-                    </button>
-                  );
-                })}
-              </div>
+                return (
+                  <button
+                    key={option.format}
+                    type="button"
+                    onClick={() => void handleDownload(option.format)}
+                    disabled={Boolean(downloadingFormat)}
+                    style={{
+                      minHeight: "3.25rem",
+                      padding: "0.875rem 1rem",
+                      borderRadius: "var(--radius-full)",
+                      border: option.border,
+                      background: isBusy
+                        ? "linear-gradient(135deg, var(--bg-surface-3) 0%, var(--bg-surface-2) 100%)"
+                        : option.background,
+                      color: isBusy ? "var(--text-primary)" : option.color,
+                      fontWeight: 800,
+                      cursor: downloadingFormat ? "wait" : "pointer",
+                      width: "100%",
+                      boxShadow: isBusy
+                        ? "none"
+                        : "0 1rem 2rem rgba(0,0,0,0.18)",
+                    }}
+                  >
+                    {isBusy ? option.busyLabel : option.idleLabel}
+                  </button>
+                );
+              })}
             </div>
           ) : null}
 

@@ -1,3 +1,5 @@
+import { formatEventDateTime, formatPurchaseDateTime } from "@/lib/date-format";
+
 export type EstadoCompra = "PENDIENTE" | "PAGADO" | "CANCELADO";
 export type MetodoPago = "TRANSFERENCIA_CBU" | "MERCADO_PAGO";
 
@@ -192,30 +194,11 @@ export async function fetchEntradaCompleta(
 }
 
 export function formatFechaCompra(isoDate: string): string {
-  const date = new Date(isoDate);
-  if (Number.isNaN(date.getTime())) return "";
-
-  return new Intl.DateTimeFormat("es-AR", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(date);
+  return formatPurchaseDateTime(isoDate);
 }
 
 export function formatFechaEvento(isoDate: string): string {
-  const date = new Date(isoDate);
-  if (Number.isNaN(date.getTime())) return "";
-
-  return new Intl.DateTimeFormat("es-AR", {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(date);
+  return formatEventDateTime(isoDate);
 }
 
 export function formatPrecio(precio: number): string {

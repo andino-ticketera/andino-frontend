@@ -39,6 +39,7 @@ export interface PublicCheckoutStatus {
   estado: "PENDIENTE" | "PAGADO" | "CANCELADO";
   mpStatus: string | null;
   eventoTitulo: string;
+  eventDate: string;
   cantidad: number;
   total: number;
   compradorEmail: string;
