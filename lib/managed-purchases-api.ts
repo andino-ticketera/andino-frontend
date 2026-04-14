@@ -1,10 +1,12 @@
 import type { Purchase } from "@/data/purchases";
+import type { PublicCheckoutStatus } from "@/lib/mercadopago-api";
 
 interface BackendManagedPurchase {
   id: string;
   user_id: string | null;
   evento_id: string;
   evento_titulo: string;
+  fecha_evento: string;
   nombre_organizador: string;
   cantidad: number;
   precio_unitario: number;
@@ -28,6 +30,13 @@ interface CheckInResponse {
   data?: {
     compraId: string;
     entradasUsadas: number;
+  };
+}
+
+interface PurchaseActionResponse {
+  data?: {
+    compraId: string;
+    mensaje?: string;
   };
 }
 
@@ -60,6 +69,7 @@ function mapPurchase(item: BackendManagedPurchase): Purchase {
     userId: item.user_id,
     eventId: item.evento_id,
     eventTitle: item.evento_titulo,
+    eventDate: item.fecha_evento,
     organizerName: item.nombre_organizador,
     firstName: item.comprador_nombre,
     lastName: item.comprador_apellido,
@@ -126,6 +136,36 @@ export async function updateOrganizerPurchaseCheckIn(
   return Number(payload.data?.entradasUsadas || 0);
 }
 
+async function resendManagedPurchaseEmail(endpoint: string): Promise<string> {
+  const response = await fetch(endpoint, {
+    method: "POST",
+    headers: buildJsonHeaders(),
+  });
+
+  if (!response.ok) {
+    throw new Error(await parseApiError(response));
+  }
+
+  const payload = (await response.json()) as PurchaseActionResponse;
+  return payload.data?.mensaje?.trim() || "Email reenviado correctamente";
+}
+
+export async function resendAdminPurchaseEmail(
+  purchaseId: string,
+): Promise<string> {
+  return resendManagedPurchaseEmail(
+    `/api/proxy/compras/admin/${purchaseId}/resend-email`,
+  );
+}
+
+export async function resendOrganizerPurchaseEmail(
+  purchaseId: string,
+): Promise<string> {
+  return resendManagedPurchaseEmail(
+    `/api/proxy/compras/organizador/${purchaseId}/resend-email`,
+  );
+}
+
 export function getManagedPaymentMethodLabel(
   method: Purchase["paymentMethod"],
 ): string {
@@ -175,4 +215,28 @@ export function getPurchaseCheckInLabel(purchase: Purchase): string {
   if (purchase.checkedInCount <= 0) return "Ausente";
   if (purchase.checkedInCount >= purchase.quantity) return "Presente";
   return `${purchase.checkedInCount}/${purchase.quantity} presentes`;
+}
+
+export function isManagedPurchaseCurrent(purchase: Purchase): boolean {
+  const eventTime = new Date(purchase.eventDate).getTime();
+  return !Number.isNaN(eventTime) && eventTime > Date.now();
+}
+
+export function canResendManagedPurchaseEmail(purchase: Purchase): boolean {
+  return isManagedPurchasePaid(purchase) && isManagedPurchaseCurrent(purchase);
+}
+
+export function buildPurchaseConfirmationStatus(
+  purchase: Purchase,
+): PublicCheckoutStatus {
+  return {
+    compraId: purchase.id,
+    estado: purchase.status,
+    mpStatus: null,
+    eventoTitulo: purchase.eventTitle,
+    cantidad: purchase.quantity,
+    total: purchase.totalPrice,
+    compradorEmail: purchase.email,
+    createdAt: purchase.purchaseDate,
+  };
 }

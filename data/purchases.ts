@@ -3,6 +3,7 @@ export interface Purchase {
   userId?: string | null;
   eventId: string;
   eventTitle: string;
+  eventDate: string;
   organizerName: string;
   firstName: string;
   lastName: string;

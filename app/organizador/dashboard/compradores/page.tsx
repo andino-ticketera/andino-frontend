@@ -6,20 +6,30 @@ import { useOrganizer } from "@/context/OrganizerContext";
 import EvaIcon from "@/components/EvaIcon";
 import { downloadBuyersCsv } from "@/components/organizador/exportCsv";
 import ExpandableTableRow from "@/components/ExpandableTableRow";
+import { downloadPurchaseConfirmation } from "@/lib/purchase-confirmation-export";
 import {
+  buildPurchaseConfirmationStatus,
+  canResendManagedPurchaseEmail,
   formatManagedPurchaseDate,
   getManagedPaymentMethodLabel,
   getManagedPurchaseStatusColor,
   getManagedPurchaseStatusLabel,
   isManagedPurchasePaid,
+  resendOrganizerPurchaseEmail,
 } from "@/lib/managed-purchases-api";
 
 export default function OrganizerCompradoresPage() {
-  const { purchases, events, isPurchasesLoading } = useOrganizer();
+  const { purchases, events, isPurchasesLoading, showToast } = useOrganizer();
   const [eventFilter, setEventFilter] = useState("");
   const [selectedPurchaseId, setSelectedPurchaseId] = useState<string | null>(
     null,
   );
+  const [resendingPurchaseId, setResendingPurchaseId] = useState<string | null>(
+    null,
+  );
+  const [downloadingPurchaseId, setDownloadingPurchaseId] = useState<
+    string | null
+  >(null);
 
   const eventMap = useMemo(() => new Map(events.map((e) => [e.id, e])), [events]);
 
@@ -55,6 +65,45 @@ export default function OrganizerCompradoresPage() {
       ? (eventMap.get(eventFilter)?.title ?? "todos")
       : "todos";
     downloadBuyersCsv(filteredPurchases, eventTitle);
+  };
+
+  const handleResendEmail = async (purchaseId: string) => {
+    setResendingPurchaseId(purchaseId);
+    try {
+      const message = await resendOrganizerPurchaseEmail(purchaseId);
+      showToast(message, "success");
+    } catch (error) {
+      showToast(
+        error instanceof Error
+          ? error.message
+          : "No se pudo reenviar el email",
+        "danger",
+      );
+    } finally {
+      setResendingPurchaseId(null);
+    }
+  };
+
+  const handleDownloadEntry = async (purchaseId: string) => {
+    const purchase = filteredPurchases.find((item) => item.id === purchaseId);
+    if (!purchase) return;
+
+    setDownloadingPurchaseId(purchaseId);
+    try {
+      await downloadPurchaseConfirmation(
+        buildPurchaseConfirmationStatus(purchase),
+        "pdf",
+      );
+    } catch (error) {
+      showToast(
+        error instanceof Error
+          ? error.message
+          : "No se pudo descargar la entrada",
+        "danger",
+      );
+    } finally {
+      setDownloadingPurchaseId(null);
+    }
   };
 
   return (
@@ -264,25 +313,88 @@ export default function OrganizerCompradoresPage() {
                 },
               ]}
               actions={
-                <button
-                  type="button"
-                  onClick={() => setSelectedPurchaseId(purchase.id)}
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: "6px",
-                    border: "1px solid var(--primary-25)",
-                    background: "var(--primary-10)",
-                    color: "var(--color-primary)",
-                    borderRadius: "var(--radius-sm)",
-                    padding: "6px 10px",
-                    fontSize: "var(--font-xs)",
-                    fontWeight: 700,
-                    cursor: "pointer",
-                  }}
-                >
-                  <EvaIcon name="person" size={14} /> Ver datos
-                </button>
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedPurchaseId(purchase.id)}
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "6px",
+                      border: "1px solid var(--primary-25)",
+                      background: "var(--primary-10)",
+                      color: "var(--color-primary)",
+                      borderRadius: "var(--radius-sm)",
+                      padding: "6px 10px",
+                      fontSize: "var(--font-xs)",
+                      fontWeight: 700,
+                      cursor: "pointer",
+                    }}
+                  >
+                    <EvaIcon name="person" size={14} /> Ver datos
+                  </button>
+
+                  {canResendManagedPurchaseEmail(purchase) ? (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => void handleResendEmail(purchase.id)}
+                        disabled={resendingPurchaseId === purchase.id}
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "6px",
+                          border: "1px solid rgba(92, 255, 157, 0.35)",
+                          background: "rgba(92, 255, 157, 0.08)",
+                          color: "var(--color-primary)",
+                          borderRadius: "var(--radius-sm)",
+                          padding: "6px 10px",
+                          fontSize: "var(--font-xs)",
+                          fontWeight: 700,
+                          cursor:
+                            resendingPurchaseId === purchase.id
+                              ? "wait"
+                              : "pointer",
+                          opacity: resendingPurchaseId === purchase.id ? 0.7 : 1,
+                        }}
+                      >
+                        <EvaIcon name="email-outline" size={14} />
+                        {resendingPurchaseId === purchase.id
+                          ? "Reenviando..."
+                          : "Reenviar email"}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => void handleDownloadEntry(purchase.id)}
+                        disabled={downloadingPurchaseId === purchase.id}
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "6px",
+                          border: "1px solid var(--border-color)",
+                          background: "var(--bg-surface-1)",
+                          color: "var(--text-primary)",
+                          borderRadius: "var(--radius-sm)",
+                          padding: "6px 10px",
+                          fontSize: "var(--font-xs)",
+                          fontWeight: 700,
+                          cursor:
+                            downloadingPurchaseId === purchase.id
+                              ? "wait"
+                              : "pointer",
+                          opacity:
+                            downloadingPurchaseId === purchase.id ? 0.7 : 1,
+                        }}
+                      >
+                        <EvaIcon name="download-outline" size={14} />
+                        {downloadingPurchaseId === purchase.id
+                          ? "Descargando..."
+                          : "Descargar entrada"}
+                      </button>
+                    </>
+                  ) : null}
+                </>
               }
             />
           ))
