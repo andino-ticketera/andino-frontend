@@ -371,15 +371,16 @@ body {
   .modal-flyer {
     width: 100% !important;
     height: auto !important;
-    aspect-ratio: auto !important;
+    aspect-ratio: 4 / 5 !important;
     border-radius: var(--radius-xl) var(--radius-xl) 0 0 !important;
   }
 
   .modal-flyer-image {
-    position: relative !important;
+    position: absolute !important;
+    inset: 0 !important;
     width: 100% !important;
-    height: auto !important;
-    object-fit: contain !important;
+    height: 100% !important;
+    object-fit: cover !important;
   }
 
   .modal-info-col {
