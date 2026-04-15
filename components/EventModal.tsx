@@ -328,7 +328,7 @@ export default function EventModal({ event, onClose }: EventModalProps) {
               fill
               sizes="(max-width: 1024px) 100vw, 380px"
               className="modal-flyer-image"
-              style={{ objectFit: "cover", objectPosition: "center" }}
+              style={{ objectFit: "contain", objectPosition: "center" }}
               priority
             />
           </div>
@@ -1149,7 +1149,7 @@ export default function EventModal({ event, onClose }: EventModalProps) {
             inset: 0 !important;
             width: 100% !important;
             height: 100% !important;
-            object-fit: cover !important;
+            object-fit: contain !important;
             object-position: center !important;
           }
           @media (max-width: 1024px) {
@@ -1193,7 +1193,7 @@ export default function EventModal({ event, onClose }: EventModalProps) {
               border-radius: var(--radius-lg) var(--radius-lg) 0 0 !important;
             }
             .modal-flyer-image {
-              object-fit: cover !important;
+              object-fit: contain !important;
               object-position: center !important;
               border-radius: inherit;
             }
