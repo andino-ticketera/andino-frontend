@@ -50,7 +50,7 @@ function getStatusMeta(status: PublicCheckoutStatus["estado"]): {
 } {
   if (status === "PAGADO") {
     return {
-      label: "Pago acreditado",
+      label: "PAGADO",
       color: PALETTE.success,
     };
   }
@@ -192,6 +192,36 @@ function wrapText(
   return lines;
 }
 
+function drawFittedText(
+  ctx: CanvasRenderingContext2D,
+  input: {
+    text: string;
+    x: number;
+    y: number;
+    maxWidth: number;
+    fontWeight: number;
+    fontSize: number;
+    color: string;
+    minFontSize?: number;
+    align?: CanvasTextAlign;
+  },
+): void {
+  const previousAlign = ctx.textAlign;
+  const minFontSize = input.minFontSize ?? 20;
+  let fontSize = input.fontSize;
+
+  do {
+    ctx.font = `${input.fontWeight} ${fontSize}px Arial`;
+    if (ctx.measureText(input.text).width <= input.maxWidth) break;
+    fontSize -= 2;
+  } while (fontSize > minFontSize);
+
+  ctx.fillStyle = input.color;
+  ctx.textAlign = input.align ?? "left";
+  ctx.fillText(input.text, input.x, input.y);
+  ctx.textAlign = previousAlign;
+}
+
 function drawMetricCard(
   ctx: CanvasRenderingContext2D,
   input: {
@@ -234,7 +264,16 @@ function drawMetricCard(
   const lines = wrapText(ctx, input.value, input.width - 68);
   let currentY = input.y + 112;
   for (const line of lines.slice(0, 2)) {
-    ctx.fillText(line, input.x + 34, currentY);
+    drawFittedText(ctx, {
+      text: line,
+      x: input.x + 34,
+      y: currentY,
+      maxWidth: input.width - 68,
+      fontWeight: 800,
+      fontSize: 46,
+      minFontSize: 24,
+      color: input.valueColor || PALETTE.text,
+    });
     currentY += 54;
   }
 }
@@ -404,12 +443,17 @@ function buildConfirmationCanvas(data: PublicCheckoutStatus): HTMLCanvasElement 
 
   fillRoundedRect(ctx, 1284, 170, 360, 116, 34, PALETTE.surface2);
   strokeRoundedRect(ctx, 1284, 170, 360, 116, 34, PALETTE.border, 2);
-  ctx.fillStyle = PALETTE.textMuted;
-  ctx.font = "700 22px Arial";
-  ctx.fillText("Estado actual", 1318, 214);
-  ctx.fillStyle = statusMeta.color;
-  ctx.font = "800 38px Arial";
-  ctx.fillText(statusMeta.label, 1318, 264);
+  drawFittedText(ctx, {
+    text: statusMeta.label,
+    x: 1464,
+    y: 248,
+    maxWidth: 292,
+    fontWeight: 900,
+    fontSize: 46,
+    minFontSize: 26,
+    color: statusMeta.color,
+    align: "center",
+  });
 
   ctx.fillStyle = PALETTE.text;
   ctx.font = "800 86px Arial";

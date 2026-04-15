@@ -877,10 +877,26 @@ export default function AdminEventForm({
                     >
                       <Image
                         src={flyer}
+                        alt=""
+                        fill
+                        sizes="48px"
+                        aria-hidden="true"
+                        style={{
+                          objectFit: "cover",
+                          filter: "blur(8px)",
+                          transform: "scale(1.16)",
+                          opacity: 0.62,
+                        }}
+                      />
+                      <Image
+                        src={flyer}
                         alt="Preview flyer"
                         fill
                         sizes="48px"
-                        style={{ objectFit: "cover" }}
+                        style={{
+                          objectFit: "contain",
+                          zIndex: 1,
+                        }}
                       />
                     </div>
                     <span
@@ -1020,7 +1036,7 @@ export default function AdminEventForm({
               <span style={{ fontSize: "var(--font-xs)", color: "#5b5b66" }}>
                 {flyer.trim()
                   ? "Flyer cargado correctamente"
-                  : "Obligatorio para publicar. Formato recomendado: JPG o PNG"}
+                  : "Obligatorio para publicar. Formato recomendado: 4:5, JPG o PNG"}
               </span>
             </div>
           </div>

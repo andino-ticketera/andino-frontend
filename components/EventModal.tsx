@@ -286,36 +286,47 @@ export default function EventModal({ event, onClose }: EventModalProps) {
             style={{
               width: "23.75rem",
               flexShrink: 0,
+              alignSelf: "flex-start",
               position: "relative",
-              background: "var(--bg-base)",
+              aspectRatio: "4 / 5",
+              background: "#12091f",
               borderRadius: "var(--radius-xl) 0 0 var(--radius-xl)",
               overflow: "hidden",
             }}
           >
-            {/* Desktop: fill mode (absolute positioning) */}
+            <Image
+              src={modalFlyerSrc}
+              alt=""
+              fill
+              sizes="(max-width: 1024px) 100vw, 380px"
+              className="modal-flyer-blur"
+              aria-hidden="true"
+              style={{
+                objectFit: "cover",
+                objectPosition: "center",
+                filter: "blur(22px)",
+                transform: "scale(1.12)",
+                opacity: 0.62,
+              }}
+              priority
+            />
+            <div
+              aria-hidden="true"
+              style={{
+                position: "absolute",
+                inset: 0,
+                zIndex: 1,
+                background:
+                  "linear-gradient(180deg, rgba(18,9,31,0.16), rgba(18,9,31,0.42))",
+              }}
+            />
             <Image
               src={modalFlyerSrc}
               alt={event.title}
               fill
               sizes="(max-width: 1024px) 100vw, 380px"
-              className="modal-flyer-image modal-flyer-desktop"
+              className="modal-flyer-image"
               style={{ objectFit: "contain", objectPosition: "center" }}
-              priority
-            />
-            {/* Mobile: natural dimensions, no cropping */}
-            <Image
-              src={modalFlyerSrc}
-              alt={event.title}
-              width={600}
-              height={900}
-              sizes="100vw"
-              className="modal-flyer-mobile"
-              style={{
-                width: "100%",
-                height: "auto",
-                objectFit: "contain",
-                display: "none",
-              }}
               priority
             />
           </div>
@@ -1117,8 +1128,22 @@ export default function EventModal({ event, onClose }: EventModalProps) {
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
           }
+          .modal-flyer {
+            aspect-ratio: 4 / 5 !important;
+          }
+          .modal-flyer-blur {
+            z-index: 0;
+            position: absolute !important;
+            inset: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+          }
           .modal-flyer-image {
             z-index: 2;
+            position: absolute !important;
+            inset: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
             object-fit: contain !important;
             object-position: center !important;
           }
@@ -1138,15 +1163,10 @@ export default function EventModal({ event, onClose }: EventModalProps) {
             }
             .modal-flyer {
               width: 100% !important;
+              aspect-ratio: 4 / 5 !important;
               height: auto !important;
               max-height: none !important;
               border-radius: var(--radius-xl) var(--radius-xl) 0 0 !important;
-            }
-            .modal-flyer-mobile {
-              display: block !important;
-              width: 100% !important;
-              height: auto !important;
-              object-fit: contain !important;
             }
             .modal-form-col {
               width: 100% !important;
@@ -1163,6 +1183,7 @@ export default function EventModal({ event, onClose }: EventModalProps) {
             }
             .modal-flyer {
               background: var(--bg-base) !important;
+              aspect-ratio: 4 / 5 !important;
               border-radius: var(--radius-lg) var(--radius-lg) 0 0 !important;
             }
             .modal-flyer-image {
@@ -1197,6 +1218,7 @@ export default function EventModal({ event, onClose }: EventModalProps) {
               min-height: 100vh;
             }
             .modal-flyer {
+              aspect-ratio: 4 / 5 !important;
               border-radius: var(--radius-md) var(--radius-md) 0 0 !important;
             }
             .modal-info-col {
