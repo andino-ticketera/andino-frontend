@@ -315,16 +315,6 @@ export default function EventModal({ event, onClose }: EventModalProps) {
               }}
               priority
             />
-            <div
-              aria-hidden="true"
-              style={{
-                position: "absolute",
-                inset: 0,
-                zIndex: 1,
-                background:
-                  "linear-gradient(180deg, rgba(18,9,31,0.16), rgba(18,9,31,0.42))",
-              }}
-            />
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={modalFlyerSrc}
@@ -1148,7 +1138,6 @@ export default function EventModal({ event, onClose }: EventModalProps) {
             z-index: 2;
             width: 100%;
             height: auto;
-            max-height: 100%;
             object-fit: contain;
             display: block;
           }
@@ -1168,7 +1157,7 @@ export default function EventModal({ event, onClose }: EventModalProps) {
             }
             .modal-flyer {
               width: 100% !important;
-              aspect-ratio: 4 / 5 !important;
+              aspect-ratio: auto !important;
               height: auto !important;
               min-height: 0 !important;
               max-height: none !important;
@@ -1189,7 +1178,7 @@ export default function EventModal({ event, onClose }: EventModalProps) {
             }
             .modal-flyer {
               background: var(--bg-base) !important;
-              aspect-ratio: 4 / 5 !important;
+              aspect-ratio: auto !important;
               border-radius: var(--radius-lg) var(--radius-lg) 0 0 !important;
             }
             .modal-flyer-image {

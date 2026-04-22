@@ -133,40 +133,6 @@ export default function HeroCarousel({ events, onReserve }: HeroCarouselProps) {
                     textAlign: "left",
                   }}
                 >
-                  {/* Tags */}
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: "0.5rem",
-                      marginBottom: "1rem",
-                    }}
-                  >
-                    {event.tags.map((tag) => (
-                      <span
-                        key={tag}
-                        style={{
-                          fontSize: "var(--font-xs)",
-                          fontWeight: 700,
-                          padding: "0.375rem 0.875rem",
-                          borderRadius: "var(--radius-full)",
-                          letterSpacing: "0.05em",
-                          ...(tag === "EVENTO DESTACADO"
-                            ? {
-                                background: "var(--color-accent)",
-                                color: "var(--text-primary)",
-                              }
-                            : {
-                                background: "var(--primary-15)",
-                                color: "var(--color-primary)",
-                                border: "1px solid var(--primary-35)",
-                              }),
-                        }}
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-
                   {/* Title */}
                   <h1
                     style={{
