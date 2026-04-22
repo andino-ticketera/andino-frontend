@@ -269,6 +269,8 @@ export default function AdminEventForm({
   const [activeTab, setActiveTab] = useState<"info" | "media">("info");
   const [isImageDragOver, setIsImageDragOver] = useState(false);
   const [isFlyerDragOver, setIsFlyerDragOver] = useState(false);
+  const [hasImageMediaChange, setHasImageMediaChange] = useState(false);
+  const [hasFlyerMediaChange, setHasFlyerMediaChange] = useState(false);
   const [pendingAssetRemoval, setPendingAssetRemoval] = useState<
     "flyer" | "image" | null
   >(null);
@@ -292,17 +294,22 @@ export default function AdminEventForm({
   const handleAssetFile = (file: File, target: "image" | "flyer") => {
     if (!file.type.startsWith("image/")) return;
     if (target === "image") {
-      handleFileToDataUrl(file, setImage);
+      handleFileToDataUrl(file, (dataUrl) => {
+        setImage(dataUrl);
+        setHasImageMediaChange(true);
+      });
       return;
     }
     handleFileToDataUrl(file, (dataUrl) => {
       setFlyer(dataUrl);
+      setHasFlyerMediaChange(true);
     });
   };
 
   const handleConfirmAssetRemoval = () => {
     if (pendingAssetRemoval === "flyer") {
       setFlyer("");
+      setHasFlyerMediaChange(true);
       if (flyerInputRef.current) {
         flyerInputRef.current.value = "";
       }
@@ -310,6 +317,7 @@ export default function AdminEventForm({
 
     if (pendingAssetRemoval === "image") {
       setImage("");
+      setHasImageMediaChange(true);
       if (imageInputRef.current) {
         imageInputRef.current.value = "";
       }
@@ -402,12 +410,13 @@ export default function AdminEventForm({
     ],
   );
 
+  const hasMediaChanges = hasImageMediaChange || hasFlyerMediaChange;
+
   const hasChanges =
     mode === "create"
       ? true
-      : JSON.stringify(currentComparable) !== JSON.stringify(initialComparable);
-
-  const hasRequiredEventImage = Boolean(flyer.trim() || image.trim());
+      : hasMediaChanges ||
+        JSON.stringify(currentComparable) !== JSON.stringify(initialComparable);
 
   const baseCanSubmit =
     categoryOptions.length > 0 &&
@@ -421,7 +430,7 @@ export default function AdminEventForm({
     direccion.trim() &&
     provincia.trim() &&
     localidad.trim() &&
-    hasRequiredEventImage;
+    flyer.trim();
 
   const canSubmit = baseCanSubmit && hasChanges;
   const firstMissingField = useMemo(() => {
@@ -437,13 +446,13 @@ export default function AdminEventForm({
     if (!direccion.trim()) return "Dirección";
     if (!provincia.trim()) return "Provincia";
     if (!localidad.trim()) return "Localidad";
-    if (!hasRequiredEventImage) return "Imagen principal del evento";
+    if (!flyer.trim()) return "Flyer / Poster del evento";
     return "";
   }, [
     categoryOptions.length,
     date,
     direccion,
-    hasRequiredEventImage,
+    flyer,
     localidad,
     longDescription,
     organizador,
@@ -1156,9 +1165,7 @@ export default function AdminEventForm({
               textAlign: "right",
             }}
           >
-            {firstMissingField === "Imagen principal del evento"
-              ? "El evento debe tener una imagen o flyer antes de guardar."
-              : `${firstMissingField} es obligatorio.`}
+            {`${firstMissingField} es obligatorio.`}
           </span>
         ) : null}
         <button
@@ -1204,8 +1211,8 @@ export default function AdminEventForm({
                   : "Vas a quitar la imagen actual del evento."}
               </p>
               <p>
-                Si el evento se queda sin imagen principal, no vas a poder guardar
-                hasta subir una nueva.
+                El flyer es obligatorio para guardar. El banner del carrusel es
+                opcional.
               </p>
             </>
           }

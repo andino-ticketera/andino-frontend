@@ -153,28 +153,32 @@ export default function OrganizerEventForm({
     refetchOnWindowFocus: false,
   });
 
-  const defaults = initialEvent ?? {
-    title: "",
-    description: "",
-    longDescription: "",
-    date: "",
-    time: "",
-    venue: "",
-    provincia: "",
-    localidad: "",
-    price: 0,
-    category: categories[0] ?? "",
-    image: "",
-    flyer: "",
-    featured: false,
-    tags: [],
-    direccion: "",
-    organizador: "",
-    totalEntradas: 100,
-    entradasVendidas: 0,
-    mediosDePago: ["mercadopago"] as "mercadopago"[],
-    mercadoPagoId: "",
-  };
+  const defaults = useMemo(
+    () =>
+      initialEvent ?? {
+        title: "",
+        description: "",
+        longDescription: "",
+        date: "",
+        time: "",
+        venue: "",
+        provincia: "",
+        localidad: "",
+        price: 0,
+        category: categories[0] ?? "",
+        image: "",
+        flyer: "",
+        featured: false,
+        tags: [],
+        direccion: "",
+        organizador: "",
+        totalEntradas: 100,
+        entradasVendidas: 0,
+        mediosDePago: ["mercadopago"] as "mercadopago"[],
+        mercadoPagoId: "",
+      },
+    [categories, initialEvent],
+  );
   const defaultProvincia = matchProvinciaOption(defaults.provincia);
   const defaultLocalidad = matchLocalidadOption(
     defaultProvincia,
@@ -207,6 +211,8 @@ export default function OrganizerEventForm({
   // medios (ej: transferencia) en el futuro sin romper el modelo de datos.
   const [isImageDragOver, setIsImageDragOver] = useState(false);
   const [isFlyerDragOver, setIsFlyerDragOver] = useState(false);
+  const [hasImageMediaChange, setHasImageMediaChange] = useState(false);
+  const [hasFlyerMediaChange, setHasFlyerMediaChange] = useState(false);
   const [pendingAssetRemoval, setPendingAssetRemoval] = useState<
     "flyer" | "image" | null
   >(null);
@@ -230,17 +236,22 @@ export default function OrganizerEventForm({
   const handleAssetFile = (file: File, target: "image" | "flyer") => {
     if (!file.type.startsWith("image/")) return;
     if (target === "image") {
-      handleFileToDataUrl(file, setImage);
+      handleFileToDataUrl(file, (dataUrl) => {
+        setImage(dataUrl);
+        setHasImageMediaChange(true);
+      });
       return;
     }
     handleFileToDataUrl(file, (dataUrl) => {
       setFlyer(dataUrl);
+      setHasFlyerMediaChange(true);
     });
   };
 
   const handleConfirmAssetRemoval = () => {
     if (pendingAssetRemoval === "flyer") {
       setFlyer("");
+      setHasFlyerMediaChange(true);
       if (flyerInputRef.current) {
         flyerInputRef.current.value = "";
       }
@@ -248,6 +259,7 @@ export default function OrganizerEventForm({
 
     if (pendingAssetRemoval === "image") {
       setImage("");
+      setHasImageMediaChange(true);
       if (imageInputRef.current) {
         imageInputRef.current.value = "";
       }
@@ -283,7 +295,72 @@ export default function OrganizerEventForm({
   const requiresMercadoPagoGate = mode === "create";
 
   const isPriceValid = price.trim() !== "" && Number(price) >= 0 && !Number.isNaN(Number(price));
-  const hasRequiredEventImage = Boolean(flyer.trim() || image.trim());
+  const initialComparable = useMemo(
+    () => ({
+      title: defaults.title.trim(),
+      longDescription: defaults.longDescription.trim(),
+      category: defaults.category,
+      date: eventDateInputToLabel(defaultDate),
+      time: defaultTime,
+      venue: defaults.venue.trim(),
+      direccion: defaults.direccion.trim(),
+      provincia: defaultProvincia,
+      localidad: defaultLocalidad,
+      organizador: defaults.organizador.trim(),
+      image: initialBanner,
+      flyer: defaults.flyer.trim(),
+      price: Number(defaults.price) || 0,
+      totalEntradas: Math.max(0, Number(defaults.totalEntradas) || 0),
+    }),
+    [
+      defaultDate,
+      defaultLocalidad,
+      defaultProvincia,
+      defaultTime,
+      defaults,
+      initialBanner,
+    ],
+  );
+  const currentComparable = useMemo(
+    () => ({
+      title: title.trim(),
+      longDescription: longDescription.trim(),
+      category: selectedCategory,
+      date: eventDateInputToLabel(date),
+      time: time.trim(),
+      venue: venue.trim(),
+      direccion: direccion.trim(),
+      provincia,
+      localidad,
+      organizador: organizador.trim(),
+      image: image.trim(),
+      flyer: flyer.trim(),
+      price: Number(price) || 0,
+      totalEntradas: Math.max(0, Number(totalEntradas) || 0),
+    }),
+    [
+      date,
+      direccion,
+      flyer,
+      image,
+      localidad,
+      longDescription,
+      organizador,
+      price,
+      provincia,
+      selectedCategory,
+      time,
+      title,
+      totalEntradas,
+      venue,
+    ],
+  );
+  const hasMediaChanges = hasImageMediaChange || hasFlyerMediaChange;
+  const hasChanges =
+    mode === "create"
+      ? true
+      : hasMediaChanges ||
+        JSON.stringify(currentComparable) !== JSON.stringify(initialComparable);
   const canSubmit =
     categoryOptions.length > 0 &&
     title.trim() &&
@@ -296,11 +373,12 @@ export default function OrganizerEventForm({
     direccion.trim() &&
     provincia.trim() &&
     localidad.trim() &&
-    hasRequiredEventImage &&
+    flyer.trim() &&
+    hasChanges &&
     isPriceValid &&
     (!requiresMercadoPagoGate || (isMercadoPagoReady && !isMpStatusLoading));
   const firstMissingField = useMemo(() => {
-    if (!hasRequiredEventImage) return "Imagen principal del evento";
+    if (!flyer.trim()) return "Flyer / Poster del evento";
     if (!title.trim()) return "Título";
     if (categoryOptions.length === 0 || !selectedCategory.trim()) return "Categoría";
     if (!longDescription.trim()) return "Descripción del evento";
@@ -320,7 +398,7 @@ export default function OrganizerEventForm({
     categoryOptions.length,
     date,
     direccion,
-    hasRequiredEventImage,
+    flyer,
     isMercadoPagoReady,
     isMpStatusLoading,
     isPriceValid,
@@ -914,8 +992,6 @@ export default function OrganizerEventForm({
           >
             {firstMissingField.startsWith("Activá")
               ? firstMissingField + "."
-              : firstMissingField === "Imagen principal del evento"
-                ? "El evento debe tener una imagen o flyer antes de guardar."
               : firstMissingField + " es obligatorio."}
           </span>
         ) : null}
@@ -962,8 +1038,8 @@ export default function OrganizerEventForm({
                   : "Vas a quitar la imagen actual del evento."}
               </p>
               <p>
-                Si el evento se queda sin imagen principal, no vas a poder guardar
-                hasta subir una nueva.
+                El flyer es obligatorio para guardar. El banner del carrusel es
+                opcional.
               </p>
             </>
           }
