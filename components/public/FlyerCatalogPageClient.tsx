@@ -81,7 +81,7 @@ function matchesFecha(eventDate: string, fecha: string): boolean {
         event.getMonth() === now.getMonth() &&
         event.getFullYear() === now.getFullYear()
       );
-    case "Proximo mes": {
+    case "Próximo mes": {
       const nextMonth = (now.getMonth() + 1) % 12;
       const nextYear =
         now.getMonth() === 11 ? now.getFullYear() + 1 : now.getFullYear();

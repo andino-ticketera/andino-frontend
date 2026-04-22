@@ -22,24 +22,52 @@ export default function EventCard({ event, onReserve }: EventCardProps) {
     >
       {/* Image */}
       <div
-        style={{ position: "relative", aspectRatio: "16 / 9", overflow: "hidden" }}
+        style={{
+          position: "relative",
+          aspectRatio: "16 / 9",
+          overflow: "hidden",
+          background: "#12091f",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
       >
         <Image
-          src={event.image}
+          src={event.flyer}
+          alt=""
+          fill
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          aria-hidden="true"
+          loading="lazy"
+          style={{
+            objectFit: "cover",
+            objectPosition: "center",
+            filter: "blur(22px)",
+            transform: "scale(1.12)",
+            opacity: 0.62,
+          }}
+        />
+        <Image
+          src={event.flyer}
           alt={event.title}
           fill
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
           loading="lazy"
           className="event-card-img"
-          style={{ objectFit: "cover", objectPosition: "center 20%" }}
+          style={{
+            objectFit: "contain",
+            objectPosition: "center",
+            zIndex: 2,
+          }}
         />
         <div
           style={{
             position: "absolute",
             inset: 0,
             background:
-              "linear-gradient(to top, rgba(51,26,82,0.6), transparent)",
+              "linear-gradient(to top, rgba(51,26,82,0.55), transparent)",
             pointerEvents: "none",
+            zIndex: 3,
           }}
         />
       </div>

@@ -294,6 +294,9 @@ export default function EventModal({ event, onClose }: EventModalProps) {
               background: "#12091f",
               borderRadius: "var(--radius-xl) 0 0 var(--radius-xl)",
               overflow: "hidden",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
             }}
           >
             <Image
@@ -322,14 +325,11 @@ export default function EventModal({ event, onClose }: EventModalProps) {
                   "linear-gradient(180deg, rgba(18,9,31,0.16), rgba(18,9,31,0.42))",
               }}
             />
-            <Image
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
               src={modalFlyerSrc}
               alt={event.title}
-              fill
-              sizes="(max-width: 1024px) 100vw, 380px"
               className="modal-flyer-image"
-              style={{ objectFit: "contain", objectPosition: "center" }}
-              priority
             />
           </div>
 
@@ -1045,7 +1045,7 @@ export default function EventModal({ event, onClose }: EventModalProps) {
 
                 if (paymentMethod !== "mercadopago") {
                   setPurchaseError(
-                    "La integracion real disponible en esta etapa es Mercado Pago.",
+                    "La integración real disponible en esta etapa es Mercado Pago.",
                   );
                   return;
                 }
@@ -1144,13 +1144,13 @@ export default function EventModal({ event, onClose }: EventModalProps) {
             height: 100% !important;
           }
           .modal-flyer-image {
+            position: relative;
             z-index: 2;
-            position: absolute !important;
-            inset: 0 !important;
-            width: 100% !important;
-            height: 100% !important;
-            object-fit: contain !important;
-            object-position: center !important;
+            width: 100%;
+            height: auto;
+            max-height: 100%;
+            object-fit: contain;
+            display: block;
           }
           @media (max-width: 1024px) {
             .modal-overlay {
@@ -1193,8 +1193,9 @@ export default function EventModal({ event, onClose }: EventModalProps) {
               border-radius: var(--radius-lg) var(--radius-lg) 0 0 !important;
             }
             .modal-flyer-image {
-              object-fit: contain !important;
-              object-position: center !important;
+              width: 100%;
+              height: auto;
+              max-height: 100%;
               border-radius: inherit;
             }
             .modal-info-col {

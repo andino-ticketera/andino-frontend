@@ -192,6 +192,11 @@ export default function HeroCarousel({ events, onReserve }: HeroCarouselProps) {
                       lineHeight: "var(--leading-relaxed)",
                       marginBottom: "1.25rem",
                       maxWidth: "560px",
+                      display: "-webkit-box",
+                      WebkitBoxOrient: "vertical",
+                      WebkitLineClamp: 4,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
                     }}
                   >
                     {event.description}
@@ -389,6 +394,9 @@ export default function HeroCarousel({ events, onReserve }: HeroCarouselProps) {
 
         @media (max-width: 640px) {
           .hero-content { padding: 0 24px 80px !important; }
+          .hero-description {
+            -webkit-line-clamp: 3 !important;
+          }
           .hero-arrow {
             width: 36px;
             height: 36px;

@@ -767,7 +767,7 @@ export default function IniciarSesionPage() {
                       cursor: "pointer",
                     }}
                   >
-                    Olvide mi clave
+                    Olvidé mi clave
                   </button>
                 )}
 

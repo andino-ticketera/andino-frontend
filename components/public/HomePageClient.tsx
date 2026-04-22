@@ -73,7 +73,7 @@ function matchesFecha(eventDate: string, fecha: string): boolean {
         eDate.getMonth() === now.getMonth() &&
         eDate.getFullYear() === now.getFullYear()
       );
-    case "Proximo mes": {
+    case "Próximo mes": {
       const nextMonth = (now.getMonth() + 1) % 12;
       const nextYear =
         now.getMonth() === 11 ? now.getFullYear() + 1 : now.getFullYear();
@@ -284,7 +284,7 @@ export default function HomePageClient() {
               marginBottom: "1.5rem",
             }}
           >
-            Descubri los mejores eventos cerca tuyo
+            Descubrí los mejores eventos cerca tuyo
           </p>
 
           {/* Category pills — skeleton individual */}

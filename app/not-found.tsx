@@ -77,7 +77,7 @@ export default function NotFound() {
             marginBottom: "0.625rem",
           }}
         >
-          Pagina no encontrada
+          Página no encontrada
         </h1>
 
         <p

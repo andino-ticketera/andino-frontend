@@ -14,7 +14,7 @@ const montserrat = Montserrat({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://andinotickets.com"),
-  title: "Andino Tickets — Descubri los mejores eventos",
+  title: "Andino Tickets — Descubrí los mejores eventos",
   description:
     "Tu plataforma de confianza para descubrir y reservar entradas a los mejores eventos en vivo.",
 };
