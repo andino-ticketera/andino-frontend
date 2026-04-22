@@ -55,8 +55,13 @@ export default function AdminEditEventPage() {
       );
       updateEvent(event.id, persistedEvent);
       showToast("Cambios guardados correctamente", "success");
-    } catch {
-      showToast("No se pudieron guardar los cambios", "danger");
+    } catch (error) {
+      showToast(
+        error instanceof Error
+          ? error.message
+          : "No se pudieron guardar los cambios",
+        "danger",
+      );
     }
   };
 

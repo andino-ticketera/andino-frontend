@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useMemo, useRef, useState } from "react";
 import type { Event } from "@/data/events";
 import { localidades, provincias } from "@/data/locations";
+import AppConfirmDialog from "@/components/AppConfirmDialog";
 import EvaIcon from "@/components/EvaIcon";
 import { useAdmin } from "@/context/AdminContext";
 import {
@@ -166,12 +167,6 @@ function normalizeBannerValue(image: string, flyer: string): string {
   return trimmedImage;
 }
 
-function confirmAssetRemoval(kind: "flyer" | "image"): boolean {
-  const label =
-    kind === "flyer" ? "el flyer del evento" : "la imagen del evento";
-  return window.confirm(`¿Seguro que querés eliminar ${label}?`);
-}
-
 function defaultEventValues(category: string): Omit<Event, "id"> {
   return {
     title: "",
@@ -274,6 +269,9 @@ export default function AdminEventForm({
   const [activeTab, setActiveTab] = useState<"info" | "media">("info");
   const [isImageDragOver, setIsImageDragOver] = useState(false);
   const [isFlyerDragOver, setIsFlyerDragOver] = useState(false);
+  const [pendingAssetRemoval, setPendingAssetRemoval] = useState<
+    "flyer" | "image" | null
+  >(null);
   const [submitAttempted, setSubmitAttempted] = useState(false);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const flyerInputRef = useRef<HTMLInputElement>(null);
@@ -297,7 +295,27 @@ export default function AdminEventForm({
       handleFileToDataUrl(file, setImage);
       return;
     }
-    handleFileToDataUrl(file, setFlyer);
+    handleFileToDataUrl(file, (dataUrl) => {
+      setFlyer(dataUrl);
+    });
+  };
+
+  const handleConfirmAssetRemoval = () => {
+    if (pendingAssetRemoval === "flyer") {
+      setFlyer("");
+      if (flyerInputRef.current) {
+        flyerInputRef.current.value = "";
+      }
+    }
+
+    if (pendingAssetRemoval === "image") {
+      setImage("");
+      if (imageInputRef.current) {
+        imageInputRef.current.value = "";
+      }
+    }
+
+    setPendingAssetRemoval(null);
   };
 
   const availableLocalidades = useMemo(
@@ -930,10 +948,7 @@ export default function AdminEventForm({
                       style={previewRemoveBtn}
                       title="Eliminar flyer"
                       onClick={() => {
-                        if (!confirmAssetRemoval("flyer")) return;
-                        setFlyer("");
-                        if (flyerInputRef.current)
-                          flyerInputRef.current.value = "";
+                        setPendingAssetRemoval("flyer");
                       }}
                     >
                       <EvaIcon name="trash-2-outline" size={16} />
@@ -977,10 +992,7 @@ export default function AdminEventForm({
                       style={previewRemoveBtn}
                       title="Eliminar banner"
                       onClick={() => {
-                        if (!confirmAssetRemoval("image")) return;
-                        setImage("");
-                        if (imageInputRef.current)
-                          imageInputRef.current.value = "";
+                        setPendingAssetRemoval("image");
                       }}
                     >
                       <EvaIcon name="trash-2-outline" size={16} />
@@ -1176,6 +1188,33 @@ export default function AdminEventForm({
           }
         }
       `}</style>
+
+      {pendingAssetRemoval && (
+        <AppConfirmDialog
+          title={
+            pendingAssetRemoval === "flyer"
+              ? "Eliminar flyer del evento"
+              : "Eliminar imagen del evento"
+          }
+          description={
+            <>
+              <p>
+                {pendingAssetRemoval === "flyer"
+                  ? "Vas a quitar el flyer actual del evento."
+                  : "Vas a quitar la imagen actual del evento."}
+              </p>
+              <p>
+                Si el evento se queda sin imagen principal, no vas a poder guardar
+                hasta subir una nueva.
+              </p>
+            </>
+          }
+          confirmLabel="Eliminar"
+          iconName="trash"
+          onConfirm={handleConfirmAssetRemoval}
+          onClose={() => setPendingAssetRemoval(null)}
+        />
+      )}
     </form>
   );
 }
