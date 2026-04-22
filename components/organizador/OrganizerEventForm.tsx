@@ -361,56 +361,96 @@ export default function OrganizerEventForm({
       ? true
       : hasMediaChanges ||
         JSON.stringify(currentComparable) !== JSON.stringify(initialComparable);
+  const titleReady =
+    Boolean(currentComparable.title) ||
+    (mode === "edit" && currentComparable.title === initialComparable.title);
+  const categoryReady =
+    categoryOptions.length > 0 &&
+    (Boolean(currentComparable.category.trim()) ||
+      (mode === "edit" &&
+        currentComparable.category === initialComparable.category));
+  const longDescriptionReady =
+    Boolean(currentComparable.longDescription) ||
+    (mode === "edit" &&
+      currentComparable.longDescription === initialComparable.longDescription);
+  const organizadorReady =
+    Boolean(currentComparable.organizador) ||
+    (mode === "edit" &&
+      currentComparable.organizador === initialComparable.organizador);
+  const dateReady =
+    Boolean(currentComparable.date.trim()) ||
+    (mode === "edit" && currentComparable.date === initialComparable.date);
+  const timeReady =
+    isCompleteEventTime(currentComparable.time) ||
+    (mode === "edit" && currentComparable.time === initialComparable.time);
+  const venueReady =
+    Boolean(currentComparable.venue) ||
+    (mode === "edit" && currentComparable.venue === initialComparable.venue);
+  const direccionReady =
+    Boolean(currentComparable.direccion) ||
+    (mode === "edit" &&
+      currentComparable.direccion === initialComparable.direccion);
+  const provinciaReady =
+    Boolean(currentComparable.provincia.trim()) ||
+    (mode === "edit" &&
+      currentComparable.provincia === initialComparable.provincia);
+  const localidadReady =
+    Boolean(currentComparable.localidad.trim()) ||
+    (mode === "edit" &&
+      currentComparable.localidad === initialComparable.localidad);
+  const flyerReady = Boolean(currentComparable.flyer);
+  const priceReady =
+    isPriceValid ||
+    (mode === "edit" && currentComparable.price === initialComparable.price);
   const canSubmit =
     categoryOptions.length > 0 &&
-    title.trim() &&
-    selectedCategory.trim() &&
-    longDescription.trim() &&
-    organizador.trim() &&
-    date.trim() &&
-    isCompleteEventTime(time) &&
-    venue.trim() &&
-    direccion.trim() &&
-    provincia.trim() &&
-    localidad.trim() &&
-    flyer.trim() &&
+    titleReady &&
+    categoryReady &&
+    longDescriptionReady &&
+    organizadorReady &&
+    dateReady &&
+    timeReady &&
+    venueReady &&
+    direccionReady &&
+    provinciaReady &&
+    localidadReady &&
+    flyerReady &&
     hasChanges &&
-    isPriceValid &&
+    priceReady &&
     (!requiresMercadoPagoGate || (isMercadoPagoReady && !isMpStatusLoading));
   const firstMissingField = useMemo(() => {
-    if (!flyer.trim()) return "Flyer / Poster del evento";
-    if (!title.trim()) return "Título";
-    if (categoryOptions.length === 0 || !selectedCategory.trim()) return "Categoría";
-    if (!longDescription.trim()) return "Descripción del evento";
-    if (!organizador.trim()) return "Nombre del organizador";
-    if (!date.trim()) return "Fecha";
-    if (!isCompleteEventTime(time)) return "Hora";
-    if (!venue.trim()) return "Locación";
-    if (!direccion.trim()) return "Dirección";
-    if (!provincia.trim()) return "Provincia";
-    if (!localidad.trim()) return "Localidad";
-    if (!isPriceValid) return "Precio de la entrada";
+    if (!flyerReady) return "Flyer / Poster del evento";
+    if (!titleReady) return "Título";
+    if (!categoryReady) return "Categoría";
+    if (!longDescriptionReady) return "Descripción del evento";
+    if (!organizadorReady) return "Nombre del organizador";
+    if (!dateReady) return "Fecha";
+    if (!timeReady) return "Hora";
+    if (!venueReady) return "Locación";
+    if (!direccionReady) return "Dirección";
+    if (!provinciaReady) return "Provincia";
+    if (!localidadReady) return "Localidad";
+    if (!priceReady) return "Precio de la entrada";
     if (requiresMercadoPagoGate && (isMpStatusLoading || !isMercadoPagoReady)) {
       return "Activá los cobros con Mercado Pago desde el panel";
     }
     return "";
   }, [
-    categoryOptions.length,
-    date,
-    direccion,
-    flyer,
+    categoryReady,
+    dateReady,
+    direccionReady,
+    flyerReady,
     isMercadoPagoReady,
     isMpStatusLoading,
-    isPriceValid,
-    localidad,
-    longDescription,
-    organizador,
-    provincia,
+    localidadReady,
+    longDescriptionReady,
+    organizadorReady,
+    priceReady,
+    provinciaReady,
     requiresMercadoPagoGate,
-    selectedCategory,
-    time,
-    title,
-    venue,
+    timeReady,
+    titleReady,
+    venueReady,
   ]);
 
   const handleSubmit = (e: React.FormEvent) => {

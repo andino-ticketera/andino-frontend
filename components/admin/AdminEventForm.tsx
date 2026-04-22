@@ -418,49 +418,87 @@ export default function AdminEventForm({
       : hasMediaChanges ||
         JSON.stringify(currentComparable) !== JSON.stringify(initialComparable);
 
+  const titleReady =
+    Boolean(currentComparable.title) ||
+    (mode === "edit" && currentComparable.title === initialComparable.title);
+  const categoryReady =
+    categoryOptions.length > 0 &&
+    (Boolean(currentComparable.category.trim()) ||
+      (mode === "edit" &&
+        currentComparable.category === initialComparable.category));
+  const longDescriptionReady =
+    Boolean(currentComparable.longDescription) ||
+    (mode === "edit" &&
+      currentComparable.longDescription === initialComparable.longDescription);
+  const organizadorReady =
+    Boolean(currentComparable.organizador) ||
+    (mode === "edit" &&
+      currentComparable.organizador === initialComparable.organizador);
+  const dateReady =
+    Boolean(currentComparable.date.trim()) ||
+    (mode === "edit" && currentComparable.date === initialComparable.date);
+  const timeReady =
+    isCompleteEventTime(currentComparable.time) ||
+    (mode === "edit" && currentComparable.time === initialComparable.time);
+  const venueReady =
+    Boolean(currentComparable.venue) ||
+    (mode === "edit" && currentComparable.venue === initialComparable.venue);
+  const direccionReady =
+    Boolean(currentComparable.direccion) ||
+    (mode === "edit" &&
+      currentComparable.direccion === initialComparable.direccion);
+  const provinciaReady =
+    Boolean(currentComparable.provincia.trim()) ||
+    (mode === "edit" &&
+      currentComparable.provincia === initialComparable.provincia);
+  const localidadReady =
+    Boolean(currentComparable.localidad.trim()) ||
+    (mode === "edit" &&
+      currentComparable.localidad === initialComparable.localidad);
+  const flyerReady = Boolean(currentComparable.flyer);
+
   const baseCanSubmit =
     categoryOptions.length > 0 &&
-    title.trim() &&
-    selectedCategory.trim() &&
-    longDescription.trim() &&
-    organizador.trim() &&
-    date.trim() &&
-    isCompleteEventTime(time) &&
-    venue.trim() &&
-    direccion.trim() &&
-    provincia.trim() &&
-    localidad.trim() &&
-    flyer.trim();
+    titleReady &&
+    categoryReady &&
+    longDescriptionReady &&
+    organizadorReady &&
+    dateReady &&
+    timeReady &&
+    venueReady &&
+    direccionReady &&
+    provinciaReady &&
+    localidadReady &&
+    flyerReady;
 
   const canSubmit = baseCanSubmit && hasChanges;
   const firstMissingField = useMemo(() => {
-    if (!title.trim()) return "Título";
-    if (categoryOptions.length === 0 || !selectedCategory.trim()) {
+    if (!titleReady) return "Título";
+    if (!categoryReady) {
       return "Categoría";
     }
-    if (!longDescription.trim()) return "Descripción larga";
-    if (!organizador.trim()) return "Nombre del organizador";
-    if (!date.trim()) return "Fecha";
-    if (!isCompleteEventTime(time)) return "Hora";
-    if (!venue.trim()) return "Locación";
-    if (!direccion.trim()) return "Dirección";
-    if (!provincia.trim()) return "Provincia";
-    if (!localidad.trim()) return "Localidad";
-    if (!flyer.trim()) return "Flyer / Poster del evento";
+    if (!longDescriptionReady) return "Descripción larga";
+    if (!organizadorReady) return "Nombre del organizador";
+    if (!dateReady) return "Fecha";
+    if (!timeReady) return "Hora";
+    if (!venueReady) return "Locación";
+    if (!direccionReady) return "Dirección";
+    if (!provinciaReady) return "Provincia";
+    if (!localidadReady) return "Localidad";
+    if (!flyerReady) return "Flyer / Poster del evento";
     return "";
   }, [
-    categoryOptions.length,
-    date,
-    direccion,
-    flyer,
-    localidad,
-    longDescription,
-    organizador,
-    provincia,
-    selectedCategory,
-    time,
-    title,
-    venue,
+    categoryReady,
+    dateReady,
+    direccionReady,
+    flyerReady,
+    localidadReady,
+    longDescriptionReady,
+    organizadorReady,
+    provinciaReady,
+    timeReady,
+    titleReady,
+    venueReady,
   ]);
 
   const handleSubmit = (e: React.FormEvent) => {
