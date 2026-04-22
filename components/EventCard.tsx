@@ -34,28 +34,13 @@ export default function EventCard({ event, onReserve }: EventCardProps) {
       >
         <Image
           src={event.flyer}
-          alt=""
-          fill
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-          aria-hidden="true"
-          loading="lazy"
-          style={{
-            objectFit: "cover",
-            objectPosition: "center",
-            filter: "blur(22px)",
-            transform: "scale(1.12)",
-            opacity: 0.62,
-          }}
-        />
-        <Image
-          src={event.flyer}
           alt={event.title}
           fill
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
           loading="lazy"
           className="event-card-img"
           style={{
-            objectFit: "contain",
+            objectFit: "cover",
             objectPosition: "center",
             zIndex: 2,
           }}

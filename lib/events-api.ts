@@ -315,12 +315,17 @@ function buildEventUpdateFormData(
   const flyerFile = dataUrlToFile(event.flyer, "evento-flyer");
   const shouldRemoveFlyer =
     !!previousEvent?.flyer.trim() && !event.flyer.trim() && !flyerFile;
+  const shouldUseFlyerAsImage =
+    !event.image.trim() &&
+    !!event.flyer.trim() &&
+    (!!previousEvent?.image.trim() || !!flyerFile);
 
   if (
     Object.keys(payload).length === 0 &&
     !imageFile &&
     !flyerFile &&
-    !shouldRemoveFlyer
+    !shouldRemoveFlyer &&
+    !shouldUseFlyerAsImage
   ) {
     return null;
   }
@@ -342,6 +347,8 @@ function buildEventUpdateFormData(
 
   if (imageFile) {
     formData.append("imagen", imageFile);
+  } else if (shouldUseFlyerAsImage) {
+    formData.append("use_flyer_as_imagen", "true");
   }
 
   if (flyerFile) {

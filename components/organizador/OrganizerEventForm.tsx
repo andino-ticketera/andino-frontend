@@ -67,13 +67,14 @@ const optionalHintStyle: React.CSSProperties = {
 
 const previewThumbWrap: React.CSSProperties = {
   display: "flex",
-  alignItems: "center",
+  alignItems: "flex-start",
+  flexWrap: "wrap",
   gap: "0.625rem",
   padding: "0.5rem 0.625rem",
   border: "1px solid var(--border-color)",
   borderRadius: "var(--radius-md)",
   background: "#ffffff",
-  maxWidth: "360px",
+  width: "100%",
 };
 
 const previewThumbFrame: React.CSSProperties = {
@@ -123,6 +124,12 @@ function normalizeBannerValue(image: string, flyer: string): string {
   if (!trimmedImage) return "";
   if (trimmedFlyer && trimmedImage === trimmedFlyer) return "";
   return trimmedImage;
+}
+
+function confirmAssetRemoval(kind: "flyer" | "image"): boolean {
+  const label =
+    kind === "flyer" ? "el flyer del evento" : "la imagen del evento";
+  return window.confirm(`¿Seguro que querés eliminar ${label}?`);
 }
 
 export default function OrganizerEventForm({
@@ -258,6 +265,7 @@ export default function OrganizerEventForm({
   const requiresMercadoPagoGate = mode === "create";
 
   const isPriceValid = price.trim() !== "" && Number(price) >= 0 && !Number.isNaN(Number(price));
+  const hasRequiredEventImage = Boolean(flyer.trim() || image.trim());
   const canSubmit =
     categoryOptions.length > 0 &&
     title.trim() &&
@@ -270,11 +278,11 @@ export default function OrganizerEventForm({
     direccion.trim() &&
     provincia.trim() &&
     localidad.trim() &&
-    flyer.trim() &&
+    hasRequiredEventImage &&
     isPriceValid &&
     (!requiresMercadoPagoGate || (isMercadoPagoReady && !isMpStatusLoading));
   const firstMissingField = useMemo(() => {
-    if (!flyer.trim()) return "Flyer / Poster del evento";
+    if (!hasRequiredEventImage) return "Imagen principal del evento";
     if (!title.trim()) return "Título";
     if (categoryOptions.length === 0 || !selectedCategory.trim()) return "Categoría";
     if (!longDescription.trim()) return "Descripción del evento";
@@ -294,7 +302,7 @@ export default function OrganizerEventForm({
     categoryOptions.length,
     date,
     direccion,
-    flyer,
+    hasRequiredEventImage,
     isMercadoPagoReady,
     isMpStatusLoading,
     isPriceValid,
@@ -423,6 +431,7 @@ export default function OrganizerEventForm({
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
+                  if (!confirmAssetRemoval("flyer")) return;
                   setFlyer("");
                   if (flyerInputRef.current) flyerInputRef.current.value = "";
                 }}
@@ -493,7 +502,7 @@ export default function OrganizerEventForm({
             <span style={{ fontSize: "var(--font-xs)", color: "#5b5b66" }}>
               {flyer.trim()
                 ? "Flyer cargado correctamente"
-                : "Obligatorio para publicar. Formato recomendado: 4:5, JPG o PNG"}
+                : "Subí una imagen principal del evento. Recomendado: 4:5, JPG o PNG"}
             </span>
           </div>
         </div>
@@ -536,6 +545,7 @@ export default function OrganizerEventForm({
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
+                  if (!confirmAssetRemoval("image")) return;
                   setImage("");
                   if (imageInputRef.current) imageInputRef.current.value = "";
                 }}
@@ -890,6 +900,8 @@ export default function OrganizerEventForm({
           >
             {firstMissingField.startsWith("Activá")
               ? firstMissingField + "."
+              : firstMissingField === "Imagen principal del evento"
+                ? "El evento debe tener una imagen o flyer antes de guardar."
               : firstMissingField + " es obligatorio."}
           </span>
         ) : null}
@@ -923,4 +935,3 @@ export default function OrganizerEventForm({
     </form>
   );
 }
-

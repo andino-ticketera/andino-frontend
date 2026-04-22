@@ -108,13 +108,14 @@ const previewGridStyle: React.CSSProperties = {
 
 const previewThumbWrap: React.CSSProperties = {
   display: "flex",
-  alignItems: "center",
+  alignItems: "flex-start",
+  flexWrap: "wrap",
   gap: "0.625rem",
   padding: "0.5rem 0.625rem",
   border: "1px solid var(--border-color)",
   borderRadius: "var(--radius-md)",
   background: "#ffffff",
-  maxWidth: "360px",
+  width: "100%",
 };
 
 const previewThumbFrame: React.CSSProperties = {
@@ -127,15 +128,19 @@ const previewThumbFrame: React.CSSProperties = {
 
 const previewRemoveBtn: React.CSSProperties = {
   marginLeft: "auto",
-  background: "none",
-  border: "none",
+  background: "#fff1f2",
+  border: "1px solid #fecaca",
   cursor: "pointer",
-  color: "#888",
-  padding: "4px",
-  borderRadius: "4px",
-  display: "flex",
+  color: "#b91c1c",
+  padding: "0.5rem 0.75rem",
+  borderRadius: "6px",
+  display: "inline-flex",
   alignItems: "center",
   justifyContent: "center",
+  gap: "0.375rem",
+  fontSize: "var(--font-xs)",
+  fontWeight: 700,
+  minHeight: "2.5rem",
 };
 
 function renderFieldLabel(
@@ -159,6 +164,12 @@ function normalizeBannerValue(image: string, flyer: string): string {
   if (!trimmedImage) return "";
   if (trimmedFlyer && trimmedImage === trimmedFlyer) return "";
   return trimmedImage;
+}
+
+function confirmAssetRemoval(kind: "flyer" | "image"): boolean {
+  const label =
+    kind === "flyer" ? "el flyer del evento" : "la imagen del evento";
+  return window.confirm(`¿Seguro que querés eliminar ${label}?`);
 }
 
 function defaultEventValues(category: string): Omit<Event, "id"> {
@@ -378,6 +389,8 @@ export default function AdminEventForm({
       ? true
       : JSON.stringify(currentComparable) !== JSON.stringify(initialComparable);
 
+  const hasRequiredEventImage = Boolean(flyer.trim() || image.trim());
+
   const baseCanSubmit =
     categoryOptions.length > 0 &&
     title.trim() &&
@@ -390,7 +403,7 @@ export default function AdminEventForm({
     direccion.trim() &&
     provincia.trim() &&
     localidad.trim() &&
-    flyer.trim();
+    hasRequiredEventImage;
 
   const canSubmit = baseCanSubmit && hasChanges;
   const firstMissingField = useMemo(() => {
@@ -406,13 +419,13 @@ export default function AdminEventForm({
     if (!direccion.trim()) return "Dirección";
     if (!provincia.trim()) return "Provincia";
     if (!localidad.trim()) return "Localidad";
-    if (!flyer.trim()) return "Flyer / Poster del evento";
+    if (!hasRequiredEventImage) return "Imagen principal del evento";
     return "";
   }, [
     categoryOptions.length,
     date,
     direccion,
-    flyer,
+    hasRequiredEventImage,
     localidad,
     longDescription,
     organizador,
@@ -862,8 +875,8 @@ export default function AdminEventForm({
             <div style={{ ...fieldBox, gridColumn: "1 / -1" }}>
               <span style={labelStyle}>
                 {mode === "edit"
-                  ? "Archivos actuales"
-                  : "Archivos seleccionados"}
+                  ? "Vista previa actual"
+                  : "Vista previa"}
               </span>
               <div style={previewGridStyle}>
                 {flyer.trim() && (
@@ -917,12 +930,14 @@ export default function AdminEventForm({
                       style={previewRemoveBtn}
                       title="Eliminar flyer"
                       onClick={() => {
+                        if (!confirmAssetRemoval("flyer")) return;
                         setFlyer("");
                         if (flyerInputRef.current)
                           flyerInputRef.current.value = "";
                       }}
                     >
-                      <EvaIcon name="close-circle-outline" size={18} />
+                      <EvaIcon name="trash-2-outline" size={16} />
+                      Eliminar
                     </button>
                   </div>
                 )}
@@ -962,12 +977,14 @@ export default function AdminEventForm({
                       style={previewRemoveBtn}
                       title="Eliminar banner"
                       onClick={() => {
+                        if (!confirmAssetRemoval("image")) return;
                         setImage("");
                         if (imageInputRef.current)
                           imageInputRef.current.value = "";
                       }}
                     >
-                      <EvaIcon name="close-circle-outline" size={18} />
+                      <EvaIcon name="trash-2-outline" size={16} />
+                      Eliminar
                     </button>
                   </div>
                 )}
@@ -1036,7 +1053,7 @@ export default function AdminEventForm({
               <span style={{ fontSize: "var(--font-xs)", color: "#5b5b66" }}>
                 {flyer.trim()
                   ? "Flyer cargado correctamente"
-                  : "Obligatorio para publicar. Formato recomendado: 4:5, JPG o PNG"}
+                  : "Subí una imagen principal del evento. Recomendado: 4:5, JPG o PNG"}
               </span>
             </div>
           </div>
@@ -1127,7 +1144,9 @@ export default function AdminEventForm({
               textAlign: "right",
             }}
           >
-            {firstMissingField} es obligatorio.
+            {firstMissingField === "Imagen principal del evento"
+              ? "El evento debe tener una imagen o flyer antes de guardar."
+              : `${firstMissingField} es obligatorio.`}
           </span>
         ) : null}
         <button
