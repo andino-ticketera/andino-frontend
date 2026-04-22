@@ -63,6 +63,22 @@ export interface BuyerProfile {
   tipoDocumento: string;
 }
 
+export interface FreeTicketPurchaseInput {
+  eventoId: string;
+  cantidad: number;
+  buyer: {
+    nombre: string;
+    apellido: string;
+    email: string;
+    documento: string;
+    tipoDocumento?: string;
+  };
+}
+
+export interface FreeTicketPurchaseResult {
+  compraId: string;
+}
+
 interface ComprasResponse {
   data: Compra[];
 }
@@ -100,6 +116,34 @@ async function parseApiError(response: Response): Promise<string> {
   }
 
   return response.statusText || `Error HTTP ${response.status}`;
+}
+
+export async function createFreeTicketPurchase(
+  input: FreeTicketPurchaseInput,
+): Promise<FreeTicketPurchaseResult> {
+  const response = await fetch("/api/proxy/compras/gratuita", {
+    method: "POST",
+    headers: buildAuthHeaders(),
+    body: JSON.stringify(input),
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    throw new Error(await parseApiError(response));
+  }
+
+  const payload = (await response.json()) as {
+    data?: { compraId?: string; compra_id?: string };
+  };
+
+  const compraId =
+    payload.data?.compraId || payload.data?.compra_id || "";
+
+  if (!compraId) {
+    throw new Error("No se pudo generar la entrada gratuita");
+  }
+
+  return { compraId };
 }
 
 export async function fetchMisCompras(): Promise<Compra[]> {

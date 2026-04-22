@@ -252,6 +252,11 @@ export default function OrganizerEventForm({
   const isMercadoPagoReady =
     mpStatus?.status === "CONECTADA" || mpStatus?.mode === "platform_test";
 
+  // En edicion no bloqueamos el guardado por el estado de MP: el evento ya
+  // existe y el organizador debe poder actualizar datos, flyer o banner
+  // aunque MP este desconectado o cargando en ese momento.
+  const requiresMercadoPagoGate = mode === "create";
+
   const isPriceValid = price.trim() !== "" && Number(price) >= 0 && !Number.isNaN(Number(price));
   const canSubmit =
     categoryOptions.length > 0 &&
@@ -267,8 +272,7 @@ export default function OrganizerEventForm({
     localidad.trim() &&
     flyer.trim() &&
     isPriceValid &&
-    isMercadoPagoReady &&
-    !isMpStatusLoading;
+    (!requiresMercadoPagoGate || (isMercadoPagoReady && !isMpStatusLoading));
   const firstMissingField = useMemo(() => {
     if (!flyer.trim()) return "Flyer / Poster del evento";
     if (!title.trim()) return "Título";
@@ -282,7 +286,7 @@ export default function OrganizerEventForm({
     if (!provincia.trim()) return "Provincia";
     if (!localidad.trim()) return "Localidad";
     if (!isPriceValid) return "Precio de la entrada";
-    if (isMpStatusLoading || !isMercadoPagoReady) {
+    if (requiresMercadoPagoGate && (isMpStatusLoading || !isMercadoPagoReady)) {
       return "Activá los cobros con Mercado Pago desde el panel";
     }
     return "";
@@ -298,6 +302,7 @@ export default function OrganizerEventForm({
     longDescription,
     organizador,
     provincia,
+    requiresMercadoPagoGate,
     selectedCategory,
     time,
     title,

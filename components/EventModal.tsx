@@ -11,7 +11,7 @@ import {
   readStoredBuyerProfile,
   writeStoredBuyerProfile,
 } from "@/lib/buyer-profile";
-import { fetchBuyerProfile } from "@/lib/compras-api";
+import { createFreeTicketPurchase, fetchBuyerProfile } from "@/lib/compras-api";
 
 interface EventModalProps {
   event: Event;
@@ -93,6 +93,7 @@ export default function EventModal({ event, onClose }: EventModalProps) {
   const [isLoadingBuyerProfile, setIsLoadingBuyerProfile] = useState(false);
 
   const unitPrice = event.price;
+  const isFreeEvent = unitPrice <= 0;
   const serviceFee = Math.round(unitPrice * SERVICE_FEE_RATE * 100) / 100;
   const totalPerTicket = unitPrice + serviceFee;
   const total = totalPerTicket * quantity;
@@ -884,86 +885,90 @@ export default function EventModal({ event, onClose }: EventModalProps) {
               )}
             </div>
 
-            {/* Payment */}
-            <div
-              style={{
-                background: "#fff",
-                borderRadius: "var(--radius-md)",
-                padding: "0.5rem 0.75rem",
-                display: "flex",
-                alignItems: "center",
-                gap: "0.625rem",
-                marginBottom: "0.625rem",
-              }}
-            >
-              <Image
-                src="/mp.svg"
-                alt="Mercado Pago"
-                width={40}
-                height={40}
-                style={{ objectFit: "contain", flexShrink: 0 }}
-              />
-              <div style={{ flex: 1 }}>
-                <p
+            {/* Payment — oculto en eventos gratis (no se cobra nada) */}
+            {!isFreeEvent && (
+              <>
+                <div
                   style={{
-                    fontSize: "var(--font-xs)",
-                    fontWeight: 700,
-                    color: "#263287",
+                    background: "#fff",
+                    borderRadius: "var(--radius-md)",
+                    padding: "0.5rem 0.75rem",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.625rem",
+                    marginBottom: "0.625rem",
                   }}
                 >
-                  Mercado Pago
-                </p>
-                <p style={{ fontSize: "0.625rem", color: "#666" }}>
-                  Pago seguro
-                </p>
-              </div>
-              <div style={{ display: "flex", gap: "0.1875rem" }}>
-                <svg width="28" height="18" viewBox="0 0 36 24" fill="none">
-                  <rect width="36" height="24" rx="4" fill="#1a3d7c" />
-                  <text
-                    x="18"
-                    y="15"
-                    textAnchor="middle"
-                    fill="#fff"
-                    fontSize="8"
-                    fontWeight="700"
-                    fontFamily="system-ui"
-                  >
-                    VISA
-                  </text>
-                </svg>
-                <svg width="28" height="18" viewBox="0 0 36 24" fill="none">
-                  <rect width="36" height="24" rx="4" fill="#1a1a2e" />
-                  <circle
-                    cx="14"
-                    cy="12"
-                    r="7"
-                    fill="#eb001b"
-                    fillOpacity="0.9"
+                  <Image
+                    src="/mp.svg"
+                    alt="Mercado Pago"
+                    width={40}
+                    height={40}
+                    style={{ objectFit: "contain", flexShrink: 0 }}
                   />
-                  <circle
-                    cx="22"
-                    cy="12"
-                    r="7"
-                    fill="#f79e1b"
-                    fillOpacity="0.9"
-                  />
-                </svg>
-              </div>
-            </div>
+                  <div style={{ flex: 1 }}>
+                    <p
+                      style={{
+                        fontSize: "var(--font-xs)",
+                        fontWeight: 700,
+                        color: "#263287",
+                      }}
+                    >
+                      Mercado Pago
+                    </p>
+                    <p style={{ fontSize: "0.625rem", color: "#666" }}>
+                      Pago seguro
+                    </p>
+                  </div>
+                  <div style={{ display: "flex", gap: "0.1875rem" }}>
+                    <svg width="28" height="18" viewBox="0 0 36 24" fill="none">
+                      <rect width="36" height="24" rx="4" fill="#1a3d7c" />
+                      <text
+                        x="18"
+                        y="15"
+                        textAnchor="middle"
+                        fill="#fff"
+                        fontSize="8"
+                        fontWeight="700"
+                        fontFamily="system-ui"
+                      >
+                        VISA
+                      </text>
+                    </svg>
+                    <svg width="28" height="18" viewBox="0 0 36 24" fill="none">
+                      <rect width="36" height="24" rx="4" fill="#1a1a2e" />
+                      <circle
+                        cx="14"
+                        cy="12"
+                        r="7"
+                        fill="#eb001b"
+                        fillOpacity="0.9"
+                      />
+                      <circle
+                        cx="22"
+                        cy="12"
+                        r="7"
+                        fill="#f79e1b"
+                        fillOpacity="0.9"
+                      />
+                    </svg>
+                  </div>
+                </div>
 
-            <div style={{ marginBottom: "0.625rem" }}>
-              <label style={labelStyle}>Medio de pago</label>
-              <select
-                value={paymentMethod}
-                onChange={(e) =>
-                  setPaymentMethod(e.target.value as "mercadopago")
-                }
-                style={selectStyle}
-              >
-                <option value="mercadopago">Mercado Pago</option>
-              </select>
-            </div>
+                <div style={{ marginBottom: "0.625rem" }}>
+                  <label style={labelStyle}>Medio de pago</label>
+                  <select
+                    value={paymentMethod}
+                    onChange={(e) =>
+                      setPaymentMethod(e.target.value as "mercadopago")
+                    }
+                    style={selectStyle}
+                  >
+                    <option value="mercadopago">Mercado Pago</option>
+                  </select>
+                </div>
+              </>
+            )}
 
             {/* Terms */}
             <label
@@ -1022,7 +1027,7 @@ export default function EventModal({ event, onClose }: EventModalProps) {
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="var(--color-primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
-              Pago seguro y privado
+              {isFreeEvent ? "Reserva segura y privada" : "Pago seguro y privado"}
             </p>
 
             {/* Submit */}
@@ -1033,35 +1038,46 @@ export default function EventModal({ event, onClose }: EventModalProps) {
                 if (!isFormValid) return;
                 setPurchaseError(null);
 
-                if (paymentMethod !== "mercadopago") {
-                  setPurchaseError(
-                    "La integración real disponible en esta etapa es Mercado Pago.",
-                  );
-                  return;
-                }
+                const buyer = {
+                  nombre: firstName.trim(),
+                  apellido: lastName.trim(),
+                  email: email.trim(),
+                  documento: dniNumber.trim(),
+                  tipoDocumento: dniType,
+                };
 
                 setIsSubmittingPurchase(true);
 
                 try {
+                  if (isFreeEvent) {
+                    const freePurchase = await createFreeTicketPurchase({
+                      eventoId: event.id,
+                      cantidad: quantity,
+                      buyer,
+                    });
+
+                    writeStoredBuyerProfile(buyer);
+
+                    window.location.assign(
+                      `/checkout/estado?compra=${encodeURIComponent(freePurchase.compraId)}`,
+                    );
+                    return;
+                  }
+
+                  if (paymentMethod !== "mercadopago") {
+                    setPurchaseError(
+                      "La integración real disponible en esta etapa es Mercado Pago.",
+                    );
+                    return;
+                  }
+
                   const preference = await createCheckoutPreference({
                     eventoId: event.id,
                     cantidad: quantity,
-                    buyer: {
-                      nombre: firstName.trim(),
-                      apellido: lastName.trim(),
-                      email: email.trim(),
-                      documento: dniNumber.trim(),
-                      tipoDocumento: dniType,
-                    },
+                    buyer,
                   });
 
-                  writeStoredBuyerProfile({
-                    nombre: firstName.trim(),
-                    apellido: lastName.trim(),
-                    email: email.trim(),
-                    documento: dniNumber.trim(),
-                    tipoDocumento: dniType,
-                  });
+                  writeStoredBuyerProfile(buyer);
 
                   window.location.assign(preference.checkoutUrl);
                   return;
@@ -1069,7 +1085,9 @@ export default function EventModal({ event, onClose }: EventModalProps) {
                   setPurchaseError(
                     error instanceof Error
                       ? error.message
-                      : "No se pudo iniciar el checkout con Mercado Pago",
+                      : isFreeEvent
+                        ? "No se pudo generar la entrada gratuita"
+                        : "No se pudo iniciar el checkout con Mercado Pago",
                   );
                 } finally {
                   setIsSubmittingPurchase(false);
@@ -1096,8 +1114,12 @@ export default function EventModal({ event, onClose }: EventModalProps) {
               }}
             >
               {isSubmittingPurchase
-                ? "Redirigiendo a Mercado Pago..."
-                : `Pagar ${event.price > 0 ? formatArsVisual(total) : "— Gratis"}`}
+                ? isFreeEvent
+                  ? "Generando entrada..."
+                  : "Redirigiendo a Mercado Pago..."
+                : isFreeEvent
+                  ? "Obtener entrada gratis"
+                  : `Pagar ${formatArsVisual(total)}`}
             </button>
 
             {purchaseError ? (

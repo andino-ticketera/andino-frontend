@@ -197,25 +197,27 @@ export default function OrganizerCheckinPage() {
         ))}
       </div>
 
-      <div
-        style={{
-          background: "var(--bg-surface-2)",
-          borderRadius: "var(--radius-md)",
-          height: "0.625rem",
-          marginBottom: "18px",
-          overflow: "hidden",
-        }}
-      >
+      {progressPct > 0 && (
         <div
           style={{
-            height: "100%",
-            width: `${progressPct}%`,
-            background: "var(--color-primary)",
+            background: "var(--bg-surface-2)",
             borderRadius: "var(--radius-md)",
-            transition: "width 0.3s ease",
+            height: "0.625rem",
+            marginBottom: "18px",
+            overflow: "hidden",
           }}
-        />
-      </div>
+        >
+          <div
+            style={{
+              height: "100%",
+              width: `${progressPct}%`,
+              background: "var(--color-primary)",
+              borderRadius: "var(--radius-md)",
+              transition: "width 0.3s ease",
+            }}
+          />
+        </div>
+      )}
 
       <input
         value={query}
