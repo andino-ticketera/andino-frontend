@@ -72,7 +72,7 @@ export default function IniciarSesionPage() {
 
     const syncOAuthSession = async () => {
       setIsSubmitting(true);
-      setPendingMessage("Validando tu cuenta de Google...");
+      setPendingMessage("Validando tu acceso...");
 
       try {
         const oauthResult = await hydrateSupabaseSessionAuth();
@@ -89,7 +89,7 @@ export default function IniciarSesionPage() {
             ? redirectFromQuery
             : getRedirectByRole(oauthResult.user.rol);
 
-        setFormSuccess("Sesión iniciada con Google. Te redirigimos...");
+        setFormSuccess("Acceso confirmado. Te redirigimos...");
         window.setTimeout(() => {
           if (!cancelled) {
             router.push(destination);
@@ -100,7 +100,7 @@ export default function IniciarSesionPage() {
         const message =
           err instanceof Error
             ? err.message
-            : "No se pudo completar el login con Google";
+            : "No se pudo completar la validacion del acceso";
         setFormError(message);
       } finally {
         if (!cancelled) {

@@ -93,7 +93,7 @@ export default function MisComprasPage() {
               }}
             >
               Revisa tus compras, entra al detalle de cada pedido y recupera tus
-              entradas con QR cuando lo necesites.
+              entradas cuando lo necesites.
             </p>
           </div>
         </section>
